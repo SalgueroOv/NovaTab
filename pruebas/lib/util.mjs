@@ -1,0 +1,94 @@
+// Abre newtab.html como archivo en Chrome sin ventana, con unos datos de prueba, y ofrece
+// atajos para manejar la página: evaluar código, ratón, teclado y leer lo guardado.
+import { join, dirname } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { sleep } from './cdp.mjs';
+import { DATOS_PRUEBA } from './datos-prueba.mjs';
+
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+export const URL_PAGINA = pathToFileURL(join(RAIZ, 'newtab.html')).href;
+
+const TECLAS = {
+  Enter: { code: 'Enter', vk: 13 },
+  Escape: { code: 'Escape', vk: 27 },
+  ArrowDown: { code: 'ArrowDown', vk: 40 },
+  ArrowUp: { code: 'ArrowUp', vk: 38 },
+  Tab: { code: 'Tab', vk: 9 },
+};
+const MODIFICADORES = { alt: 1, ctrl: 2, meta: 4, shift: 8 };
+
+export function afirmar(condicion, mensaje) {
+  if (!condicion) throw new Error(mensaje);
+}
+
+export function igual(real, esperado, mensaje) {
+  const a = JSON.stringify(real);
+  const b = JSON.stringify(esperado);
+  if (a !== b) throw new Error(`${mensaje}: se esperaba ${b} y se obtuvo ${a}`);
+}
+
+// datos: null deja los datos por defecto de la página. topSites simula chrome.topSites.get.
+export function crearAbrir(navegador) {
+  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null } = {}) {
+    const p = await navegador.newPage({ width: ancho, height: alto });
+    const errores = [];
+    await p.send('Runtime.enable');
+    navegador.on(p.sessionId, 'Runtime.exceptionThrown', e =>
+      errores.push(e.exceptionDetails.exception?.description || e.exceptionDetails.text));
+    if (topSites) {
+      await p.send('Page.addScriptToEvaluateOnNewDocument', {
+        source: `window.chrome = { topSites: { get: cb => setTimeout(() => cb(${JSON.stringify(topSites)}), 5) } };`,
+      });
+    }
+    await p.goto(URL_PAGINA, { settleMs: 200 });
+    await p.eval(`localStorage.clear(); ${datos ? `localStorage.setItem('datos', ${JSON.stringify(JSON.stringify(datos))});` : ''}`);
+    await p.goto(URL_PAGINA, { settleMs: 600 });
+
+    const ev = js => p.eval(js);
+    const raton = (type, x, y, botones = 1) => p.send('Input.dispatchMouseEvent', {
+      type, x, y, button: 'left', buttons: type === 'mouseReleased' ? 0 : botones, clickCount: 1,
+    });
+    const centro = selector => ev(`(() => {
+      const el = document.querySelector(${JSON.stringify(selector)});
+      if (!el) throw new Error('no existe ' + ${JSON.stringify(selector)});
+      const r = el.getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    })()`);
+
+    return {
+      p,
+      errores,
+      ev,
+      raton,
+      centro,
+      esperar: sleep,
+      async clic(selector) {
+        await ev(`document.querySelector(${JSON.stringify(selector)}).click()`);
+        await sleep(150);
+      },
+      async arrastrar([x0, y0], [x1, y1], pasos = 10) {
+        await raton('mousePressed', x0, y0);
+        for (let i = 1; i <= pasos; i++) await raton('mouseMoved', x0 + (x1 - x0) * i / pasos, y0 + (y1 - y0) * i / pasos);
+        await raton('mouseReleased', x1, y1);
+        await sleep(300);
+      },
+      async escribir(texto) {
+        await p.send('Input.insertText', { text: texto });
+        await sleep(200);
+      },
+      async tecla(nombre, ...mods) {
+        const t = TECLAS[nombre] || { code: nombre, vk: 0 };
+        const modifiers = mods.reduce((m, k) => m | MODIFICADORES[k], 0);
+        for (const type of ['keyDown', 'keyUp']) {
+          await p.send('Input.dispatchKeyEvent', { type, key: nombre, code: t.code, windowsVirtualKeyCode: t.vk, modifiers });
+        }
+        await sleep(150);
+      },
+      datos: () => ev(`JSON.parse(localStorage.getItem('datos'))`),
+      async recargar() {
+        await p.goto(URL_PAGINA, { settleMs: 600 });
+      },
+      cerrar: () => p.close(),
+    };
+  };
+}

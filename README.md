@@ -23,6 +23,18 @@ powershell -ExecutionPolicy Bypass -File empaquetar\empaquetar.ps1
 
 El paquete queda en `dist/` e incluye un `LEEME.txt` con los pasos de instalación.
 
+## Pruebas
+
+Necesitan Node 22 o superior y Chrome instalado; no hay que instalar nada más.
+
+```bash
+node pruebas/ejecutar.mjs              # todas
+node pruebas/ejecutar.mjs rejilla      # solo las que contienen «rejilla» en el nombre
+node pruebas/ejecutar.mjs --sin-red    # sin las que necesitan Internet
+```
+
+Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pruebas/lib/datos-prueba.mjs`).
+
 ## Estructura
 
 | Archivo | Qué hace |
@@ -35,6 +47,7 @@ El paquete queda en `dist/` e incluye un `LEEME.txt` con los pasos de instalaci�
 | `datos-defecto.js` | Datos de ejemplo de la primera vez |
 | `empaquetar/` | Script del `.zip` para repartir y su `LEEME.txt` |
 | `mockups/` | Las tres propuestas de diseño iniciales |
+| `pruebas/` | Pruebas automáticas en Chrome sin ventana |
 | `docs/` | Hoja de ruta de mejoras |
 
 ## Créditos
