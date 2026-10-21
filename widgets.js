@@ -249,9 +249,14 @@ async function leerNotas() {
 
 async function escribirNotas(notas) {
   if (!notas || typeof notas !== 'object') return;
-  for (const [id, texto] of Object.entries(notas)) {
-    memoriaNotas.set(id, String(texto));
-    await escribir(claveNota(id), String(texto));
+  for (const [id, valor] of Object.entries(notas)) {
+    const texto = String(valor);
+    memoriaNotas.set(id, texto);
+    notasGuardadas.set(id, texto);
+    await escribir(claveNota(id), texto);
+    // La nota en pantalla se conserva al repintar: hay que darle el texto nuevo.
+    const ta = document.querySelector(`textarea[data-nota="${CSS.escape(id)}"]`);
+    if (ta) ta.value = texto;
   }
 }
 

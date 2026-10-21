@@ -846,6 +846,7 @@ async function borrarNotas(conservar = new Set()) {
     for (const clave of Object.keys(localStorage)) if (sobra(clave)) localStorage.removeItem(clave);
   }
   for (const id of [...memoriaNotas.keys()]) if (!conservar.has(id)) memoriaNotas.delete(id);
+  for (const id of [...notasGuardadas.keys()]) if (!conservar.has(id)) notasGuardadas.delete(id);
 }
 
 const idsDeNotas = d => new Set(d.widgets.filter(w => w.tipo === 'notas').map(w => w.id));
