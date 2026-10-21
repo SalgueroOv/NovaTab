@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockup B · Topográfico</title>
+  <link rel="stylesheet" href="comun.css">
+  <style>
+    /* Fondo: curvas de nivel, como un mapa topográfico. */
+    [data-tema="bosque"]  { --bg: #18221d; --l: #23322a; --l2: #2f4438; --panel: rgba(31, 44, 37, .86); }
+    [data-tema="noche"]   { --bg: #111316; --l: #1c2026; --l2: #29303a; --panel: rgba(27, 30, 35, .88); }
+    [data-tema="papel"]   { --bg: #f5f0e6; --l: #e7decb; --l2: #d8c9ab; --panel: rgba(255, 253, 248, .84); }
+    [data-tema="glaciar"] { --bg: #eaf2f6; --l: #d5e4ed; --l2: #b9d1e1; --panel: rgba(255, 255, 255, .82); }
+
+    .fondo path { fill: none; stroke: var(--l); stroke-width: 1; }
+    .fondo path.maestra { stroke: var(--l2); stroke-width: 1.5; }
+
+    .pagina {
+      display: grid;
+      grid-template-columns: minmax(400px, 36%) 1fr;
+      gap: 24px;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .izquierda {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 32px 40px 40px;
+    }
+    .hora { font-size: 112px; font-weight: 300; line-height: .95; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+    .fecha { margin: 12px 0 40px; color: var(--texto-2); font-size: 18px; }
+    .fecha::first-letter { text-transform: uppercase; }
+    .izquierda .buscador { width: 100%; }
+    .internet { margin-top: 40px; }
+    .internet .atajos { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px -4px 0; }
+
+    .derecha {
+      display: flex;
+      flex-direction: column;
+      padding: 36px 40px;
+      border-radius: 28px;
+      background: var(--panel);
+    }
+    .derecha-cab { display: flex; align-items: baseline; gap: 14px; margin-bottom: 24px; }
+    .derecha-cab h2 { margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em; }
+    .grupos { columns: 3 260px; column-gap: 40px; }
+    .grupo { break-inside: avoid; margin-bottom: 28px; }
+    .grupo h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+    .grupo h3 i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+    .fila {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 44px;
+      margin: 0 -10px;
+      padding: 0 10px;
+      border-radius: 12px;
+      color: var(--texto);
+      text-decoration: none;
+    }
+    .fila:hover { background: var(--hover); }
+    .fila .icono { width: 30px; height: 30px; font-size: 10px; }
+    .fila .nombre { flex: 1; min-width: 0; overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+    .fila .dir { color: var(--texto-2); font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .pagina { grid-template-columns: 1fr; }
+      .izquierda { padding: 56px 8px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="fondo" id="fondo"></div>
+  <main class="pagina">
+    <section class="izquierda">
+      <div class="hora" id="hora"></div>
+      <div class="fecha" id="fecha"></div>
+      <div class="buscador" id="buscador"></div>
+      <div class="internet">
+        <span class="etiqueta-zona">Internet</span>
+        <nav class="atajos" id="online" aria-label="Internet"></nav>
+      </div>
+    </section>
+    <section class="derecha" aria-labelledby="t-local">
+      <header class="derecha-cab">
+        <h2 id="t-local">Red local</h2>
+        <span class="etiqueta-zona mono">192.168.1.0/24 · 7 servicios</span>
+      </header>
+      <div class="grupos" id="grupos"></div>
+    </section>
+  </main>
+
+  <script src="../datos-defecto.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    Comun.temas([
+      { id: 'bosque', nombre: 'Bosque', modo: 'oscuro', muestra: ['#18221d', '#2f4438'] },
+      { id: 'noche', nombre: 'Noche', modo: 'oscuro', muestra: ['#111316', '#29303a'] },
+      { id: 'papel', nombre: 'Papel', modo: 'claro', muestra: ['#f5f0e6', '#d8c9ab'] },
+      { id: 'glaciar', nombre: 'Glaciar', modo: 'claro', muestra: ['#eaf2f6', '#b9d1e1'] },
+    ], 'mockup-b-tema');
+    Comun.reloj(document.getElementById('hora'), document.getElementById('fecha'));
+    Comun.buscador(document.getElementById('buscador'));
+
+    document.getElementById('online').append(...Comun.online.flatMap(g => g.enlaces.map(e => Comun.atajo(e, g))));
+    document.getElementById('grupos').append(...Comun.local.map(g => {
+      const d = document.createElement('div');
+      d.className = 'grupo';
+      d.style.setProperty('--c', g.color);
+      d.innerHTML = `<h3><i></i>${g.nombre}</h3>`;
+      for (const e of g.enlaces) {
+        const a = document.createElement('a');
+        a.className = 'fila';
+        a.href = e.url;
+        a.innerHTML = `<span class="nombre"></span><span class="dir mono"></span>`;
+        a.querySelector('.nombre').textContent = e.nombre;
+        a.querySelector('.dir').textContent = Comun.direccion(e.url);
+        a.prepend(Comun.icono(e, g));
+        d.append(a);
+      }
+      return d;
+    }));
+
+    // Anillos deformados alrededor de dos cimas; cada quinto anillo es una curva maestra.
+    Comun.alRedimensionar(() => {
+      const w = innerWidth, h = innerHeight, r = Comun.azar(11);
+      const cimas = [[w * 0.08, h * 0.92], [w * 0.86, h * 0.12]];
+      const caminos = [];
+      for (const [cx, cy] of cimas) {
+        const f1 = r() * 6, f2 = r() * 6;
+        for (let k = 1; k <= 20; k++) {
+          const base = k * 34;
+          const puntos = [];
+          for (let i = 0; i <= 140; i++) {
+            const t = i / 140 * Math.PI * 2;
+            const rr = base * (1 + 0.11 * Math.sin(3 * t + f1 + k * 0.18) + 0.06 * Math.sin(5 * t + f2 - k * 0.12));
+            puntos.push(`${(cx + rr * Math.cos(t)).toFixed(1)},${(cy + rr * Math.sin(t)).toFixed(1)}`);
+          }
+          caminos.push(`<path class="${k % 5 === 0 ? 'maestra' : ''}" d="M${puntos.join('L')}Z"/>`);
+        }
+      }
+      document.getElementById('fondo').innerHTML = `<svg viewBox="0 0 ${w} ${h}">${caminos.join('')}</svg>`;
+    });
+  </script>
+</body>
+</html>

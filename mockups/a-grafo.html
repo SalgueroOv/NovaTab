@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockup A · Grafo</title>
+  <link rel="stylesheet" href="comun.css">
+  <style>
+    /* Fondo: un grafo de nodos y aristas, guiño a Neo4j y a la red. */
+    [data-tema="medianoche"] { --bg: #14171c; --l: #222932; --n: #2c3743; --n2: #3e5a75; --panel: rgba(30, 35, 43, .82); }
+    [data-tema="grafito"]    { --bg: #1b1b1d; --l: #28282b; --n: #343438; --n2: #55555b; --panel: rgba(37, 37, 40, .82); }
+    [data-tema="niebla"]     { --bg: #eef1f5; --l: #dde3ea; --n: #cdd6e0; --n2: #a6bdd6; --panel: rgba(255, 255, 255, .78); }
+    [data-tema="menta"]      { --bg: #eef6f2; --l: #d8eadf; --n: #c4dfcf; --n2: #94c7aa; --panel: rgba(255, 255, 255, .78); }
+
+    .fondo line { stroke: var(--l); stroke-width: 1; }
+    .fondo circle { fill: var(--n); }
+    .fondo circle.grande { fill: var(--n2); }
+
+    .pagina {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      min-height: 100vh;
+      padding: 0 32px 32px;
+    }
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 0 24px;
+    }
+    .hora { font-size: 76px; font-weight: 300; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+    .fecha { margin: 8px 0 32px; color: var(--texto-2); font-size: 16px; }
+    .fecha::first-letter { text-transform: uppercase; }
+    .atajos-online { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 28px; }
+
+    .local-cab { display: flex; align-items: baseline; gap: 12px; margin: 0 4px 12px; }
+    .local-cab h2 { margin: 0; font-size: 18px; font-weight: 600; }
+    .paneles { display: flex; flex-wrap: wrap; gap: 16px; }
+    .panel {
+      flex: var(--n-enlaces) 1 calc(var(--n-enlaces) * 100px + 32px);
+      padding: 14px 16px 8px;
+      border-radius: 20px;
+      background: var(--panel);
+    }
+    .panel h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px 8px; font-size: 14px; font-weight: 600; }
+    .panel h3 i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+    .panel h3 span { color: var(--texto-2); font-size: 12px; font-weight: 400; }
+    .panel .atajos { display: flex; flex-wrap: wrap; gap: 4px; }
+  </style>
+</head>
+<body>
+  <div class="fondo" id="fondo"></div>
+  <main class="pagina">
+    <section class="hero">
+      <div class="hora" id="hora"></div>
+      <div class="fecha" id="fecha"></div>
+      <div class="buscador" id="buscador"></div>
+      <nav class="atajos-online" id="online" aria-label="Internet"></nav>
+    </section>
+    <section aria-labelledby="t-local">
+      <header class="local-cab">
+        <h2 id="t-local">Red local</h2>
+        <span class="etiqueta-zona mono">192.168.1.0/24 · 7 servicios</span>
+      </header>
+      <div class="paneles" id="paneles"></div>
+    </section>
+  </main>
+
+  <script src="../datos-defecto.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    Comun.temas([
+      { id: 'medianoche', nombre: 'Medianoche', modo: 'oscuro', muestra: ['#14171c', '#3e5a75'] },
+      { id: 'grafito', nombre: 'Grafito', modo: 'oscuro', muestra: ['#1b1b1d', '#55555b'] },
+      { id: 'niebla', nombre: 'Niebla', modo: 'claro', muestra: ['#eef1f5', '#a6bdd6'] },
+      { id: 'menta', nombre: 'Menta', modo: 'claro', muestra: ['#eef6f2', '#94c7aa'] },
+    ], 'mockup-a-tema');
+    Comun.reloj(document.getElementById('hora'), document.getElementById('fecha'));
+    Comun.buscador(document.getElementById('buscador'));
+
+    document.getElementById('online').append(...Comun.online.flatMap(g => g.enlaces.map(e => Comun.atajo(e, g))));
+    document.getElementById('paneles').append(...Comun.local.map(g => {
+      const p = document.createElement('div');
+      p.className = 'panel';
+      p.style.setProperty('--n-enlaces', g.enlaces.length);
+      p.style.setProperty('--c', g.color);
+      p.innerHTML = `<h3><i></i>${g.nombre}<span>${g.enlaces.length}</span></h3><div class="atajos"></div>`;
+      p.querySelector('.atajos').append(...g.enlaces.map(e => Comun.atajo(e, g)));
+      return p;
+    }));
+
+    // Nodos al azar (con semilla) unidos a sus dos vecinos más cercanos.
+    Comun.alRedimensionar(() => {
+      const w = innerWidth, h = innerHeight, r = Comun.azar(7);
+      const nodos = Array.from({ length: Math.round(w * h / 15000) }, () => ({ x: r() * w, y: r() * h, s: r() }));
+      const aristas = new Set();
+      nodos.forEach((a, i) => {
+        nodos.map((b, j) => [j, (a.x - b.x) ** 2 + (a.y - b.y) ** 2]).filter(([j]) => j !== i)
+          .sort((x, y) => x[1] - y[1]).slice(0, 2)
+          .forEach(([j]) => aristas.add(i < j ? `${i}-${j}` : `${j}-${i}`));
+      });
+      const lineas = [...aristas].map(k => { const [i, j] = k.split('-').map(Number); return `<line x1="${nodos[i].x}" y1="${nodos[i].y}" x2="${nodos[j].x}" y2="${nodos[j].y}"/>`; });
+      const circulos = nodos.map(n => n.s > .9
+        ? `<circle class="grande" cx="${n.x}" cy="${n.y}" r="${6 + n.s * 3}"/>`
+        : `<circle cx="${n.x}" cy="${n.y}" r="${2 + n.s * 3}"/>`);
+      document.getElementById('fondo').innerHTML = `<svg viewBox="0 0 ${w} ${h}">${lineas.join('')}${circulos.join('')}</svg>`;
+    });
+  </script>
+</body>
+</html>

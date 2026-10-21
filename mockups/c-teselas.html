@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mockup C · Teselas</title>
+  <link rel="stylesheet" href="comun.css">
+  <style>
+    /* Fondo: teselas geométricas (cuartos de círculo, semicírculos) en tonos muy cercanos al fondo. */
+    [data-tema="pastel"]  { --bg: #f7f4ef; --f1: #f3e7e0; --f2: #e8efe9; --f3: #e7ecf3; --f4: #f4eedf; --local: rgba(255, 255, 255, .86); --red: rgba(232, 240, 246, .9); }
+    [data-tema="oceano"]  { --bg: #eaf2f7; --f1: #dfecf4; --f2: #e3f0f2; --f3: #d9e6f0; --f4: #e6eff5; --local: rgba(255, 255, 255, .86); --red: rgba(214, 231, 241, .9); }
+    [data-tema="rosa"]    { --bg: #fbf1f2; --f1: #f7e5e8; --f2: #f5ebe3; --f3: #f1e7f0; --f4: #f9ece6; --local: rgba(255, 255, 255, .86); --red: rgba(246, 226, 230, .9); }
+    [data-tema="carbon"]  { --bg: #18181b; --f1: #222226; --f2: #1f2224; --f3: #222428; --f4: #24221f; --local: rgba(35, 35, 39, .9); --red: rgba(44, 46, 52, .92); }
+
+    .f1 { fill: var(--f1); } .f2 { fill: var(--f2); } .f3 { fill: var(--f3); } .f4 { fill: var(--f4); }
+
+    .pagina {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 0 24px 24px;
+    }
+    .arriba {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6vh 0 4vh;
+    }
+    .saludo { margin-bottom: 28px; font-size: 40px; font-weight: 600; letter-spacing: -0.03em; }
+    .saludo span { color: var(--texto-2); font-weight: 300; font-variant-numeric: tabular-nums; }
+    .arriba .buscador { width: min(760px, 100%); }
+
+    .abajo { display: grid; flex: 1; grid-template-columns: 1fr 360px; gap: 20px; }
+    .zona { padding: 24px 28px; border-radius: 28px; }
+    .zona-cab { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+    .zona-cab h2 { margin: 0; font-size: 20px; font-weight: 600; }
+    .local { background: var(--local); }
+    .red { background: var(--red); }
+
+    .tarjetas { columns: 3 250px; column-gap: 12px; }
+    .tarjeta { break-inside: avoid; margin-bottom: 12px; padding: 12px 8px 8px; border-radius: 18px; background: var(--hover); }
+    .tarjeta h3 { display: flex; align-items: center; gap: 8px; margin: 0 8px 6px; font-size: 13px; font-weight: 600; }
+    .tarjeta h3 i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+    .fila { display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 8px; border-radius: 10px; color: var(--texto); text-decoration: none; }
+    .fila:hover { background: var(--superficie); }
+    .fila .icono { width: 26px; height: 26px; font-size: 9px; }
+    .fila .nombre { flex: 1; min-width: 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .fila .dir { color: var(--texto-2); font-size: 11px; }
+
+    .baldosas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .baldosa {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      aspect-ratio: 1;
+      border-radius: 20px;
+      background: var(--superficie);
+      color: var(--texto);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: transform .15s;
+    }
+    .baldosa:hover { transform: translateY(-2px); }
+    .baldosa .icono { width: 44px; height: 44px; }
+
+    @media (max-width: 900px) {
+      .abajo { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="fondo">
+    <svg aria-hidden="true">
+      <defs>
+        <pattern id="tesela" width="240" height="240" patternUnits="userSpaceOnUse">
+          <path class="f1" d="M0 0h120A120 120 0 0 1 0 120z"/>
+          <path class="f2" d="M120 120h120v120h-120zM120 120a60 60 0 0 0 120 0z" fill-rule="evenodd"/>
+          <circle class="f3" cx="180" cy="60" r="34"/>
+          <path class="f4" d="M0 240v-120a120 120 0 0 1 120 120z"/>
+          <circle class="f1" cx="60" cy="180" r="14"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#tesela)"/>
+    </svg>
+  </div>
+  <main class="pagina">
+    <section class="arriba">
+      <div class="saludo" id="saludo"></div>
+      <div class="buscador" id="buscador"></div>
+    </section>
+    <div class="abajo">
+      <section class="zona local" aria-labelledby="t-local">
+        <header class="zona-cab">
+          <h2 id="t-local">Red local</h2>
+          <span class="etiqueta-zona mono">192.168.1.0/24 · 7 servicios</span>
+        </header>
+        <div class="tarjetas" id="tarjetas"></div>
+      </section>
+      <section class="zona red" aria-labelledby="t-red">
+        <header class="zona-cab">
+          <h2 id="t-red">Internet</h2>
+          <span class="etiqueta-zona">3 sitios</span>
+        </header>
+        <div class="baldosas" id="online"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../datos-defecto.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    Comun.temas([
+      { id: 'pastel', nombre: 'Pastel', modo: 'claro', muestra: ['#f7f4ef', '#f1ddd3'] },
+      { id: 'oceano', nombre: 'Océano', modo: 'claro', muestra: ['#eaf2f7', '#c9dcea'] },
+      { id: 'rosa', nombre: 'Rosa', modo: 'claro', muestra: ['#fbf1f2', '#f4d9de'] },
+      { id: 'carbon', nombre: 'Carbón', modo: 'oscuro', muestra: ['#18181b', '#2c2e34'] },
+    ], 'mockup-c-tema');
+    Comun.buscador(document.getElementById('buscador'));
+
+    const saludo = document.getElementById('saludo');
+    const pintarSaludo = () => {
+      const d = new Date(), h = d.getHours();
+      const texto = h < 6 ? 'Buenas noches' : h < 13 ? 'Buenos días' : h < 21 ? 'Buenas tardes' : 'Buenas noches';
+      saludo.innerHTML = `${texto} <span>${d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>`;
+    };
+    pintarSaludo();
+    setInterval(pintarSaludo, 10000);
+
+    document.getElementById('tarjetas').append(...Comun.local.map(g => {
+      const t = document.createElement('div');
+      t.className = 'tarjeta';
+      t.style.setProperty('--c', g.color);
+      t.innerHTML = `<h3><i></i>${g.nombre}</h3>`;
+      for (const e of g.enlaces) {
+        const a = document.createElement('a');
+        a.className = 'fila';
+        a.href = e.url;
+        a.innerHTML = `<span class="nombre"></span><span class="dir mono"></span>`;
+        a.querySelector('.nombre').textContent = e.nombre;
+        a.querySelector('.dir').textContent = Comun.direccion(e.url);
+        a.prepend(Comun.icono(e, g));
+        t.append(a);
+      }
+      return t;
+    }));
+    document.getElementById('online').append(...Comun.online.flatMap(g => g.enlaces.map(e => {
+      const a = document.createElement('a');
+      a.className = 'baldosa';
+      a.href = e.url;
+      a.append(Comun.icono(e, g), e.nombre);
+      return a;
+    })));
+  </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+MIS SERVICIOS - Página de nueva pestaña para Chrome
+====================================================
+
+Sustituye la pestaña nueva de Chrome por una página con:
+- Buscador de Google (con Modo IA, imágenes, vídeos, noticias y Maps) que también busca en tus enlaces.
+- Tus servicios de casa o del trabajo (servidores, NAS, router...) en grupos que colocas donde quieras.
+- Tus webs favoritas como accesos directos.
+- Widgets: tiempo, notas, Google Calendar, Spotify y tus webs más visitadas.
+- Temas, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
+
+Todo se guarda en tu cuenta de Chrome y se sincroniza entre tus equipos. Nada se envía a ningún servidor.
+
+
+INSTALAR
+--------
+1. Descomprime este .zip en una carpeta que no vayas a borrar,
+   por ejemplo: Documentos\MisServicios
+2. En Chrome, abre la dirección:  chrome://extensions
+3. Activa "Modo de desarrollador" (interruptor arriba a la derecha).
+4. Pulsa "Cargar extensión sin empaquetar" y elige la carpeta del paso 1
+   (la que contiene el archivo manifest.json).
+5. Abre una pestaña nueva. Si Chrome pregunta si quieres mantener los cambios
+   de la pestaña nueva, pulsa "Mantener".
+
+Chrome puede mostrar de vez en cuando un aviso sobre extensiones en modo
+desarrollador: puedes ignorarlo.
+
+Si aparece una barra abajo con "Mis servicios" y "Personalizar Chrome", se quita
+con el botón "Personalizar Chrome" -> "Pie de página" -> desactivar
+"Mostrar pie de página en la página Nueva pestaña".
+
+
+PRIMEROS PASOS
+--------------
+- La página trae un ejemplo con IPs típicas de casa (192.168.1.x). Cámbialas por las tuyas:
+  pulsa el lápiz (arriba a la derecha) y haz clic en un enlace para editarlo.
+- Con el lápiz activo puedes añadir grupos, enlaces y widgets, arrastrarlos por su título
+  y cambiar su tamaño desde el borde.
+- La paleta cambia el tema y tiene las opciones (fondo de los grupos, modo sobrio).
+- Haz de vez en cuando una copia con "Exportar" (con el lápiz activo).
+
+
+ACTUALIZAR A UNA VERSIÓN NUEVA
+------------------------------
+1. Descomprime el .zip nuevo encima de la misma carpeta (sustituye los archivos).
+2. En chrome://extensions pulsa el botón de recargar (flecha circular) de "Mis servicios".
+Tus enlaces, posiciones y ajustes se conservan.
+
+
+PERMISOS QUE PIDE
+-----------------
+- Almacenamiento: guardar tus enlaces y ajustes (y sincronizarlos con tu cuenta de Chrome).
+- Favicons: mostrar el icono de cada web.
+- Ubicación: solo si en el widget del tiempo pulsas "Usar mi ubicación".
+- Sitios más visitados: solo para el widget "Más usadas".
+
+
+CRÉDITOS
+--------
+Fuentes: Public Sans y JetBrains Mono (SIL Open Font License).
+Logos: Dashboard Icons (Apache-2.0). Iconos: Lucide (ISC). Tiempo: Open-Meteo.

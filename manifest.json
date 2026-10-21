@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Mis servicios",
+  "description": "Página de inicio con los enlaces a los servicios de mis servidores.",
+  "version": "3.2.0",
+  "chrome_url_overrides": { "newtab": "newtab.html" },
+  "permissions": ["storage", "favicon", "geolocation", "topSites"],
+  "action": { "default_title": "Mis servicios" },
+  "background": { "service_worker": "background.js" }
+}

@@ -1,0 +1,207 @@
+/* Común a los tres mockups: tipografía, buscador estilo Google, iconos, atajos y selector de tema. */
+
+@font-face {
+  font-family: "Public Sans";
+  src: url("../fuentes/public-sans.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: block;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fuentes/jetbrains-mono.woff2") format("woff2");
+  font-weight: 400 600;
+  font-display: block;
+}
+
+[data-modo="claro"] {
+  color-scheme: light;
+  --texto: #1f1f1f;
+  --texto-2: #5f6368;
+  --superficie: #ffffff;
+  --superficie-2: #f1f3f4;
+  --hover: rgba(0, 0, 0, .05);
+  --borde: rgba(0, 0, 0, .08);
+  --acento: #1a73e8;
+  --sombra: 0 1px 6px rgba(32, 33, 36, .16);
+  --sombra-fuerte: 0 2px 14px rgba(32, 33, 36, .24);
+}
+[data-modo="oscuro"] {
+  color-scheme: dark;
+  --texto: #e8eaed;
+  --texto-2: #9aa0a6;
+  --superficie: #2a2d33;
+  --superficie-2: #363a41;
+  --hover: rgba(255, 255, 255, .06);
+  --borde: rgba(255, 255, 255, .08);
+  --acento: #8ab4f8;
+  --sombra: 0 1px 6px rgba(0, 0, 0, .35);
+  --sombra-fuerte: 0 4px 18px rgba(0, 0, 0, .5);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--texto);
+  font: 400 14px/1.45 "Public Sans", system-ui, sans-serif;
+  overflow-x: hidden;
+  transition: background-color .3s, color .3s;
+}
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+.fondo { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.fondo svg { display: block; width: 100%; height: 100%; }
+.fondo * { transition: fill .3s, stroke .3s; }
+.pagina { position: relative; z-index: 1; }
+
+/* ---------- Buscador ---------- */
+
+.buscador { position: relative; width: min(720px, 100%); height: 52px; }
+.caja {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 20;
+  overflow: hidden;
+  border-radius: 26px;
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+.buscador:hover .caja, .buscador:focus-within .caja { box-shadow: var(--sombra-fuerte); }
+.fila-input { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 8px 0 18px; }
+.fila-input > .ico { width: 20px; height: 20px; flex: none; fill: var(--texto-2); }
+.fila-input input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--texto);
+  font-family: inherit;
+  font-size: 16px;
+}
+.fila-input input::placeholder { color: var(--texto-2); }
+.fila-input input::-webkit-search-cancel-button { display: none; }
+.modo-ia {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--superficie-2);
+  color: var(--texto);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.modo-ia:hover { filter: brightness(.96); }
+.modo-ia .ico { width: 16px; height: 16px; fill: var(--acento); }
+
+.sugerencias { display: none; padding: 6px 0 10px; border-top: 1px solid var(--borde); }
+.abierto .sugerencias { display: block; }
+.sugerencia {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 44px;
+  padding: 0 20px;
+  color: var(--texto);
+  text-decoration: none;
+}
+.sugerencia.sel { background: var(--superficie-2); }
+.sugerencia .icono { width: 28px; height: 28px; font-size: 10px; }
+.sugerencia .favicon { padding: 5px; }
+.sugerencia > .ico { width: 20px; height: 20px; margin: 0 4px; flex: none; fill: var(--texto-2); }
+.s-titulo { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s-sub { color: var(--texto-2); font-size: 12px; }
+.s-etiqueta { min-width: 72px; color: var(--texto-2); font-size: 12px; text-align: right; }
+.separador { height: 1px; margin: 6px 0; background: var(--borde); }
+
+/* ---------- Iconos y atajos ---------- */
+
+.icono {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+.letras { background: var(--tono); color: #202124; font-size: 14px; font-weight: 700; }
+img.favicon { padding: 11px; background: #ffffff; object-fit: contain; }
+
+.atajo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 96px;
+  padding: 14px 4px 10px;
+  border-radius: 14px;
+  color: var(--texto);
+  text-decoration: none;
+  transition: background-color .15s;
+}
+.atajo:hover, .atajo:focus-visible { background: var(--hover); outline: none; }
+.atajo .nombre { max-width: 100%; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.atajo .puerto { margin-top: -6px; color: var(--texto-2); font-size: 11px; }
+
+/* ---------- Esquina: editar y tema ---------- */
+
+.esquina { position: fixed; top: 16px; right: 16px; z-index: 30; display: flex; gap: 8px; }
+.icono-boton {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+  color: var(--texto);
+  cursor: pointer;
+}
+.icono-boton:hover { background: var(--superficie-2); }
+.icono-boton svg { width: 20px; height: 20px; fill: currentColor; }
+.panel-tema {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 300px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--superficie);
+  box-shadow: var(--sombra-fuerte);
+}
+.panel-tema h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
+.muestras { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.muestra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.muestra:hover { background: var(--hover); }
+.muestra[aria-pressed="true"] { border-color: var(--acento); box-shadow: inset 0 0 0 1px var(--acento); }
+.muestra i {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 1px solid var(--borde);
+  border-radius: 50%;
+  background: conic-gradient(var(--m2) 0 25%, var(--m1) 0 100%);
+}
+
+.etiqueta-zona { color: var(--texto-2); font-size: 12px; font-weight: 500; letter-spacing: .02em; }

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es" data-tema="bosque" data-modo="oscuro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nueva pestaña</title>
+  <link rel="preload" href="fuentes/public-sans.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="fondo" id="fondo" aria-hidden="true"></div>
+
+  <main class="pagina">
+    <section class="izquierda">
+      <div class="hora" id="hora"></div>
+      <div class="fecha" id="fecha"></div>
+      <div class="buscador" id="buscador">
+        <div class="caja">
+          <div class="fila-input">
+            <span id="ico-buscar"></span>
+            <input id="buscar" type="search" placeholder="Busca en Google o en tus servicios" autocomplete="off" spellcheck="false" autofocus aria-label="Buscar">
+            <a class="modo-ia" id="modo-ia" href="https://www.google.com/search?udm=50"></a>
+          </div>
+          <div class="sugerencias" id="sugerencias" role="listbox"></div>
+        </div>
+      </div>
+      <div class="internet">
+        <div class="internet-cab solo-edicion">
+          <button class="boton-texto solo-edicion" type="button" data-nuevo-grupo="online">Añadir grupo</button>
+        </div>
+        <div id="online"></div>
+      </div>
+      <div class="rejilla rejilla-izq" id="rejilla-izq" data-panel="izq" style="--columnas: 6" aria-label="Widgets"></div>
+    </section>
+
+    <section class="derecha" aria-labelledby="t-local">
+      <header class="derecha-cab">
+        <h1 id="t-local" class="titulo-editable" data-titulo="local" spellcheck="false">Red local</h1>
+        <span class="etiqueta-zona mono" id="resumen-local"></span>
+        <div class="barra-edicion solo-edicion">
+          <button class="boton-texto" type="button" data-nuevo-grupo="local">Añadir grupo</button>
+          <button class="boton-texto" type="button" id="btn-nuevo-widget">Añadir widget</button>
+          <button class="boton-texto" type="button" id="btn-exportar" title="Descargar copia en JSON">Exportar</button>
+          <button class="boton-texto" type="button" id="btn-importar" title="Cargar copia en JSON">Importar</button>
+          <button class="boton-texto" type="button" id="btn-restaurar" title="Volver a la lista inicial">Restaurar</button>
+          <button class="boton-texto primario" type="button" id="btn-listo">Listo</button>
+          <input id="archivo" type="file" accept=".json,application/json" hidden>
+        </div>
+      </header>
+      <p class="ayuda solo-edicion">Arrastra un grupo o widget por su título para colocarlo; el borde derecho cambia su ancho y la esquina de un widget, su tamaño. Clic en un enlace para editarlo y en el título de un panel para renombrarlo.</p>
+      <div class="rejilla" id="rejilla" data-panel="der" style="--columnas: 12"></div>
+      <p class="vacio" id="vacio-local" hidden>No hay grupos locales. Pulsa el lápiz y «Añadir grupo».</p>
+    </section>
+    <!-- Botones de paneles, edición y tema: en la cabecera del panel derecho (ver style.css). -->
+    <div class="esquina">
+      <button class="icono-boton" type="button" id="btn-reunion" aria-pressed="false"></button>
+      <button class="icono-boton boton-panel" type="button" id="btn-panel-izq" aria-pressed="true"></button>
+      <button class="icono-boton boton-panel" type="button" id="btn-panel-der" aria-pressed="true"></button>
+      <button class="icono-boton" type="button" id="btn-editar" title="Editar enlaces" aria-pressed="false"></button>
+      <button class="icono-boton" type="button" id="btn-tema" title="Personalizar" aria-expanded="false"></button>
+      <div class="panel-tema" id="panel-tema" hidden>
+        <h2>Tema</h2>
+        <div class="muestras" id="muestras"></div>
+        <h2 class="opciones-titulo">Opciones</h2>
+        <label class="opcion"><input type="checkbox" id="opt-fondo-grupos" checked> Fondo de color en los grupos</label>
+        <label class="opcion"><input type="checkbox" id="opt-sobrio"> Modo sobrio: iconos y colores en el tono del tema</label>
+      </div>
+    </div>
+  </main>
+
+  <dialog id="dlg-enlace">
+    <form method="dialog">
+      <h2>Enlace</h2>
+      <label>Nombre <input name="nombre" required></label>
+      <label>URL <input name="url" type="url" required placeholder="https://192.168.1.10:8006/"></label>
+      <label>Grupo <select name="grupo"></select></label>
+      <div class="campo-icono">
+        <span class="etiqueta-campo">Icono</span>
+        <div class="fila-icono">
+          <span id="vista-icono"></span>
+          <span id="nombre-icono" class="nombre-icono"></span>
+          <button class="boton-texto" type="button" id="btn-elegir-icono">Elegir</button>
+          <button class="boton-texto" type="button" id="btn-quitar-icono">Quitar</button>
+        </div>
+        <input type="hidden" name="icono">
+      </div>
+      <menu>
+        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button value="ok" class="primario">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-grupo">
+    <form method="dialog">
+      <h2>Grupo</h2>
+      <label>Nombre <input name="nombre" required></label>
+      <label>Zona
+        <select name="zona">
+          <option value="local">Red local</option>
+          <option value="online">Internet</option>
+        </select>
+      </label>
+      <label>Color <input name="color" type="color"></label>
+      <label class="opcion opcion-dialogo"><input type="checkbox" name="privado"> Privado: se oculta en modo reunión</label>
+      <menu>
+        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button value="ok" class="primario">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-icono">
+    <form method="dialog">
+      <h2>Elegir icono</h2>
+      <div class="selector-cab">
+        <input type="search" id="icono-buscar" placeholder="Buscar…" autocomplete="off" spellcheck="false" aria-label="Buscar icono">
+        <div class="pestanas" role="tablist">
+          <button type="button" role="tab" data-set="apps" aria-selected="true">Apps</button>
+          <button type="button" role="tab" data-set="lucide" aria-selected="false">Iconos</button>
+        </div>
+      </div>
+      <div class="rejilla-iconos" id="icono-resultados"></div>
+      <p class="dlg-estado" id="icono-estado"></p>
+      <p class="dlg-ayuda creditos">Logos: Dashboard Icons (Apache-2.0) · Iconos: Lucide (ISC)</p>
+      <menu>
+        <button type="button" id="icono-quitar">Sin icono</button>
+        <button value="cancelar" formnovalidate>Cancelar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-widget">
+    <form method="dialog">
+      <h2>Widget</h2>
+      <div class="dlg-cuerpo"></div>
+      <menu>
+        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button value="ok" class="primario">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <div id="aviso" class="aviso" role="status" hidden></div>
+
+  <script src="datos-defecto.js"></script>
+  <script src="widgets.js"></script>
+  <script src="iconos.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
