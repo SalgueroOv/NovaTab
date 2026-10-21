@@ -42,7 +42,6 @@
           <button class="boton-texto" type="button" id="btn-nuevo-widget">Añadir widget</button>
           <button class="boton-texto" type="button" id="btn-exportar" title="Descargar copia en JSON">Exportar</button>
           <button class="boton-texto" type="button" id="btn-importar" title="Cargar copia en JSON">Importar</button>
-          <button class="boton-texto" type="button" id="btn-restaurar" title="Volver a la lista inicial">Restaurar</button>
           <button class="boton-texto primario" type="button" id="btn-listo">Listo</button>
           <input id="archivo" type="file" accept=".json,application/json" hidden>
         </div>
@@ -64,6 +63,7 @@
         <h2 class="opciones-titulo">Opciones</h2>
         <label class="opcion"><input type="checkbox" id="opt-fondo-grupos" checked> Fondo de color en los grupos</label>
         <label class="opcion"><input type="checkbox" id="opt-sobrio"> Modo sobrio: iconos y colores en el tono del tema</label>
+        <button class="boton-texto peligro" type="button" id="btn-restablecer">Restablecer todo…</button>
       </div>
     </div>
   </main>
@@ -106,6 +106,18 @@
       <menu>
         <button value="cancelar" formnovalidate>Cancelar</button>
         <button value="ok" class="primario">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-restablecer">
+    <form method="dialog">
+      <h2>Restablecer todo</h2>
+      <p class="dlg-aviso">Se borran tus grupos, enlaces, widgets, notas y nombres de panel, y vuelve el ejemplo inicial. No se puede deshacer: si quieres una copia, usa antes «Exportar» en modo edición.</p>
+      <label>Escribe BORRAR para confirmar <input id="texto-restablecer" autocomplete="off" spellcheck="false"></label>
+      <menu>
+        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button value="ok" class="primario peligro" id="confirmar-restablecer" disabled>Restablecer</button>
       </menu>
     </form>
   </dialog>

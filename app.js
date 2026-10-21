@@ -825,10 +825,33 @@ $('#archivo').addEventListener('change', async ev => {
   }
 });
 
-$('#btn-restaurar').addEventListener('click', async () => {
-  if (!confirm('¿Volver a la lista inicial? Se perderán los cambios.')) return;
+// Restablecer todo: los datos de ejemplo y ninguna nota guardada (sin widgets, serían huérfanas).
+async function restablecerTodo() {
   datos = normalizar(DATOS_DEFECTO);
+  memoriaNotas.clear();
+  if (hayChrome) {
+    for (const area of [chrome.storage.sync, chrome.storage.local]) {
+      const todo = await area.get(null);
+      await area.remove(Object.keys(todo).filter(k => k.startsWith('nota:')));
+    }
+  } else {
+    for (const k of Object.keys(localStorage)) if (k.startsWith('nota:')) localStorage.removeItem(k);
+  }
   await guardarYPintar();
+}
+
+$('#btn-restablecer').addEventListener('click', () => {
+  panelTema.hidden = true;
+  $('#texto-restablecer').value = '';
+  $('#confirmar-restablecer').disabled = true;
+  $('#dlg-restablecer').returnValue = '';
+  $('#dlg-restablecer').showModal();
+});
+$('#texto-restablecer').addEventListener('input', ev => {
+  $('#confirmar-restablecer').disabled = ev.target.value !== 'BORRAR';
+});
+$('#dlg-restablecer').addEventListener('close', ev => {
+  if (ev.target.returnValue === 'ok') restablecerTodo();
 });
 
 // ---------- Mover y redimensionar grupos en la rejilla (modo edición) ----------

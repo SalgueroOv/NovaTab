@@ -178,6 +178,11 @@ button { font: inherit; color: inherit; }
 .panel-tema .opciones-titulo { margin-top: 18px; }
 .opcion { display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; }
 .opcion + .opcion { margin-top: 10px; }
+#btn-restablecer { width: 100%; margin-top: 18px; }
+.boton-texto.peligro { border-color: #e5566f; color: #e5566f; }
+dialog .primario.peligro { border-color: #e5566f; background: #e5566f; color: #ffffff; }
+dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
+.dlg-aviso { margin: -8px 0 16px; color: var(--texto-2); font-size: 13px; }
 .opcion input { width: 16px; height: 16px; margin: 0; accent-color: var(--acento); }
 .muestras { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .muestra {

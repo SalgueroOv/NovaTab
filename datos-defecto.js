@@ -1,4 +1,4 @@
-// Datos iniciales: una red doméstica de ejemplo. Solo se usan la primera vez o al pulsar "Restaurar";
+// Datos iniciales: una red doméstica de ejemplo. Solo se usan la primera vez o al pulsar «Restablecer todo»;
 // después todo se edita desde la propia página (icono del lápiz).
 // zona: 'local' (servicios de tu red) u 'online' (sitios de Internet).
 // pos: sitio del grupo local en la rejilla de 12 columnas (x = columna, y = fila, w = ancho).
