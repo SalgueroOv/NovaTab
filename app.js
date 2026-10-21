@@ -102,7 +102,8 @@ function normalizar(d) {
     pos: g.zona === 'online' ? null : posValida(g.pos),
     plegado: !!g.plegado,
     privado: !!g.privado,
-    enlaces: (g.enlaces || []).map(e => ({
+    // Solo enlaces http y https: un javascript: o data: importado o guardado se descarta.
+    enlaces: (g.enlaces || []).filter(e => urlSegura(String(e?.url || ''))).map(e => ({
       id: e.id || nuevoId(),
       nombre: String(e.nombre || ''),
       url: String(e.url || ''),
@@ -239,6 +240,14 @@ function crear(tag, clase, texto) {
   if (clase) el.className = clase;
   if (texto != null) el.textContent = texto;
   return el;
+}
+
+function urlSegura(url) {
+  try {
+    return ['http:', 'https:'].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
 }
 
 function partes(url) {
@@ -693,6 +702,7 @@ async function nuevoEnlace(gid) {
   if (!datos.grupos.length) return nuevoGrupo('local');
   const r = await dialogoEnlace('Nuevo enlace', { nombre: '', url: '', grupo: gid || datos.grupos[0].id, icono: '' });
   if (!r) return;
+  if (!urlSegura(r.url.trim())) return avisar('Solo direcciones http:// o https://');
   grupo(r.grupo).enlaces.push({ id: nuevoId(), nombre: r.nombre.trim(), url: r.url.trim(), icono: leerIcono(r.icono) });
   await guardarYPintar(grupo(r.grupo));
 }
@@ -702,6 +712,7 @@ async function editarEnlace(gid, eid) {
   const e = g.enlaces.find(x => x.id === eid);
   const r = await dialogoEnlace('Editar enlace', { nombre: e.nombre, url: e.url, grupo: gid, icono: e.icono ? JSON.stringify(e.icono) : '' });
   if (!r) return;
+  if (!urlSegura(r.url.trim())) return avisar('Solo direcciones http:// o https://');
   e.nombre = r.nombre.trim();
   e.url = r.url.trim();
   e.icono = leerIcono(r.icono);

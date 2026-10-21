@@ -72,7 +72,7 @@
     <form method="dialog">
       <h2>Enlace</h2>
       <label>Nombre <input name="nombre" required></label>
-      <label>URL <input name="url" type="url" required placeholder="https://192.168.1.10:8006/"></label>
+      <label>URL <input name="url" type="url" required pattern="https?://.+" title="Solo direcciones http:// o https://" placeholder="https://192.168.1.10:8006/"></label>
       <label>Grupo <select name="grupo"></select></label>
       <div class="campo-icono">
         <span class="etiqueta-campo">Icono</span>
