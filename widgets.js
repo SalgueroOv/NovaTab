@@ -24,9 +24,11 @@ const widget = id => datos.widgets.find(w => w.id === id);
 
 function pintarWidget(w) {
   const src = srcDe(w);
-  // Un reproductor o calendario ya cargado se conserva: rehacerlo cortaría la música.
+  // Un reproductor o calendario ya cargado, o una nota, se conservan al repintar: rehacerlos cortaría
+  // la música o quitaría el foco a quien está escribiendo.
+  const conservar = src || (w.tipo === 'notas' ? claveNota(w.id) : null);
   const previo = document.querySelector(`.rejilla .widget[data-id="${w.id}"]`);
-  const sec = src && previo?.dataset.src === src ? previo : crear('section', `bloque widget widget-${w.tipo}`);
+  const sec = conservar && previo?.dataset.conservar === conservar ? previo : crear('section', `bloque widget widget-${w.tipo}`);
   sec.style.gridColumn = `${w.pos.x} / span ${w.pos.w}`;
   sec.style.gridRow = `${w.pos.y} / span ${alto(w)}`;
   sec.style.transform = '';
@@ -38,10 +40,8 @@ function pintarWidget(w) {
   }
 
   sec.dataset.id = w.id;
-  if (src) {
-    sec.dataset.src = src;
-    sec.classList.add('widget-iframe');
-  }
+  if (conservar) sec.dataset.conservar = conservar;
+  if (src) sec.classList.add('widget-iframe');
   const cab = crear('div', 'widget-cab');
   cab.append(crear('h3', null, tituloWidget(w)));
   if (WIDGETS[w.tipo].configurable) cab.append(botonWidget('configurar', 'lapiz', 'Configurar widget'));
@@ -204,6 +204,7 @@ function vistaTiempo(d) {
 // Cada nota va en su propia clave de storage.sync (8 KB por clave) para no llenar la de los enlaces.
 
 const memoriaNotas = new Map();
+const notasGuardadas = new Map();
 const claveNota = id => `nota:${id}`;
 
 function pintarNotas(w, cuerpo) {
@@ -217,11 +218,17 @@ function pintarNotas(w, cuerpo) {
     leer(claveNota(w.id)).then(v => {
       const texto = typeof v === 'string' ? v : '';
       memoriaNotas.set(w.id, texto);
+      notasGuardadas.set(w.id, texto);
       if (document.activeElement !== ta) ta.value = texto;
     });
   }
   let espera;
-  const guardarNota = () => { clearTimeout(espera); escribir(claveNota(w.id), ta.value); };
+  const guardarNota = () => {
+    clearTimeout(espera);
+    if (notasGuardadas.get(w.id) === ta.value) return;
+    notasGuardadas.set(w.id, ta.value);
+    escribir(claveNota(w.id), ta.value);
+  };
   ta.addEventListener('input', () => {
     memoriaNotas.set(w.id, ta.value);
     clearTimeout(espera);

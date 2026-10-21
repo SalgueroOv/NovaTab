@@ -98,7 +98,7 @@ function normalizar(d) {
     id: g.id || nuevoId(),
     nombre: String(g.nombre || 'Sin nombre'),
     zona: g.zona === 'online' ? 'online' : 'local',
-    color: g.color || '#8a8c92',
+    color: /^#[0-9a-f]{3,8}$/i.test(g.color) ? g.color : '#8a8c92',
     pos: g.zona === 'online' ? null : posValida(g.pos),
     plegado: !!g.plegado,
     privado: !!g.privado,
@@ -541,11 +541,19 @@ sugerencias.addEventListener('mousemove', ev => {
 document.addEventListener('click', ev => {
   if (!caja.contains(ev.target)) caja.classList.remove('abierto');
 });
+const escribiendo = el => !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
+
 document.addEventListener('keydown', ev => {
-  if (ev.key === '/' && document.activeElement !== buscar && !$('dialog[open]')) {
+  if (ev.key === '/' && !escribiendo(document.activeElement) && !$('dialog[open]')) {
     ev.preventDefault();
     buscar.focus();
   }
+});
+
+// Cancelar no es un botón de envío (así Enter en un campo guarda): cierra su diálogo sin más.
+document.addEventListener('click', ev => {
+  const cancelar = ev.target.closest('dialog button[data-cerrar]');
+  if (cancelar) cancelar.closest('dialog').close('cancelar');
 });
 
 // ---------- Tema ----------
@@ -816,6 +824,7 @@ $('#archivo').addEventListener('change', async ev => {
     const leido = JSON.parse(await archivo.text());
     const nuevos = normalizar(leido);
     if (!confirm('¿Reemplazar todos los enlaces por los del archivo?')) return;
+    await borrarNotas(idsDeNotas(nuevos));
     await escribirNotas(leido.notas);
     datos = nuevos;
     await guardarYPintar();
@@ -825,18 +834,32 @@ $('#archivo').addEventListener('change', async ev => {
   }
 });
 
-// Restablecer todo: los datos de ejemplo y ninguna nota guardada (sin widgets, serían huérfanas).
-async function restablecerTodo() {
-  datos = normalizar(DATOS_DEFECTO);
-  memoriaNotas.clear();
+// Borra las notas guardadas cuyo widget no está en «conservar» (ids de widget); sin argumento, todas.
+async function borrarNotas(conservar = new Set()) {
+  const sobra = clave => clave.startsWith('nota:') && !conservar.has(clave.slice(5));
   if (hayChrome) {
     for (const area of [chrome.storage.sync, chrome.storage.local]) {
       const todo = await area.get(null);
-      await area.remove(Object.keys(todo).filter(k => k.startsWith('nota:')));
+      await area.remove(Object.keys(todo).filter(sobra));
     }
   } else {
-    for (const k of Object.keys(localStorage)) if (k.startsWith('nota:')) localStorage.removeItem(k);
+    for (const clave of Object.keys(localStorage)) if (sobra(clave)) localStorage.removeItem(clave);
   }
+  for (const id of [...memoriaNotas.keys()]) if (!conservar.has(id)) memoriaNotas.delete(id);
+}
+
+const idsDeNotas = d => new Set(d.widgets.filter(w => w.tipo === 'notas').map(w => w.id));
+
+// Restablecer todo: los datos de ejemplo y ninguna nota guardada. Si no se pueden borrar las notas,
+// no se cambia nada y se avisa (antes se cambiaba la memoria y el siguiente guardado lo hacía a medias).
+async function restablecerTodo() {
+  try {
+    await borrarNotas();
+  } catch (err) {
+    avisar(`No se pudo restablecer: ${err.message}`);
+    return;
+  }
+  datos = normalizar(DATOS_DEFECTO);
   await guardarYPintar();
 }
 

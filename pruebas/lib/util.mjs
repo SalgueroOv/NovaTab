@@ -9,7 +9,7 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const URL_PAGINA = pathToFileURL(join(RAIZ, 'newtab.html')).href;
 
 const TECLAS = {
-  Enter: { code: 'Enter', vk: 13 },
+  Enter: { code: 'Enter', vk: 13, text: '\r' },
   Escape: { code: 'Escape', vk: 27 },
   ArrowDown: { code: 'ArrowDown', vk: 40 },
   ArrowUp: { code: 'ArrowUp', vk: 38 },
@@ -76,11 +76,13 @@ export function crearAbrir(navegador) {
         await p.send('Input.insertText', { text: texto });
         await sleep(200);
       },
+      // Enter lleva su carácter (\r): sin él Chrome no envía el formulario como con un teclado real.
       async tecla(nombre, ...mods) {
         const t = TECLAS[nombre] || { code: nombre, vk: 0 };
         const modifiers = mods.reduce((m, k) => m | MODIFICADORES[k], 0);
         for (const type of ['keyDown', 'keyUp']) {
-          await p.send('Input.dispatchKeyEvent', { type, key: nombre, code: t.code, windowsVirtualKeyCode: t.vk, modifiers });
+          const text = type === 'keyDown' ? t.text : undefined;
+          await p.send('Input.dispatchKeyEvent', { type, key: nombre, code: t.code, windowsVirtualKeyCode: t.vk, modifiers, text });
         }
         await sleep(150);
       },

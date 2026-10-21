@@ -85,7 +85,7 @@
         <input type="hidden" name="icono">
       </div>
       <menu>
-        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button type="button" value="cancelar" data-cerrar>Cancelar</button>
         <button value="ok" class="primario">Guardar</button>
       </menu>
     </form>
@@ -104,7 +104,7 @@
       <label>Color <input name="color" type="color"></label>
       <label class="opcion opcion-dialogo"><input type="checkbox" name="privado"> Privado: se oculta en modo reunión</label>
       <menu>
-        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button type="button" value="cancelar" data-cerrar>Cancelar</button>
         <button value="ok" class="primario">Guardar</button>
       </menu>
     </form>
@@ -116,7 +116,7 @@
       <p class="dlg-aviso">Se borran tus grupos, enlaces, widgets, notas y nombres de panel, y vuelve el ejemplo inicial. No se puede deshacer: si quieres una copia, usa antes «Exportar» en modo edición.</p>
       <label>Escribe BORRAR para confirmar <input id="texto-restablecer" autocomplete="off" spellcheck="false"></label>
       <menu>
-        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button type="button" value="cancelar" data-cerrar>Cancelar</button>
         <button value="ok" class="primario peligro" id="confirmar-restablecer" disabled>Restablecer</button>
       </menu>
     </form>
@@ -137,7 +137,7 @@
       <p class="dlg-ayuda creditos">Logos: Dashboard Icons (Apache-2.0) · Iconos: Lucide (ISC)</p>
       <menu>
         <button type="button" id="icono-quitar">Sin icono</button>
-        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button type="button" value="cancelar" data-cerrar>Cancelar</button>
       </menu>
     </form>
   </dialog>
@@ -147,7 +147,7 @@
       <h2>Widget</h2>
       <div class="dlg-cuerpo"></div>
       <menu>
-        <button value="cancelar" formnovalidate>Cancelar</button>
+        <button type="button" value="cancelar" data-cerrar>Cancelar</button>
         <button value="ok" class="primario">Guardar</button>
       </menu>
     </form>
