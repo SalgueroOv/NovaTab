@@ -1,4 +1,4 @@
-﻿# Genera el .zip de "Mis servicios" para repartir entre amigos.
+﻿# Genera el .zip de "NovaTab" para repartir entre amigos.
 #
 #   powershell -ExecutionPolicy Bypass -File empaquetar\empaquetar.ps1
 #
@@ -14,8 +14,8 @@ $aqui = $PSScriptRoot
 $manifest = Get-Content (Join-Path $raiz 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $version = $manifest.version
 $salida = Join-Path $raiz 'dist'
-$carpeta = Join-Path $salida 'mis-servicios'
-$zip = Join-Path $salida "mis-servicios-$version.zip"
+$carpeta = Join-Path $salida 'novatab'
+$zip = Join-Path $salida "novatab-$version.zip"
 
 # Se vacía la carpeta en lugar de borrarla: así funciona aunque esté abierta en otro programa.
 New-Item -ItemType Directory -Force $carpeta | Out-Null

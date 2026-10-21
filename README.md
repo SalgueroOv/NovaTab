@@ -1,4 +1,4 @@
-# Mis servicios
+# NovaTab
 
 Extensión de Chrome que sustituye la pestaña nueva por una página de inicio para tus servicios de casa o del trabajo (servidores, NAS, router…) y tus webs favoritas.
 

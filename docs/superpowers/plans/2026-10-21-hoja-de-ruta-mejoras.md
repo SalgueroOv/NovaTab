@@ -1,4 +1,4 @@
-# Hoja de ruta de mejoras — "Mis servicios"
+# Hoja de ruta de mejoras — NovaTab
 
 > **Para agentes:** esta es la hoja de ruta (varios subsistemas independientes). Cada fase tendrá su propio plan detallado en `docs/superpowers/plans/` antes de ejecutarse, con superpowers:subagent-driven-development o superpowers:executing-plans.
 

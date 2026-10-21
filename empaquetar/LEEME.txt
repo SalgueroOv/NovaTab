@@ -1,5 +1,5 @@
-MIS SERVICIOS - Página de nueva pestaña para Chrome
-====================================================
+NOVATAB - Página de nueva pestaña para Chrome
+==============================================
 
 Sustituye la pestaña nueva de Chrome por una página con:
 - Buscador de Google (con Modo IA, imágenes, vídeos, noticias y Maps) que también busca en tus enlaces.
@@ -25,7 +25,7 @@ INSTALAR
 Chrome puede mostrar de vez en cuando un aviso sobre extensiones en modo
 desarrollador: puedes ignorarlo.
 
-Si aparece una barra abajo con "Mis servicios" y "Personalizar Chrome", se quita
+Si aparece una barra abajo con "NovaTab" y "Personalizar Chrome", se quita
 con el botón "Personalizar Chrome" -> "Pie de página" -> desactivar
 "Mostrar pie de página en la página Nueva pestaña".
 
@@ -43,7 +43,7 @@ PRIMEROS PASOS
 ACTUALIZAR A UNA VERSIÓN NUEVA
 ------------------------------
 1. Descomprime el .zip nuevo encima de la misma carpeta (sustituye los archivos).
-2. En chrome://extensions pulsa el botón de recargar (flecha circular) de "Mis servicios".
+2. En chrome://extensions pulsa el botón de recargar (flecha circular) de "NovaTab".
 Tus enlaces, posiciones y ajustes se conservan.
 
 
