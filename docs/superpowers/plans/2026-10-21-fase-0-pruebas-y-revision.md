@@ -29,7 +29,7 @@
 
 ---
 
-### Tarea 1: renombrar a NovaTab
+### Task 1 · Tarea 1: renombrar a NovaTab
 
 **Archivos:** modificar `manifest.json` (name, default_title, description), `README.md`, `empaquetar/LEEME.txt`, `empaquetar/empaquetar.ps1` (carpeta `dist/novatab`, zip `novatab-<versión>.zip`), `docs/superpowers/plans/2026-10-21-hoja-de-ruta-mejoras.md` (título).
 
@@ -38,7 +38,7 @@
 - [ ] **Paso 3:** `powershell -ExecutionPolicy Bypass -File empaquetar\empaquetar.ps1` → `Listo: …\dist\novatab-3.2.0.zip`, y su `manifest.json` lleva la misma `key` que `empaquetar/clave-publica.txt`.
 - [ ] **Paso 4:** commit «Renombrar la extensión a NovaTab».
 
-### Tarea 2: infraestructura de pruebas y pruebas existentes
+### Task 2 · Tarea 2: infraestructura de pruebas y pruebas existentes
 
 **Archivos:** crear `pruebas/lib/cdp.mjs` (copia literal de `.claude/skills/design-taste-frontend/scripts/lib/cdp.mjs` con una línea de atribución MIT), `pruebas/lib/util.mjs`, `pruebas/lib/datos-prueba.mjs`, `pruebas/ejecutar.mjs`, `pruebas/rejilla.prueba.mjs`, `pruebas/plegar.prueba.mjs`, `pruebas/reunion.prueba.mjs`, `pruebas/buscador.prueba.mjs`, `pruebas/opciones.prueba.mjs`, `pruebas/widgets.prueba.mjs`, `pruebas/iconos.prueba.mjs`; añadir la sección «Pruebas» al `README.md`.
 
@@ -60,7 +60,7 @@
 - [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`, código 0.
 - [ ] **Paso 4:** commit «Pruebas automáticas en Chrome sin ventana».
 
-### Tarea 3: solo enlaces http y https
+### Task 3 · Tarea 3: solo enlaces http y https
 
 **Archivos:** modificar `app.js` (normalizar, diálogo de enlace), `newtab.html` (campo URL); crear `pruebas/seguridad.prueba.mjs`.
 
@@ -72,7 +72,7 @@
 - [ ] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`.
 - [ ] **Paso 5:** commit «Solo se aceptan enlaces http y https».
 
-### Tarea 4: «Restablecer todo» en Opciones
+### Task 4 · Tarea 4: «Restablecer todo» en Opciones
 
 **Archivos:** modificar `newtab.html` (quitar `#btn-restaurar`; añadir botón en Opciones y `<dialog id="dlg-restablecer">`), `app.js`, `style.css`; crear `pruebas/restablecer.prueba.mjs`.
 
@@ -84,13 +84,13 @@
 - [ ] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`.
 - [ ] **Paso 5:** commit «Restablecer todo en Opciones, con confirmación escrita».
 
-### Tarea 5: revisión de código y de seguridad
+### Task 5 · Tarea 5: revisión de código y de seguridad
 
 - [ ] **Paso 1:** ejecutar `/code-review` y `/security-review` sobre la extensión.
 - [ ] **Paso 2:** por cada hallazgo confirmado: una prueba que lo reproduce (falla), la corrección y la prueba en verde. Los hallazgos dudosos se consultan con el usuario antes de tocar nada.
 - [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit por corrección.
 
-### Tarea 6: cierre de la fase
+### Task 6 · Tarea 6: cierre de la fase
 
 - [ ] **Paso 1:** `version` 3.3.0 en `manifest.json`.
 - [ ] **Paso 2:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar.ps1` → `dist/novatab-3.3.0.zip` sin IPs de redes reales.
