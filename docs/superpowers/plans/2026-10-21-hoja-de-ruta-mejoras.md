@@ -48,14 +48,14 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 ---
 
-### Fase 0: base de pruebas y revisión
+### Fase 0: base de pruebas y revisión (terminada)
 
 **Archivos:** crear `pruebas/lib/cdp.mjs` (copia del cliente CDP de la skill, MIT), `pruebas/*.mjs`, `pruebas/ejecutar.mjs`; modificar `app.js`, `widgets.js`, `newtab.html`.
 
-- [ ] Reunir en `pruebas/` las pruebas ya usadas: cuadrícula (mover, ancho, alto, cambio de panel), plegar, modo reunión, buscador, temas, widgets, más usadas (con `chrome.topSites` simulado), selector de iconos.
-- [ ] `node pruebas/ejecutar.mjs` las ejecuta todas y termina con código ≠ 0 si alguna falla o hay excepciones en la consola.
-- [ ] Ejecutar `/code-review` y `/security-review` y corregir lo confirmado.
-- [ ] Correcciones ya conocidas:
+- [x] Reunir en `pruebas/` las pruebas ya usadas: cuadrícula (mover, ancho, alto, cambio de panel), plegar, modo reunión, buscador, temas, widgets, más usadas (con `chrome.topSites` simulado), selector de iconos.
+- [x] `node pruebas/ejecutar.mjs` las ejecuta todas y termina con código ≠ 0 si alguna falla o hay excepciones en la consola.
+- [x] Ejecutar `/code-review` y `/security-review` y corregir lo confirmado.
+- [x] Correcciones ya conocidas:
   - URLs: aceptar solo `http:` y `https:` al editar, importar y normalizar.
   - Restaurar: borrar también las claves `nota:<id>` huérfanas.
   - Restaurar sale de la barra de edición y pasa a Opciones como "Restablecer todo", con confirmación escrita.
