@@ -80,5 +80,34 @@ export function normalizar(d) {
   return res;
 }
 
+// Une lo editado en esta pestaña (local) con lo que llegó de otra mientras tanto (remoto). «base» es
+// cómo estaban los datos antes de editar: lo que cambió aquí respecto a ella gana (es la última
+// escritura); lo demás se toma de fuera. Grupos y widgets se comparan uno a uno, por su id.
+export function fusionar(base, local, remoto) {
+  const mismo = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const lista = (b = [], l = [], r = []) => {
+    const enBase = new Map(b.map(x => [x.id, x]));
+    const enLocal = new Map(l.map(x => [x.id, x]));
+    const tocado = x => !mismo(x, enBase.get(x.id));
+    const resultado = r
+      .filter(x => enLocal.has(x.id) || !enBase.has(x.id)) // lo borrado aquí no vuelve
+      .map(x => enLocal.has(x.id) && tocado(enLocal.get(x.id)) ? enLocal.get(x.id) : x);
+    const estan = new Set(resultado.map(x => x.id));
+    // Lo nuevo aquí, y lo tocado aquí aunque fuera lo hayan borrado.
+    return [...resultado, ...l.filter(x => !estan.has(x.id) && tocado(x))];
+  };
+  const titulos = {};
+  for (const k of new Set([...Object.keys(local.titulos || {}), ...Object.keys(remoto.titulos || {})])) {
+    const aqui = local.titulos?.[k];
+    titulos[k] = aqui === base.titulos?.[k] ? remoto.titulos?.[k] : aqui;
+  }
+  return {
+    ...remoto,
+    titulos,
+    grupos: lista(base.grupos, local.grupos, remoto.grupos),
+    widgets: lista(base.widgets, local.widgets, remoto.widgets),
+  };
+}
+
 export const gruposDe = (zona, d = datos) => d.grupos.filter(g => g.zona === zona);
 export const grupo = id => datos.grupos.find(g => g.id === id);

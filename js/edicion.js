@@ -1,7 +1,7 @@
 // Modo edición: diálogos, altas y bajas, importar/exportar, restablecer y arrastrar.
 import { $, $$, avisar, crear, limitar, nuevoId, urlSegura } from './util.js';
-import { borrar, claves, escribir, guardarDatos } from './almacen.js';
-import { ALTO_MAXIMO, ALTO_MINIMO, ANCHO_MINIMO, CLAVE, COLUMNAS, datos, grupo, gruposDe, normalizar, ponerDatos } from './datos.js';
+import { borrar, cargarDatos, claves, escribir, guardarDatos } from './almacen.js';
+import { ALTO_MAXIMO, ALTO_MINIMO, ANCHO_MINIMO, CLAVE, COLUMNAS, datos, fusionar, grupo, gruposDe, normalizar, ponerDatos } from './datos.js';
 import { REJILLAS, alto, bloque, colocarSinPosicion, panelDe, rejillaActiva, resolver } from './rejilla.js';
 import { pintar, plegar } from './pintado.js';
 import { opciones, panelTema } from './apariencia.js';
@@ -10,8 +10,57 @@ import { leerIcono, refrescarCampoIcono } from './iconos.js';
 
 export let editando = false;
 export let arrastre = null;
+let moviendo = false; // un grupo o widget a medio mover o redimensionar
 
-export const guardar = () => guardarDatos(datos);
+// ---------- Cambios de otras pestañas: tu edición en curso gana ----------
+// Mientras hay un diálogo abierto, un arrastre o un título a medio escribir, lo que llega de fuera
+// espera. Al guardar se aplica sobre lo más reciente y, en lo que se tocó aquí, gana lo de aquí.
+
+let base = null; // los datos tal como estaban la última vez que se cargaron o guardaron
+let deFuera = false; // llegó algo de otra pestaña mientras se editaba
+// Guardar y recargar van uno detrás de otro: una recarga nunca lee un guardado a medias.
+let cola = Promise.resolve();
+const enCola = tarea => (cola = cola.catch(() => {}).then(tarea));
+
+export const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!document.activeElement?.matches('[data-titulo]');
+
+export const sincronizado = () => { base = structuredClone(datos); };
+
+export function cambioDeFuera() {
+  if (ocupado()) deFuera = true;
+  else enCola(recargar);
+}
+
+async function recargar() {
+  deFuera = false;
+  const d = await cargarDatos();
+  if (!d) return;
+  ponerDatos(normalizar(d));
+  sincronizado();
+  pintar();
+}
+
+export const guardar = () => enCola(async () => {
+  if (deFuera && base) {
+    deFuera = false;
+    const remoto = await cargarDatos();
+    if (remoto) {
+      ponerDatos(normalizar(fusionar(base, datos, remoto)));
+      resolver();
+      pintar();
+    }
+  }
+  await guardarDatos(datos);
+  sincronizado();
+});
+
+// Al terminar sin guardar (cancelar un diálogo, dejar un título igual) se aplica lo que llegó de fuera.
+// Tras un cierre que sí guarda, el guardado ya va en la cola y deFuera está a false.
+function alTerminar() {
+  setTimeout(() => { if (deFuera && !ocupado()) enCola(recargar); });
+}
+document.addEventListener('close', alTerminar, true); // «close» no sube: se escucha en la captura
+document.addEventListener('focusout', ev => { if (ev.target.matches?.('[data-titulo]')) alTerminar(); });
 
 export async function guardarYPintar(fijo) {
   resolver(fijo);
@@ -270,6 +319,7 @@ document.querySelector('.pagina').addEventListener('pointerdown', ev => {
   destino.style.gridRow = `${g.pos.y} / span ${alto(g)}`;
   REJILLAS[origen].append(destino);
   sec.classList.add('moviendo');
+  moviendo = true;
   sec.setPointerCapture(ev.pointerId);
 
   const mover = e => {
@@ -304,6 +354,7 @@ document.querySelector('.pagina').addEventListener('pointerdown', ev => {
   };
 
   const soltar = () => {
+    moviendo = false;
     sec.removeEventListener('pointermove', mover);
     sec.removeEventListener('pointerup', soltar);
     sec.removeEventListener('pointercancel', soltar);

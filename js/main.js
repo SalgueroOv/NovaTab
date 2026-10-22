@@ -6,7 +6,7 @@ import { CLAVE, VERSION, datos, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { CLAVE_OPCIONES, CLAVE_TEMA, pintarFondo, ponerOpciones, ponerTema, reloj } from './apariencia.js';
-import { arrastre, editando, guardar } from './edicion.js';
+import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
 import './widgets.js';
 import './iconos.js';
@@ -19,17 +19,10 @@ alCambiar(cambios => {
   // Los ecos de lo que esta pestaña acaba de guardar no cuentan.
   if (!deDatos.length || deDatos.every(([clave, c]) => esLoUltimo(clave, c.newValue))) return;
   clearTimeout(recarga);
-  recarga = setTimeout(recargarDatos, 50);
+  recarga = setTimeout(cambioDeFuera, 50);
 });
 
 let recarga;
-async function recargarDatos() {
-  if (arrastre) return;
-  const d = await cargarDatos();
-  if (!d) return;
-  ponerDatos(normalizar(d));
-  pintar();
-}
 
 (async () => {
   $('#btn-editar').innerHTML = svg('lapiz');
@@ -63,6 +56,7 @@ async function recargarDatos() {
   }
   resolver();
   pintar();
+  sincronizado();
   if (!guardados) {
     await guardar().catch(err => avisar(`No se pudieron guardar los datos: ${err.message}`));
   } else if ((guardados.version || 1) < VERSION) {
