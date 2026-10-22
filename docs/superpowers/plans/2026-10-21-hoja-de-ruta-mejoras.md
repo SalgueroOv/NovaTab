@@ -62,15 +62,17 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 **Hecho cuando:** `node pruebas/ejecutar.mjs` en verde y una prueba nueva demuestra que `javascript:alert(1)` no se guarda.
 
-### Fase 1: módulos y almacenamiento por grupos
+### Fase 1: módulos y almacenamiento por grupos (terminada)
 
 **Archivos:** dividir `app.js` en `js/datos.js` (normalizar, migraciones), `js/almacen.js` (leer/escribir, cuotas), `js/rejilla.js` (posiciones, resolver, arrastre), `js/edicion.js` (diálogos), `js/buscador.js`, `js/apariencia.js` (tema, opciones); `widgets.js` e `iconos.js` pasan a `js/`. Módulos ES (`<script type="module">`), permitidos en MV3.
 
-- [ ] Partir sin cambiar comportamiento (apoyarse en `/simplify`); las pruebas de la fase 0 siguen en verde.
-- [ ] Almacenamiento v4: `datos` guarda solo estructura y orden; cada grupo en su clave `grupo:<id>`. Migración desde v3 en `normalizar()`.
-- [ ] Si una clave supera la cuota, esa clave pasa a `storage.local` y se avisa una vez.
+- [x] Partir sin cambiar comportamiento (apoyarse en `/simplify`); las pruebas de la fase 0 siguen en verde.
+- [x] Almacenamiento v4: `datos` guarda solo estructura y orden; cada grupo en su clave `grupo:<id>`. Migración desde v3 al arrancar, con copia `respaldo-v3` en `storage.local`.
+- [x] Si una clave supera la cuota, esa clave pasa a `storage.local` y se avisa una vez; si se pasa el límite de escrituras por minuto, se reintenta al minuto.
+- [x] Cambios de otra pestaña: esperan a que termines de editar y, en lo que tocaste, gana lo tuyo.
+- [x] Notas: se guardan 2 s después de dejar de escribir y al salir de la pestaña.
 
-**Hecho cuando:** una prueba con 200 enlaces guarda y recarga sin errores, y unos datos v3 reales (los tuyos exportados) migran sin pérdidas.
+**Hecho cuando:** una prueba con 200 enlaces guarda y recarga sin errores, y unos datos v3 reales (los tuyos exportados) migran sin pérdidas. (Probado con datos v3 de prueba parecidos a los reales: `pruebas/lib/datos-v3.mjs`.)
 
 ### Fase 2: deshacer y copias automáticas
 

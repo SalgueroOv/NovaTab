@@ -6,7 +6,7 @@ Extensión de Chrome que sustituye la pestaña nueva por una página de inicio p
 - Grupos de enlaces que colocas y redimensionas en una cuadrícula, con logos de [Dashboard Icons](https://github.com/homarr-labs/dashboard-icons) o iconos de [Lucide](https://lucide.dev).
 - Widgets: tiempo, notas, Google Calendar, Spotify y tus webs más visitadas.
 - Temas, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
-- Todo se guarda en tu cuenta de Chrome (`chrome.storage.sync`): no hay servidor propio.
+- Todo se guarda en tu cuenta de Chrome (`chrome.storage.sync`, cada grupo en su propia clave): no hay servidor propio. Si otra pestaña cambia algo mientras editas, se aplica al terminar sin pisar lo tuyo.
 
 ## Instalar
 
