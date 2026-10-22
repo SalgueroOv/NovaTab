@@ -10,7 +10,8 @@ import { readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Browser } from './lib/cdp.mjs';
-import { crearAbrir } from './lib/util.mjs';
+import { crearAbrir, RAIZ } from './lib/util.mjs';
+import { iniciarServidor } from './lib/servidor.mjs';
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -20,8 +21,9 @@ const archivos = readdirSync(dir)
   .filter(f => f.endsWith('.prueba.mjs') && (!filtro || f.includes(filtro)))
   .sort();
 
+const servidor = await iniciarServidor(RAIZ);
 const navegador = await Browser.launch();
-const abrirEn = crearAbrir(navegador);
+const abrirEn = crearAbrir(navegador, servidor.url);
 let fallos = 0;
 let pasadas = 0;
 let saltadas = 0;
@@ -55,6 +57,7 @@ try {
   }
 } finally {
   await navegador.close();
+  await servidor.cerrar();
 }
 
 console.log(`\n${pasadas} pasadas, ${fallos} fallidas${saltadas ? `, ${saltadas} saltadas` : ''}`);

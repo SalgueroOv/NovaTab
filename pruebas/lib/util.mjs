@@ -1,12 +1,11 @@
 // Abre newtab.html como archivo en Chrome sin ventana, con unos datos de prueba, y ofrece
 // atajos para manejar la página: evaluar código, ratón, teclado y leer lo guardado.
 import { join, dirname } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { sleep } from './cdp.mjs';
 import { DATOS_PRUEBA } from './datos-prueba.mjs';
 
-const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-export const URL_PAGINA = pathToFileURL(join(RAIZ, 'newtab.html')).href;
+export const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const TECLAS = {
   Enter: { code: 'Enter', vk: 13, text: '\r' },
@@ -27,8 +26,10 @@ export function igual(real, esperado, mensaje) {
   if (a !== b) throw new Error(`${mensaje}: se esperaba ${b} y se obtuvo ${a}`);
 }
 
+// La página se sirve por HTTP desde urlBase (ver servidor.mjs).
 // datos: null deja los datos por defecto de la página. topSites simula chrome.topSites.get.
-export function crearAbrir(navegador) {
+export function crearAbrir(navegador, urlBase) {
+  const URL_PAGINA = `${urlBase}/newtab.html`;
   return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null } = {}) {
     const p = await navegador.newPage({ width: ancho, height: alto });
     const errores = [];
