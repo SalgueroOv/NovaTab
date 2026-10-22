@@ -42,16 +42,24 @@ export async function borrar(lista) {
   await chrome.storage.local.remove(lista);
 }
 
+// Una clave solo está en local cuando su última escritura en sync falló: esa copia es la más reciente.
 export async function leer(clave) {
   if (!hayChrome) {
     try { return JSON.parse(localStorage.getItem(clave)); } catch { return null; }
   }
-  const s = await chrome.storage.sync.get(clave);
-  if (s[clave] != null) return s[clave];
   const l = await chrome.storage.local.get(clave);
-  return l[clave] ?? null;
+  if (l[clave] != null) return l[clave];
+  const s = await chrome.storage.sync.get(clave);
+  return s[clave] ?? null;
 }
 
+const ESPERA_REINTENTO = 60 * 1000;
+const pendientes = new Set();
+let reintento = null;
+let avisadoCuota = false;
+
+// Sync admite 8 KB por clave y unas 120 escrituras por minuto. Si se pasa de tamaño, la clave se queda
+// en este equipo (se avisa una vez); si se pasa de ritmo, se guarda en local y se reintenta al minuto.
 export async function escribir(clave, valor) {
   if (!hayChrome) {
     try { localStorage.setItem(clave, JSON.stringify(valor)); } catch { /* sin almacenamiento */ }
@@ -59,11 +67,34 @@ export async function escribir(clave, valor) {
   }
   try {
     await chrome.storage.sync.set({ [clave]: valor });
+    pendientes.delete(clave);
     await chrome.storage.local.remove(clave);
-  } catch {
-    // sync admite 8 KB por elemento; si se supera, se guarda solo en este equipo.
+  } catch (err) {
     await chrome.storage.local.set({ [clave]: valor });
-    await chrome.storage.sync.remove(clave);
-    avisar('Demasiados datos para sincronizar: guardado solo en este equipo');
+    if (String(err?.message).includes('MAX_WRITE_OPERATIONS')) {
+      pendientes.add(clave);
+      reintento ??= setTimeout(reintentarPendientes, ESPERA_REINTENTO);
+      return;
+    }
+    // Demasiado grande para sincronizar: la copia de sync ya no vale para los demás equipos.
+    await chrome.storage.sync.remove(clave).catch(() => {});
+    if (!avisadoCuota) {
+      avisadoCuota = true;
+      avisar('Demasiados datos para sincronizar: guardado solo en este equipo');
+    }
+  }
+}
+
+// Vuelve a intentar en sync las claves que quedaron en local por el límite de escrituras.
+export async function reintentarPendientes() {
+  clearTimeout(reintento);
+  reintento = null;
+  for (const clave of [...pendientes]) {
+    const valor = (await chrome.storage.local.get(clave))[clave];
+    if (valor == null) {
+      pendientes.delete(clave);
+      continue;
+    }
+    await escribir(clave, valor);
   }
 }

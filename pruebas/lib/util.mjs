@@ -1,11 +1,13 @@
 // Abre newtab.html como archivo en Chrome sin ventana, con unos datos de prueba, y ofrece
 // atajos para manejar la página: evaluar código, ratón, teclado y leer lo guardado.
 import { join, dirname } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { sleep } from './cdp.mjs';
 import { DATOS_PRUEBA } from './datos-prueba.mjs';
 
 export const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const CHROME_FALSO = readFileSync(join(RAIZ, 'pruebas', 'lib', 'chrome-falso.js'), 'utf8');
 
 const TECLAS = {
   Enter: { code: 'Enter', vk: 13, text: '\r' },
@@ -28,21 +30,30 @@ export function igual(real, esperado, mensaje) {
 
 // La página se sirve por HTTP desde urlBase (ver servidor.mjs).
 // datos: null deja los datos por defecto de la página. topSites simula chrome.topSites.get.
+// chrome: { cuotaPorClave, escriturasPorMinuto } simula chrome.storage (ver chrome-falso.js); los datos
+// de prueba se guardan entonces en su almacén de sincronización en lugar de en localStorage.
 export function crearAbrir(navegador, urlBase) {
   const URL_PAGINA = `${urlBase}/newtab.html`;
-  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null } = {}) {
+  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, chrome = null } = {}) {
     const p = await navegador.newPage({ width: ancho, height: alto });
     const errores = [];
     await p.send('Runtime.enable');
     navegador.on(p.sessionId, 'Runtime.exceptionThrown', e =>
       errores.push(e.exceptionDetails.exception?.description || e.exceptionDetails.text));
+    if (chrome) {
+      await p.send('Page.addScriptToEvaluateOnNewDocument', {
+        source: `window.__configChromeFalso = ${JSON.stringify(chrome)};
+${CHROME_FALSO}`,
+      });
+    }
     if (topSites) {
       await p.send('Page.addScriptToEvaluateOnNewDocument', {
-        source: `window.chrome = { topSites: { get: cb => setTimeout(() => cb(${JSON.stringify(topSites)}), 5) } };`,
+        source: `window.chrome = Object.assign(window.chrome || {}, { topSites: { get: cb => setTimeout(() => cb(${JSON.stringify(topSites)}), 5) } });`,
       });
     }
     await p.goto(URL_PAGINA, { settleMs: 200 });
-    await p.eval(`localStorage.clear(); ${datos ? `localStorage.setItem('datos', ${JSON.stringify(JSON.stringify(datos))});` : ''}`);
+    const claveDatos = chrome ? 'chrome.sync/datos' : 'datos';
+    await p.eval(`localStorage.clear(); ${datos ? `localStorage.setItem('${claveDatos}', ${JSON.stringify(JSON.stringify(datos))});` : ''}`);
     await p.goto(URL_PAGINA, { settleMs: 600 });
 
     const ev = js => p.eval(js);
