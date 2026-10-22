@@ -1,12 +1,12 @@
-'use strict';
-
 // Iconos elegidos para los enlaces. Dos catálogos, servidos por jsDelivr:
+import { $, crear } from './util.js';
+
 // - Apps: Dashboard Icons (homarr-labs, Apache-2.0), logos en color de servicios autoalojados.
 // - Iconos: Lucide (ISC), iconos de línea de un solo color.
 // En el enlace solo se guarda { set, nombre, formato }; el dibujo se pide al CDN al pintarlo.
 // Se carga antes que app.js y usa sus funciones (crear, $) solo al llamarse.
 
-const CATALOGOS = {
+export const CATALOGOS = {
   apps: {
     indice: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/metadata.json',
     url: (nombre, formato = 'svg') => `https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/${formato}/${nombre}.${formato}`,
@@ -18,7 +18,7 @@ const CATALOGOS = {
 };
 
 // Lucide se etiqueta en inglés: las palabras más habituales se traducen antes de buscar.
-const TRADUCCIONES = {
+export const TRADUCCIONES = {
   servidor: 'server', servidores: 'server', 'base de datos': 'database', datos: 'database', nube: 'cloud',
   correo: 'mail', calendario: 'calendar', musica: 'music', juego: 'gamepad', juegos: 'gamepad', red: 'network',
   disco: 'hard-drive', carpeta: 'folder', archivo: 'file', documento: 'file-text', codigo: 'code',
@@ -29,14 +29,14 @@ const TRADUCCIONES = {
   chat: 'message-circle', mensaje: 'message-circle', estadistica: 'chart-bar', tienda: 'store', mapa: 'map',
 };
 
-const indices = {};
+export const indices = {};
 
-const iconoValido = i => i && CATALOGOS[i.set] && /^[a-z0-9-]+$/.test(i.nombre)
+export const iconoValido = i => i && CATALOGOS[i.set] && /^[a-z0-9-]+$/.test(i.nombre)
   ? { set: i.set, nombre: i.nombre, ...(i.set === 'apps' ? { formato: ['svg', 'png', 'webp'].includes(i.formato) ? i.formato : 'svg' } : {}) }
   : null;
 
 // El dibujo de un icono elegido, en el mismo círculo que las siglas y los favicons.
-function pintarIconoElegido(icono, tono) {
+export function pintarIconoElegido(icono, tono) {
   if (icono.set === 'apps') {
     const caja = crear('span', 'icono favicon app');
     const img = crear('img');
@@ -55,7 +55,7 @@ function pintarIconoElegido(icono, tono) {
   return caja;
 }
 
-async function cargarIndice(set) {
+export async function cargarIndice(set) {
   if (!indices[set]) {
     indices[set] = fetch(CATALOGOS[set].indice)
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -67,9 +67,9 @@ async function cargarIndice(set) {
   return indices[set];
 }
 
-const sinTildes = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+export const sinTildes = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-function buscarIconos(lista, consulta) {
+export function buscarIconos(lista, consulta) {
   let q = sinTildes(consulta.trim().toLowerCase());
   for (const [es, en] of Object.entries(TRADUCCIONES)) q = q.replace(new RegExp(`\\b${es}\\b`, 'g'), en);
   const palabras = q.split(/\s+/).filter(Boolean);
@@ -85,7 +85,7 @@ function buscarIconos(lista, consulta) {
 }
 
 // Abre el selector. Devuelve el icono elegido, null si se quita, o undefined si se cancela.
-function elegirIcono(sugerencia, tono) {
+export function elegirIcono(sugerencia, tono) {
   const dlg = $('#dlg-icono');
   const entrada = $('#icono-buscar');
   const resultados = $('#icono-resultados');
@@ -150,10 +150,13 @@ function elegirIcono(sugerencia, tono) {
 }
 
 // El campo "Icono" del diálogo de enlace: una vista previa y los botones para elegir o quitar.
-function refrescarCampoIcono() {
+export function leerIcono(texto) {
+  try { return iconoValido(JSON.parse(texto || 'null')); } catch { return null; }
+}
+
+export function refrescarCampoIcono() {
   const form = $('#dlg-enlace form');
-  let icono = null;
-  try { icono = iconoValido(JSON.parse(form.elements.icono.value || 'null')); } catch { /* sin icono */ }
+  const icono = leerIcono(form.elements.icono.value);
   const vista = $('#vista-icono');
   vista.replaceChildren(icono
     ? pintarIconoElegido(icono, '#c9c9cc')

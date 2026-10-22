@@ -21,7 +21,7 @@ export default {
 
     await pg.clic('#confirmar-restablecer');
     await pg.esperar(300);
-    igual((await pg.datos()).grupos.map(g => g.nombre), await pg.ev(`DATOS_DEFECTO.grupos.map(g => g.nombre)`), 'grupos tras restablecer');
+    igual((await pg.datos()).grupos.map(g => g.nombre), await pg.ev(`novatab.DATOS_DEFECTO.grupos.map(g => g.nombre)`), 'grupos tras restablecer');
     igual(await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('nota:'))`), [], 'claves de notas que quedan');
 
     // Si borrar las notas falla, no se restablece nada a medias y se avisa.
@@ -34,7 +34,7 @@ export default {
     await pg2.clic('#confirmar-restablecer');
     await pg2.esperar(300);
     igual(await pg2.ev(`[...document.querySelectorAll('#rejilla .grupo h3')].map(h => h.textContent)`), ['Alfa', 'Beta', 'Gamma'], 'grupos visibles tras un restablecimiento fallido');
-    igual(await pg2.ev(`datos.grupos.map(g => g.nombre)`), ['Alfa', 'Beta', 'Gamma', 'Trabajo', 'Ocio'], 'grupos en memoria tras un restablecimiento fallido');
+    igual(await pg2.ev(`novatab.datos.grupos.map(g => g.nombre)`), ['Alfa', 'Beta', 'Gamma', 'Trabajo', 'Ocio'], 'grupos en memoria tras un restablecimiento fallido');
     afirmar((await pg2.ev(`document.getElementById('aviso').textContent`)).includes('No se pudo'), 'debería avisar de que no se pudo restablecer');
   },
 };

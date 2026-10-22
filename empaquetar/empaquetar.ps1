@@ -22,9 +22,11 @@ New-Item -ItemType Directory -Force $carpeta | Out-Null
 Get-ChildItem $carpeta -Force | Remove-Item -Recurse -Force
 New-Item -ItemType Directory -Force (Join-Path $carpeta 'fuentes') | Out-Null
 
-foreach ($archivo in 'newtab.html', 'style.css', 'app.js', 'widgets.js', 'iconos.js', 'background.js', 'datos-defecto.js', 'LICENSE') {
+foreach ($archivo in 'newtab.html', 'style.css', 'background.js', 'datos-defecto.js', 'LICENSE') {
     Copy-Item (Join-Path $raiz $archivo) $carpeta
 }
+New-Item -ItemType Directory -Force (Join-Path $carpeta 'js') | Out-Null
+Copy-Item (Join-Path $raiz 'js\*.js') (Join-Path $carpeta 'js')
 Copy-Item (Join-Path $raiz 'fuentes\*') (Join-Path $carpeta 'fuentes')
 Copy-Item (Join-Path $aqui 'LEEME.txt') $carpeta
 

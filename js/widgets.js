@@ -1,9 +1,14 @@
-'use strict';
-
 // Widgets de la rejilla: tiempo (Open-Meteo), notas, Google Calendar y Spotify.
+import { $, crear, dominio, nuevoId, partes, svg } from './util.js';
+import { alCambiar, borrar, escribir, escribirLocal, leer, leerLocal } from './almacen.js';
+import { datos } from './datos.js';
+import { alto, bloque, colocarSinPosicion } from './rejilla.js';
+import { botonPlegar, icono } from './pintado.js';
+import { guardarYPintar } from './edicion.js';
+
 // Se carga antes que app.js y usa sus funciones (crear, svg, datos, guardarYPintar…) solo al llamarse.
 
-const WIDGETS = {
+export const WIDGETS = {
   tiempo: { nombre: 'Tiempo', descripcion: 'Temperatura y previsión de cinco días', w: 4, h: 6, configurable: true },
   notas: { nombre: 'Notas', descripcion: 'Apuntes rápidos que se sincronizan', w: 4, h: 6, configurable: false },
   calendario: { nombre: 'Google Calendar', descripcion: 'Tu agenda de Google Calendar', w: 6, h: 10, configurable: true },
@@ -18,11 +23,11 @@ const WIDGETS = {
   },
 };
 
-const widget = id => datos.widgets.find(w => w.id === id);
+export const widget = id => datos.widgets.find(w => w.id === id);
 
 // ---------- Pintado ----------
 
-function pintarWidget(w) {
+export function pintarWidget(w) {
   const src = srcDe(w);
   // Un reproductor o calendario ya cargado, o una nota, se conservan al repintar: rehacerlos cortaría
   // la música o quitaría el foco a quien está escribiendo.
@@ -56,11 +61,11 @@ function pintarWidget(w) {
   return sec;
 }
 
-function tituloWidget(w) {
+export function tituloWidget(w) {
   return w.tipo === 'tiempo' && w.config.nombre ? w.config.nombre : WIDGETS[w.tipo].nombre;
 }
 
-function botonWidget(accion, ico, titulo) {
+export function botonWidget(accion, ico, titulo) {
   const b = crear('button', 'mini solo-edicion');
   b.type = 'button';
   b.dataset.accionWidget = accion;
@@ -70,7 +75,7 @@ function botonWidget(accion, ico, titulo) {
   return b;
 }
 
-function vacioWidget(cuerpo, texto) {
+export function vacioWidget(cuerpo, texto) {
   const div = crear('div', 'widget-vacio');
   const b = crear('button', 'boton-texto', 'Configurar');
   b.type = 'button';
@@ -79,7 +84,7 @@ function vacioWidget(cuerpo, texto) {
   cuerpo.append(div);
 }
 
-function marco(src, titulo) {
+export function marco(src, titulo) {
   const f = crear('iframe');
   f.src = src;
   f.title = titulo;
@@ -88,17 +93,17 @@ function marco(src, titulo) {
   return f;
 }
 
-const srcDe = w =>
+export const srcDe = w =>
   w.tipo === 'spotify' ? urlSpotify(w.config.url) :
   w.tipo === 'calendario' && w.config.src ? urlCalendario(w.config) : null;
 
 // ---------- Tiempo (Open-Meteo, sin clave) ----------
 
-const CACHE_TIEMPO_MS = 30 * 60 * 1000;
-const pendientesTiempo = new Map();
+export const CACHE_TIEMPO_MS = 30 * 60 * 1000;
+export const pendientesTiempo = new Map();
 
 // Códigos meteorológicos de la OMM → descripción e icono.
-function wmo(c) {
+export function wmo(c) {
   if (c === 0) return ['Despejado', 'sol'];
   if (c <= 2) return ['Poco nuboso', 'solnube'];
   if (c === 3) return ['Nublado', 'nube'];
@@ -111,8 +116,8 @@ function wmo(c) {
   return ['Tormenta', 'tormenta'];
 }
 
-const NUBE_ALTA = '<path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 6.5 4.25 4.25 0 0 0 7 15z"/>';
-const ICONOS_TIEMPO = {
+export const NUBE_ALTA = '<path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 6.5 4.25 4.25 0 0 0 7 15z"/>';
+export const ICONOS_TIEMPO = {
   sol: '<g class="amarillo"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g>',
   solnube: '<g class="amarillo"><circle cx="8" cy="8" r="3"/><path d="M8 2.5v1M2.5 8h1M4.1 4.1l.7.7M11.9 4.1l-.7.7"/></g><path d="M9 20h8.5a3.5 3.5 0 0 0 .4-6.98A5 5 0 0 0 8.4 12.2 3.9 3.9 0 0 0 9 20z"/>',
   nube: '<path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 9.5 4.25 4.25 0 0 0 7 18z"/>',
@@ -121,22 +126,14 @@ const ICONOS_TIEMPO = {
   nieve: `${NUBE_ALTA}<path class="azul" d="M8 19h.01M12 19h.01M16 19h.01M10 22h.01M14 22h.01"/>`,
   tormenta: `${NUBE_ALTA}<path class="amarillo" d="M13 15l-3 4h4l-3 4"/>`,
 };
-const iconoTiempo = nombre => `<svg class="ico-tiempo" viewBox="0 0 24 24" aria-hidden="true">${ICONOS_TIEMPO[nombre]}</svg>`;
+export const iconoTiempo = nombre => `<svg class="ico-tiempo" viewBox="0 0 24 24" aria-hidden="true">${ICONOS_TIEMPO[nombre]}</svg>`;
 
-async function leerCache(clave) {
-  if (typeof chrome !== 'undefined' && chrome.storage) return (await chrome.storage.local.get(clave))[clave] || null;
-  try { return JSON.parse(localStorage.getItem(clave)); } catch { return null; }
-}
-function escribirCache(clave, valor) {
-  if (typeof chrome !== 'undefined' && chrome.storage) return chrome.storage.local.set({ [clave]: valor });
-  try { localStorage.setItem(clave, JSON.stringify(valor)); } catch { /* sin almacenamiento */ }
-}
 
-function datosTiempo(lat, lon) {
+export function datosTiempo(lat, lon) {
   const clave = `tiempo:${Number(lat).toFixed(3)},${Number(lon).toFixed(3)}`;
   if (!pendientesTiempo.has(clave)) {
     pendientesTiempo.set(clave, (async () => {
-      const guardado = await leerCache(clave);
+      const guardado = await leerLocal(clave);
       if (guardado && Date.now() - guardado.t < CACHE_TIEMPO_MS) return guardado.d;
       const p = new URLSearchParams({
         latitude: lat,
@@ -149,14 +146,14 @@ function datosTiempo(lat, lon) {
       const r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`);
       if (!r.ok) throw new Error(`Open-Meteo respondió ${r.status}`);
       const d = await r.json();
-      escribirCache(clave, { t: Date.now(), d });
+      escribirLocal(clave, { t: Date.now(), d });
       return d;
     })().finally(() => setTimeout(() => pendientesTiempo.delete(clave), CACHE_TIEMPO_MS)));
   }
   return pendientesTiempo.get(clave);
 }
 
-function pintarTiempo(w, cuerpo) {
+export function pintarTiempo(w, cuerpo) {
   const c = w.config;
   if (c.lat == null) return vacioWidget(cuerpo, 'Elige una ciudad para ver el tiempo.');
   cuerpo.append(crear('p', 'widget-nota', 'Cargando…'));
@@ -168,7 +165,7 @@ function pintarTiempo(w, cuerpo) {
     });
 }
 
-function vistaTiempo(d) {
+export function vistaTiempo(d) {
   const t = crear('div', 'tiempo');
   const ahora = crear('div', 'tiempo-ahora');
   const [desc, ico] = wmo(d.current.weather_code);
@@ -203,11 +200,11 @@ function vistaTiempo(d) {
 // ---------- Notas ----------
 // Cada nota va en su propia clave de storage.sync (8 KB por clave) para no llenar la de los enlaces.
 
-const memoriaNotas = new Map();
-const notasGuardadas = new Map();
-const claveNota = id => `nota:${id}`;
+export const memoriaNotas = new Map();
+export const notasGuardadas = new Map();
+export const claveNota = id => `nota:${id}`;
 
-function pintarNotas(w, cuerpo) {
+export function pintarNotas(w, cuerpo) {
   const ta = crear('textarea', 'notas-texto');
   ta.placeholder = 'Escribe aquí…';
   ta.maxLength = 3500;
@@ -238,7 +235,7 @@ function pintarNotas(w, cuerpo) {
   cuerpo.append(ta);
 }
 
-async function leerNotas() {
+export async function leerNotas() {
   const notas = {};
   for (const w of datos.widgets.filter(x => x.tipo === 'notas')) {
     const v = memoriaNotas.get(w.id) ?? await leer(claveNota(w.id));
@@ -247,7 +244,7 @@ async function leerNotas() {
   return notas;
 }
 
-async function escribirNotas(notas) {
+export async function escribirNotas(notas) {
   if (!notas || typeof notas !== 'object') return;
   for (const [id, valor] of Object.entries(notas)) {
     const texto = String(valor);
@@ -260,32 +257,26 @@ async function escribirNotas(notas) {
   }
 }
 
-function borrarNota(id) {
+export function borrarNota(id) {
   memoriaNotas.delete(id);
-  if (typeof chrome !== 'undefined' && chrome.storage) {
-    chrome.storage.sync.remove(claveNota(id));
-    chrome.storage.local.remove(claveNota(id));
-  } else {
-    try { localStorage.removeItem(claveNota(id)); } catch { /* sin almacenamiento */ }
-  }
+  notasGuardadas.delete(id);
+  borrar([claveNota(id)]).catch(() => { /* la nota huérfana se limpiará al restablecer */ });
 }
 
 // Una nota editada en otra pestaña u otro equipo se actualiza aquí si no la estás escribiendo.
-if (typeof chrome !== 'undefined' && chrome.storage) {
-  chrome.storage.onChanged.addListener(cambios => {
-    for (const [clave, { newValue }] of Object.entries(cambios)) {
-      if (!clave.startsWith('nota:') || typeof newValue !== 'string') continue;
-      const id = clave.slice(5);
-      memoriaNotas.set(id, newValue);
-      const ta = document.querySelector(`textarea[data-nota="${id}"]`);
-      if (ta && document.activeElement !== ta) ta.value = newValue;
-    }
-  });
-}
+alCambiar(cambios => {
+  for (const [clave, { newValue }] of Object.entries(cambios)) {
+    if (!clave.startsWith('nota:') || typeof newValue !== 'string') continue;
+    const id = clave.slice(5);
+    memoriaNotas.set(id, newValue);
+    const ta = document.querySelector(`textarea[data-nota="${CSS.escape(id)}"]`);
+    if (ta && document.activeElement !== ta) ta.value = newValue;
+  }
+});
 
 // ---------- Google Calendar ----------
 
-function urlCalendario(c) {
+export function urlCalendario(c) {
   if (/^https:\/\/calendar\.google\.com\/calendar\/(u\/\d+\/)?embed\?/.test(c.src)) return c.src;
   const p = new URLSearchParams({
     src: c.src,
@@ -302,20 +293,20 @@ function urlCalendario(c) {
   return `https://calendar.google.com/calendar/embed?${p}`;
 }
 
-function pintarCalendario(w, cuerpo) {
+export function pintarCalendario(w, cuerpo) {
   if (!w.config.src) return vacioWidget(cuerpo, 'Indica qué calendario mostrar.');
   cuerpo.append(marco(urlCalendario(w.config), 'Google Calendar'));
 }
 
 // ---------- Spotify ----------
 
-function urlSpotify(texto) {
+export function urlSpotify(texto) {
   const m = String(texto || '').trim().match(
     /^(?:https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(?:embed\/)?|spotify:)(track|album|playlist|artist|episode|show)[/:]([A-Za-z0-9]{10,})/i);
   return m ? `https://open.spotify.com/embed/${m[1].toLowerCase()}/${m[2]}?utm_source=generator` : null;
 }
 
-function pintarSpotify(w, cuerpo) {
+export function pintarSpotify(w, cuerpo) {
   const src = urlSpotify(w.config.url);
   if (!src) return vacioWidget(cuerpo, 'Pega el enlace de una playlist, álbum o podcast.');
   cuerpo.append(marco(src, 'Spotify'));
@@ -325,16 +316,12 @@ function pintarSpotify(w, cuerpo) {
 // Las webs más visitadas según Chrome (las de los accesos directos de su pestaña nueva), sin las que
 // ya están en algún grupo. Se comparan por dominio y puerto: youtube.com/watch… cuenta como youtube.com.
 
-function claveSitio(url) {
-  try {
-    const u = new URL(url);
-    return `${u.hostname.replace(/^www\./, '')}:${u.port || (u.protocol === 'https:' ? '443' : '80')}`;
-  } catch {
-    return null;
-  }
+export function claveSitio(url) {
+  const p = partes(url);
+  return p.host ? `${p.host.replace(/^www\./, '')}:${p.puerto}` : null;
 }
 
-function pintarMasUsadas(w, cuerpo) {
+export function pintarMasUsadas(w, cuerpo) {
   if (typeof chrome === 'undefined' || !chrome.topSites) {
     cuerpo.append(crear('p', 'widget-nota', 'Disponible al usarlo como extensión de Chrome.'));
     return;
@@ -368,12 +355,12 @@ function pintarMasUsadas(w, cuerpo) {
   });
 }
 
-const PINTORES = { tiempo: pintarTiempo, notas: pintarNotas, calendario: pintarCalendario, spotify: pintarSpotify, masUsadas: pintarMasUsadas };
+export const PINTORES = { tiempo: pintarTiempo, notas: pintarNotas, calendario: pintarCalendario, spotify: pintarSpotify, masUsadas: pintarMasUsadas };
 
 // ---------- Añadir, configurar y borrar ----------
 
 // Diálogo genérico: construir() rellena el cuerpo y devuelve la función que lee el resultado.
-function dialogoWidget(titulo, construir, { conGuardar = true } = {}) {
+export function dialogoWidget(titulo, construir, { conGuardar = true } = {}) {
   const dlg = $('#dlg-widget');
   const form = dlg.querySelector('form');
   const cuerpo = dlg.querySelector('.dlg-cuerpo');
@@ -400,7 +387,7 @@ function dialogoWidget(titulo, construir, { conGuardar = true } = {}) {
   });
 }
 
-function campo(etiqueta, attrs = {}) {
+export function campo(etiqueta, attrs = {}) {
   const label = crear('label', null, etiqueta);
   const input = crear(attrs.tag || 'input');
   for (const [k, v] of Object.entries(attrs)) if (k !== 'tag') input[k] = v;
@@ -408,7 +395,7 @@ function campo(etiqueta, attrs = {}) {
   return [label, input];
 }
 
-function elegirTipo() {
+export function elegirTipo() {
   return dialogoWidget('Añadir widget', (cuerpo, ctx) => {
     const [labelPanel, panel] = campo('Colocar en', { tag: 'select' });
     panel.append(new Option('Panel izquierdo', 'izq'), new Option('Panel derecho (red local)', 'der'));
@@ -424,7 +411,7 @@ function elegirTipo() {
   }, { conGuardar: false });
 }
 
-const CONFIGURADORES = {
+export const CONFIGURADORES = {
   tiempo: (actual) => (cuerpo, ctx) => {
     let elegido = actual.lat != null ? { ...actual } : null;
     const fila = crear('div', 'fila-busqueda');
@@ -524,11 +511,11 @@ const CONFIGURADORES = {
   },
 };
 
-function configurar(tipo, actual = {}) {
+export function configurar(tipo, actual = {}) {
   return dialogoWidget(WIDGETS[tipo].nombre, CONFIGURADORES[tipo](actual));
 }
 
-async function nuevoWidget() {
+export async function nuevoWidget() {
   const elegido = await elegirTipo();
   if (!elegido) return;
   const { tipo, panel } = elegido;
@@ -545,7 +532,7 @@ async function nuevoWidget() {
   document.querySelector(`.rejilla .widget[data-id="${w.id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
-async function accionDeWidget(accion, id) {
+export async function accionDeWidget(accion, id) {
   const w = widget(id);
   if (!w) return;
   if (accion === 'borrar') {

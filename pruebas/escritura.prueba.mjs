@@ -17,7 +17,7 @@ export default {
 
     // La nota que estás escribiendo sigue igual aunque la página se repinte.
     await pg.ev(`(() => { const t = document.querySelector('.notas-texto'); t.value = 'a medias'; t.dispatchEvent(new Event('input')); })()`);
-    await pg.ev(`pintar()`);
+    await pg.ev(`novatab.pintar()`);
     igual(await pg.ev(`[document.activeElement.className, document.activeElement.value]`), ['notas-texto', 'a medias'], '[foco, texto] tras repintar');
 
     // Entrar y salir de una nota sin cambiarla no gasta una escritura.

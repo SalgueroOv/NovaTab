@@ -87,7 +87,8 @@ export function crearAbrir(navegador, urlBase) {
         }
         await sleep(150);
       },
-      datos: () => ev(`JSON.parse(localStorage.getItem('datos'))`),
+      // El estado en memoria (con los enlaces dentro de cada grupo), sea cual sea el formato guardado.
+      datos: () => ev(`JSON.parse(JSON.stringify(novatab.datos))`),
       async recargar() {
         await p.goto(URL_PAGINA, { settleMs: 600 });
       },
