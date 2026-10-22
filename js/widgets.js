@@ -279,6 +279,7 @@ alCambiar(cambios => {
     if (!clave.startsWith('nota:') || typeof newValue !== 'string') continue;
     const id = clave.slice(5);
     memoriaNotas.set(id, newValue);
+    notasGuardadas.set(id, newValue); // ya está guardado: entrar y salir de la nota no lo reescribe
     const ta = document.querySelector(`textarea[data-nota="${CSS.escape(id)}"]`);
     if (ta && document.activeElement !== ta) ta.value = newValue;
   }

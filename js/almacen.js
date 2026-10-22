@@ -133,21 +133,23 @@ export async function cargarDatos() {
 
 // Escribe primero los grupos que cambiaron, luego la estructura y por último borra los grupos que ya no
 // existen: si algo falla a medias, la estructura anterior sigue apuntando a grupos que existen.
+// Cada valor se recuerda antes de escribirlo: el aviso de cambio puede llegar antes de que acabe la
+// escritura, y así se reconoce como eco propio.
 export async function guardarDatos(datos) {
   const porGrupo = new Map(datos.grupos.map(g => [claveGrupo(g.id), g.enlaces]));
   const estructura = { ...datos, grupos: datos.grupos.map(({ enlaces, ...resto }) => resto) };
   for (const [clave, enlaces] of porGrupo) {
     if (esLoUltimo(clave, enlaces)) continue;
-    await escribir(clave, enlaces);
     recordar(clave, enlaces);
+    await escribir(clave, enlaces);
   }
   if (!esLoUltimo(CLAVE_DATOS, estructura)) {
-    await escribir(CLAVE_DATOS, estructura);
     recordar(CLAVE_DATOS, estructura);
+    await escribir(CLAVE_DATOS, estructura);
   }
   const sobran = (await claves('grupo:')).filter(clave => !porGrupo.has(clave));
   if (sobran.length) {
-    await borrar(sobran);
     sobran.forEach(clave => recordar(clave, undefined));
+    await borrar(sobran);
   }
 }

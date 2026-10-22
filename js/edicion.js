@@ -22,7 +22,7 @@ let deFuera = false; // llegó algo de otra pestaña mientras se editaba
 let cola = Promise.resolve();
 const enCola = tarea => (cola = cola.catch(() => {}).then(tarea));
 
-export const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!document.activeElement?.matches('[data-titulo]');
+const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!document.activeElement?.matches('[data-titulo]');
 
 export const sincronizado = () => { base = structuredClone(datos); };
 
