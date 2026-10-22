@@ -203,6 +203,8 @@ export function vistaTiempo(d) {
 export const memoriaNotas = new Map();
 export const notasGuardadas = new Map();
 export const claveNota = id => `nota:${id}`;
+// Notas con texto aún sin guardar: id → la función que la guarda.
+const notasSinGuardar = new Map();
 
 export function pintarNotas(w, cuerpo) {
   const ta = crear('textarea', 'notas-texto');
@@ -222,14 +224,17 @@ export function pintarNotas(w, cuerpo) {
   let espera;
   const guardarNota = () => {
     clearTimeout(espera);
+    notasSinGuardar.delete(w.id);
     if (notasGuardadas.get(w.id) === ta.value) return;
     notasGuardadas.set(w.id, ta.value);
     escribir(claveNota(w.id), ta.value);
   };
   ta.addEventListener('input', () => {
     memoriaNotas.set(w.id, ta.value);
+    notasSinGuardar.set(w.id, guardarNota);
     clearTimeout(espera);
-    espera = setTimeout(guardarNota, 600);
+    // Se guarda al dejar de escribir 2 s: cada guardado gasta una de las 120 escrituras por minuto de sync.
+    espera = setTimeout(guardarNota, 2000);
   });
   ta.addEventListener('blur', guardarNota);
   cuerpo.append(ta);
@@ -262,6 +267,11 @@ export function borrarNota(id) {
   notasGuardadas.delete(id);
   borrar([claveNota(id)]).catch(() => { /* la nota huérfana se limpiará al restablecer */ });
 }
+
+// Al salir de la pestaña (cambiar a otra, cerrarla, minimizar) no se esperan los 2 s.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') [...notasSinGuardar.values()].forEach(guardarNota => guardarNota());
+});
 
 // Una nota editada en otra pestaña u otro equipo se actualiza aquí si no la estás escribiendo.
 alCambiar(cambios => {
