@@ -5,7 +5,7 @@ import { WIDGETS } from './widgets.js';
 import { iconoValido } from './iconos.js';
 
 export const CLAVE = 'datos';
-export const VERSION = 3;
+export const VERSION = 4;
 // Dos rejillas: la derecha (red local: grupos y widgets) y la izquierda (solo widgets).
 export const COLUMNAS = { der: 12, izq: 6 };
 export const ANCHO_MINIMO = { der: 4, izq: 2 };

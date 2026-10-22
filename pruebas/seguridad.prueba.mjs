@@ -25,7 +25,8 @@ export default {
     await pg.ev(plegarAlfa);
     await pg.ev(plegarAlfa);
     await pg.esperar(300);
-    const guardado = await pg.ev(`localStorage.getItem('datos')`);
+    // respaldo-v3 es la copia exacta de los datos antes de migrar: no se pinta nunca y debe ser fiel.
+    const guardado = await pg.ev(`Object.keys(localStorage).filter(k => k !== 'respaldo-v3').map(k => localStorage.getItem(k)).join(' ')`);
     afirmar(!/javascript:|data:text/.test(guardado), 'lo guardado no debe contener enlaces javascript: ni data:');
 
     // Al editar, una dirección javascript: no se acepta: el diálogo sigue abierto y nada cambia.

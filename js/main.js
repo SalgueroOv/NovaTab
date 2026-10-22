@@ -1,6 +1,7 @@
 // Arranque de NovaTab: carga los datos, aplica tema y opciones y escucha los cambios de otras pestañas.
 import { $, svg } from './util.js';
-import { alCambiar, leer } from './almacen.js';
+import { alCambiar, cargarDatos, esLoUltimo, escribirLocal, leer } from './almacen.js';
+import { avisar } from './util.js';
 import { CLAVE, VERSION, datos, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
 import { pintar, pintarLocal } from './pintado.js';
@@ -14,11 +15,21 @@ import './iconos.js';
 alCambiar(cambios => {
   if (cambios[CLAVE_TEMA]?.newValue) ponerTema(cambios[CLAVE_TEMA].newValue);
   if (cambios[CLAVE_OPCIONES]?.newValue) ponerOpciones(cambios[CLAVE_OPCIONES].newValue);
-  const nuevo = cambios[CLAVE]?.newValue;
-  if (!nuevo || arrastre || JSON.stringify(nuevo) === JSON.stringify(datos)) return;
-  ponerDatos(normalizar(nuevo));
-  pintar();
+  const deDatos = Object.entries(cambios).filter(([clave]) => clave === CLAVE || clave.startsWith('grupo:'));
+  // Los ecos de lo que esta pestaña acaba de guardar no cuentan.
+  if (!deDatos.length || deDatos.every(([clave, c]) => esLoUltimo(clave, c.newValue))) return;
+  clearTimeout(recarga);
+  recarga = setTimeout(recargarDatos, 50);
 });
+
+let recarga;
+async function recargarDatos() {
+  if (arrastre) return;
+  const d = await cargarDatos();
+  if (!d) return;
+  ponerDatos(normalizar(d));
+  pintar();
+}
 
 (async () => {
   $('#btn-editar').innerHTML = svg('lapiz');
@@ -41,7 +52,7 @@ alCambiar(cambios => {
   let guardados = null;
   let opcionesGuardadas = null;
   try {
-    [tema, guardados, opcionesGuardadas] = await Promise.all([leer(CLAVE_TEMA), leer(CLAVE), leer(CLAVE_OPCIONES)]);
+    [tema, guardados, opcionesGuardadas] = await Promise.all([leer(CLAVE_TEMA), cargarDatos(), leer(CLAVE_OPCIONES)]);
   } catch { /* sin datos guardados */ }
   ponerTema(tema);
   ponerOpciones(opcionesGuardadas);
@@ -52,7 +63,18 @@ alCambiar(cambios => {
   }
   resolver();
   pintar();
-  if (!guardados || (guardados.version || 1) < VERSION) await guardar();
+  if (!guardados) {
+    await guardar().catch(err => avisar(`No se pudieron guardar los datos: ${err.message}`));
+  } else if ((guardados.version || 1) < VERSION) {
+    // Formato anterior: copia de seguridad en este equipo y migración. Si falla, los datos antiguos
+    // quedan intactos y se reintenta en la siguiente apertura.
+    try {
+      await escribirLocal('respaldo-v3', guardados);
+      await guardar();
+    } catch (err) {
+      avisar(`No se pudieron actualizar tus datos al formato nuevo: ${err.message}`);
+    }
+  }
 })();
 
 // Para las pruebas automáticas: el estado actual y la forma de repintar, solo lectura.

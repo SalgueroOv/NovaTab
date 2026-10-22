@@ -1,6 +1,6 @@
 // Modo edición: diálogos, altas y bajas, importar/exportar, restablecer y arrastrar.
 import { $, $$, avisar, crear, limitar, nuevoId, urlSegura } from './util.js';
-import { borrar, claves, escribir } from './almacen.js';
+import { borrar, claves, escribir, guardarDatos } from './almacen.js';
 import { ALTO_MAXIMO, ALTO_MINIMO, ANCHO_MINIMO, CLAVE, COLUMNAS, datos, grupo, gruposDe, normalizar, ponerDatos } from './datos.js';
 import { REJILLAS, alto, bloque, colocarSinPosicion, panelDe, rejillaActiva, resolver } from './rejilla.js';
 import { pintar, plegar } from './pintado.js';
@@ -11,7 +11,7 @@ import { leerIcono, refrescarCampoIcono } from './iconos.js';
 export let editando = false;
 export let arrastre = null;
 
-export const guardar = () => escribir(CLAVE, datos);
+export const guardar = () => guardarDatos(datos);
 
 export async function guardarYPintar(fijo) {
   resolver(fijo);

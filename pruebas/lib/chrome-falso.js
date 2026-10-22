@@ -8,6 +8,7 @@
   const oyentes = [];
   const recientes = { sync: [], local: [] };
   const cuenta = { sync: 0, local: 0 };
+  let escritas = [];
 
   const avisar = (cambios, area) => {
     if (Object.keys(cambios).length) setTimeout(() => oyentes.forEach(fn => fn(cambios, area)), 0);
@@ -37,6 +38,8 @@
         return Object.fromEntries(lista.filter(k => k in valores).map(k => [k, valores[k]]));
       },
       async set(obj) {
+        // Interruptor para simular un almacenamiento local que rechaza escrituras (sobrevive a recargar).
+        if (!conLimites && localStorage.getItem('chrome-falso/localFalla') === '1') throw new Error('IO error: almacenamiento local no disponible');
         if (conLimites) {
           const ahora = Date.now();
           recientes[nombre] = recientes[nombre].filter(t => ahora - t < 60000);
@@ -47,6 +50,7 @@
           recientes[nombre].push(ahora);
         }
         cuenta[nombre]++;
+        if (nombre === 'sync') escritas.push(...Object.keys(obj));
         avisar(guardar(nombre, obj), nombre);
       },
       async remove(claves) {
@@ -83,6 +87,12 @@
       }
     },
     escrituras: nombre => cuenta[nombre],
+    // Claves escritas en sync desde la última llamada.
+    escritas() {
+      const r = escritas;
+      escritas = [];
+      return r;
+    },
     reiniciarRitmo() { recientes.sync = []; },
   };
 })();

@@ -34,7 +34,8 @@ export function igual(real, esperado, mensaje) {
 // de prueba se guardan entonces en su almacén de sincronización en lugar de en localStorage.
 export function crearAbrir(navegador, urlBase) {
   const URL_PAGINA = `${urlBase}/newtab.html`;
-  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, chrome = null } = {}) {
+  // guardados: entradas extra de localStorage (o del simulador, «chrome.sync/clave») antes de cargar.
+  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, chrome = null, guardados = {} } = {}) {
     const p = await navegador.newPage({ width: ancho, height: alto });
     const errores = [];
     await p.send('Runtime.enable');
@@ -53,7 +54,8 @@ ${CHROME_FALSO}`,
     }
     await p.goto(URL_PAGINA, { settleMs: 200 });
     const claveDatos = chrome ? 'chrome.sync/datos' : 'datos';
-    await p.eval(`localStorage.clear(); ${datos ? `localStorage.setItem('${claveDatos}', ${JSON.stringify(JSON.stringify(datos))});` : ''}`);
+    await p.eval(`localStorage.clear(); ${datos ? `localStorage.setItem('${claveDatos}', ${JSON.stringify(JSON.stringify(datos))});` : ''}
+      for (const [k, v] of Object.entries(${JSON.stringify(guardados)})) localStorage.setItem(k, JSON.stringify(v));`);
     await p.goto(URL_PAGINA, { settleMs: 600 });
 
     const ev = js => p.eval(js);

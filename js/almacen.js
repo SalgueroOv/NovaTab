@@ -98,3 +98,56 @@ export async function reintentarPendientes() {
     await escribir(clave, valor);
   }
 }
+
+// ---------- Formato v4 ----------
+// «datos» guarda la estructura (grupos sin enlaces, widgets y títulos) y «grupo:<id>», los enlaces de cada
+// grupo: cada cambio escribe solo lo que toca y ninguna clave se acerca a los 8 KB de sync.
+
+const CLAVE_DATOS = 'datos';
+const claveGrupo = id => `grupo:${id}`;
+// Lo último escrito o leído de cada clave (en JSON): lo que no cambió no se reescribe, y un aviso de
+// cambio con ese mismo valor es el eco de una escritura propia.
+const ultimo = new Map();
+
+export function recordar(clave, valor) {
+  if (valor === undefined) ultimo.delete(clave);
+  else ultimo.set(clave, JSON.stringify(valor));
+}
+
+export const esLoUltimo = (clave, valor) => ultimo.get(clave) === (valor === undefined ? undefined : JSON.stringify(valor));
+
+// Devuelve los datos con los enlaces dentro de cada grupo. Si están en un formato anterior (v1-v3, todo
+// en «datos»), los devuelve tal cual para que el arranque los migre.
+export async function cargarDatos() {
+  const d = await leer(CLAVE_DATOS);
+  if (!d) return null;
+  if ((d.version || 1) < 4) return d;
+  recordar(CLAVE_DATOS, d);
+  const grupos = await Promise.all((d.grupos || []).map(async g => {
+    const enlaces = (await leer(claveGrupo(g.id))) || [];
+    recordar(claveGrupo(g.id), enlaces);
+    return { ...g, enlaces };
+  }));
+  return { ...d, grupos };
+}
+
+// Escribe primero los grupos que cambiaron, luego la estructura y por último borra los grupos que ya no
+// existen: si algo falla a medias, la estructura anterior sigue apuntando a grupos que existen.
+export async function guardarDatos(datos) {
+  const porGrupo = new Map(datos.grupos.map(g => [claveGrupo(g.id), g.enlaces]));
+  const estructura = { ...datos, grupos: datos.grupos.map(({ enlaces, ...resto }) => resto) };
+  for (const [clave, enlaces] of porGrupo) {
+    if (esLoUltimo(clave, enlaces)) continue;
+    await escribir(clave, enlaces);
+    recordar(clave, enlaces);
+  }
+  if (!esLoUltimo(CLAVE_DATOS, estructura)) {
+    await escribir(CLAVE_DATOS, estructura);
+    recordar(CLAVE_DATOS, estructura);
+  }
+  const sobran = (await claves('grupo:')).filter(clave => !porGrupo.has(clave));
+  if (sobran.length) {
+    await borrar(sobran);
+    sobran.forEach(clave => recordar(clave, undefined));
+  }
+}

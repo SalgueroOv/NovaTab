@@ -146,7 +146,7 @@ export function datosTiempo(lat, lon) {
       const r = await fetch(`https://api.open-meteo.com/v1/forecast?${p}`);
       if (!r.ok) throw new Error(`Open-Meteo respondió ${r.status}`);
       const d = await r.json();
-      escribirLocal(clave, { t: Date.now(), d });
+      escribirLocal(clave, { t: Date.now(), d }).catch(() => { /* la caché es opcional */ });
       return d;
     })().finally(() => setTimeout(() => pendientesTiempo.delete(clave), CACHE_TIEMPO_MS)));
   }
