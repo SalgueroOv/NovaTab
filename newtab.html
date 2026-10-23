@@ -78,7 +78,13 @@
         <ul class="lista-copias" id="lista-copias"></ul>
         <button class="boton-texto peligro" type="button" id="btn-restablecer">Restablecer todo…</button>
         </div>
-        <div role="tabpanel" id="pestana-fondo" hidden></div>
+        <div role="tabpanel" id="pestana-fondo" hidden>
+          <div class="fondos" id="muestras-fondo"></div>
+          <div class="intensidad">
+            <label for="intensidad">Intensidad</label>
+            <input type="range" id="intensidad" min="0" max="100" step="1" value="100">
+          </div>
+        </div>
         <div role="tabpanel" id="pestana-diseno" hidden>
           <h2>Densidad</h2>
           <div class="eleccion" role="group" aria-label="Densidad">

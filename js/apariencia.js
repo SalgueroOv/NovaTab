@@ -4,6 +4,7 @@ import { escribir } from './almacen.js';
 import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
+import { FONDOS } from './fondos.js';
 
 export const CLAVE_TEMA = 'tema';
 export const CLAVE_OPCIONES = 'opciones';
@@ -96,6 +97,9 @@ export function ponerApariencia(a) {
   $('#opt-hora24').checked = apariencia.hora24;
   $('#opt-segundos').checked = apariencia.segundos;
   $('#opt-fecha').checked = apariencia.fecha;
+  muestrasFondo.forEach(m => m.setAttribute('aria-pressed', String(m.dataset.fondo === apariencia.fondo)));
+  $('#intensidad').value = String(apariencia.intensidad);
+  pintarFondo();
   reloj();
   programarReloj();
 }
@@ -187,25 +191,25 @@ document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape') panelTema.hidden = true;
 });
 
-// Curvas de nivel: anillos deformados alrededor de dos cimas; cada quinto es una curva maestra.
+// El dibujo de fondo elegido (o nada, con «liso») a la intensidad elegida.
 export function pintarFondo() {
   const w = innerWidth, h = innerHeight;
-  const caminos = [];
-  [[w * 0.08, h * 0.92, 1.3, 4.1], [w * 0.86, h * 0.12, 5.2, 2.7]].forEach(([cx, cy, f1, f2]) => {
-    for (let k = 1; k <= 20; k++) {
-      const base = k * 34;
-      const puntos = [];
-      for (let i = 0; i <= 140; i++) {
-        const t = i / 140 * Math.PI * 2;
-        const r = base * (1 + 0.11 * Math.sin(3 * t + f1 + k * 0.18) + 0.06 * Math.sin(5 * t + f2 - k * 0.12));
-        puntos.push(`${(cx + r * Math.cos(t)).toFixed(1)},${(cy + r * Math.sin(t)).toFixed(1)}`);
-      }
-      caminos.push(`<path${k % 5 === 0 ? ' class="maestra"' : ''} d="M${puntos.join('L')}Z"/>`);
-    }
-  });
-  $('#fondo').innerHTML = `<svg viewBox="0 0 ${w} ${h}">${caminos.join('')}</svg>`;
+  const fondo = $('#fondo');
+  const dibujo = FONDOS[apariencia.fondo];
+  fondo.innerHTML = dibujo ? `<svg viewBox="0 0 ${w} ${h}">${dibujo.dibujar(w, h)}</svg>` : '';
+  fondo.style.opacity = String(apariencia.intensidad / 100);
 }
 
+// Las muestras de la pestaña Fondo.
+const muestrasFondo = Object.entries(FONDOS).concat([['liso', { nombre: 'Liso' }]]).map(([id, f]) => {
+  const b = crear('button', null, f.nombre);
+  b.type = 'button';
+  b.dataset.fondo = id;
+  b.addEventListener('click', () => cambiarApariencia({ fondo: id }));
+  return b;
+});
+$('#muestras-fondo').append(...muestrasFondo);
+$('#intensidad').addEventListener('input', ev => cambiarApariencia({ intensidad: Number(ev.target.value) }));
 
 export function reloj() {
   const d = new Date();
