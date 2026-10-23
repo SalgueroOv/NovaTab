@@ -119,8 +119,8 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 **Archivos:** `js/rejilla.js`, `style.css`.
 
-- [ ] Vista por grupo (en su diálogo): lista (actual), cuadrícula de iconos o compacta sin IPs.
-- [ ] Separador arrastrable entre los paneles izquierdo y derecho (del 25 al 50 %), guardado en opciones.
+- [x] Vista por grupo (en su diálogo): lista (actual), cuadrícula de iconos o compacta sin IPs.
+- [x] Separador arrastrable entre los paneles izquierdo y derecho (del 25 al 50 %), guardado en opciones.
 
 **Hecho cuando:** cambiar la vista de un grupo recalcula su alto en la cuadrícula sin pisar a los vecinos.
 

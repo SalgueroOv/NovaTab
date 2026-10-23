@@ -17,7 +17,7 @@ export const APARIENCIA = {
 };
 export const IDS_FONDO = ['curvas', 'grafo', 'teselas', 'ondas', 'puntos', 'rayas', 'cuadricula', 'hexagonos', 'anillos', 'montanas', 'liso', 'imagen'];
 
-export const OPCIONES = { fondoGrupos: true, sobrio: false, reunion: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA, buscador: BUSCADOR };
+export const OPCIONES = { fondoGrupos: true, sobrio: false, reunion: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA, buscador: BUSCADOR, anchoIzq: null };
 
 export const TEMAS = [
   { id: 'bosque', nombre: 'Bosque', modo: 'oscuro', muestra: ['#18221d', '#2f4438'] },
@@ -114,9 +114,40 @@ export function ponerApariencia(a) {
   programarReloj();
 }
 
+// Ancho del panel izquierdo, en % de la página: un entero de 25 a 50, o null (el ancho de siempre, el 36 %).
+export const ANCHO_IZQ_DEFECTO = 36;
+export function normalizarAnchoIzq(v) {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return null;
+  const n = Math.round(v);
+  return n >= 25 && n <= 50 ? n : null;
+}
+
+function aplicarAnchoIzq() {
+  const n = opciones.anchoIzq;
+  document.body.classList.toggle('ancho-izq', n !== null);
+  if (n !== null) document.documentElement.style.setProperty('--ancho-izq', `${n}%`);
+  else document.documentElement.style.removeProperty('--ancho-izq');
+  $('#separador-paneles').setAttribute('aria-valuenow', String(n ?? ANCHO_IZQ_DEFECTO));
+}
+
+// Mientras se arrastra el separador se aplica al momento sin guardar; al soltar se guarda una vez.
+export function ponerAnchoIzqVivo(v) {
+  opciones = { ...opciones, anchoIzq: normalizarAnchoIzq(v) };
+  aplicarAnchoIzq();
+}
+
+export function cambiarAnchoIzq(v, diferir = false) {
+  ponerAnchoIzqVivo(v);
+  guardarCambio(diferir);
+}
+
+// Mientras se arrastra, un eco de otra pestaña tampoco debe pisar lo que se arrastra.
+let pausaEcos = false;
+export const pausarEcos = pausa => { pausaEcos = pausa; };
+
 // Guarda las opciones; lo recuerda antes para reconocer su eco como propio (ver almacen.recordar).
 // Hay un cambio aplicado que aún no se guardó (controles que se arrastran): un eco ajeno no debe pisarlo.
-export const hayGuardadoPendiente = () => guardadoPendiente;
+export const hayGuardadoPendiente = () => guardadoPendiente || pausaEcos;
 
 export function guardarOpciones() {
   clearTimeout(temporizadorGuardado);
@@ -154,8 +185,9 @@ document.addEventListener('visibilitychange', () => {
 
 export function ponerOpciones(o) {
   const nuevas = o && typeof o === 'object' ? o : {};
-  opciones = { ...OPCIONES, ...nuevas, ocultos: { ...OPCIONES.ocultos, ...(nuevas.ocultos || {}) }, apariencia: normalizarApariencia(nuevas.apariencia), buscador: normalizarBuscador(nuevas.buscador) };
+  opciones = { ...OPCIONES, ...nuevas, ocultos: { ...OPCIONES.ocultos, ...(nuevas.ocultos || {}) }, apariencia: normalizarApariencia(nuevas.apariencia), buscador: normalizarBuscador(nuevas.buscador), anchoIzq: normalizarAnchoIzq(nuevas.anchoIzq) };
   ponerApariencia(opciones.apariencia);
+  aplicarAnchoIzq();
   document.body.classList.toggle('grupos-con-fondo', !!opciones.fondoGrupos);
   $('#opt-fondo-grupos').checked = !!opciones.fondoGrupos;
   document.body.classList.toggle('sobrio', !!opciones.sobrio);

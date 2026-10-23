@@ -6,6 +6,7 @@ Sustituye la pestaña nueva de Chrome por una página con:
 - Tus servicios de casa o del trabajo (servidores, NAS, router...) en grupos que colocas donde quieras.
 - Tus webs favoritas como accesos directos.
 - Widgets: tiempo, notas, Google Calendar, Spotify y tus webs más visitadas.
+- Cada grupo de la red local se puede ver como lista, iconos o compacta (Editar grupo), y el ancho del panel izquierdo se cambia arrastrando la franja entre los paneles.
 - Atajos de teclado: Ctrl+K (paleta de comandos), Alt+1 a Alt+9 (tus primeros enlaces locales) y «!y gatos», «!gh», «!w», «!m» en el buscador (editables en Personalizar > Buscador).
 - Diez temas, fondos, color de acento, motor de búsqueda a elegir, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 

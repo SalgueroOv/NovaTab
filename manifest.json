@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "NovaTab",
   "description": "Página de nueva pestaña para tus servicios de casa o del trabajo, con buscador y widgets.",
-  "version": "4.4.1",
+  "version": "4.5.0",
   "chrome_url_overrides": { "newtab": "newtab.html" },
   "permissions": ["storage", "favicon", "geolocation", "topSites"],
   "optional_permissions": ["bookmarks"],

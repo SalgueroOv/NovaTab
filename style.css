@@ -125,6 +125,15 @@ body {
   min-height: 100vh;
   padding: 24px;
 }
+/* Separador entre los paneles: una franja fina que se arrastra para cambiar el ancho del izquierdo. */
+.separador-paneles { position: absolute; top: 24px; bottom: 24px; z-index: 5; width: 8px; border-radius: 4px; cursor: col-resize; touch-action: none; }
+.separador-paneles::after { content: ""; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px; border-radius: 1px; background: var(--borde-fuerte); opacity: 0; transition: opacity .15s; }
+.separador-paneles:hover::after, .separador-paneles:focus-visible, .separador-paneles.moviendo::after { opacity: 1; }
+.separador-paneles:focus-visible::after { opacity: 1; background: var(--acento); }
+.sin-izq .separador-paneles, .sin-der .separador-paneles { display: none; }
+@media (min-width: 1001px) {
+  body.ancho-izq:not(.sin-izq):not(.sin-der) .pagina { grid-template-columns: minmax(320px, var(--ancho-izq)) 1fr; }
+}
 .izquierda {
   display: flex;
   flex-direction: column;
@@ -848,6 +857,7 @@ dialog menu button {
 /* ---------- Pantallas estrechas: los grupos se apilan ---------- */
 
 @media (max-width: 1000px) {
+  .separador-paneles { display: none; }
   .pagina { grid-template-columns: 1fr; }
   .izquierda { position: static; height: auto; padding: 56px 8px 8px; }
   .hora { font-size: 80px; }

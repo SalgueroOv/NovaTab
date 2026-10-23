@@ -10,6 +10,7 @@ import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
 import './ajustes-buscador.js';
 import './comandos.js';
+import './separador.js';
 import './widgets.js';
 import './iconos.js';
 import { hacerCopiaDelDia } from './copias.js';

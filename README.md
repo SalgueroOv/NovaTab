@@ -43,10 +43,11 @@ Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pru
 | `newtab.html`, `style.css` | La página y su aspecto (temas, cuadrícula, diálogos) |
 | `js/main.js` | Arranque: carga los datos y escucha los cambios de otras pestañas |
 | `js/datos.js`, `js/almacen.js` | Modelo de datos y todo el acceso a `chrome.storage` |
-| `js/rejilla.js`, `js/pintado.js` | Cuadrícula (posiciones y colisiones) y pintado de grupos |
+| `js/rejilla.js`, `js/pintado.js` | Cuadrícula (posiciones, colisiones y alto según la vista: lista, iconos o compacta) y pintado de grupos |
 | `js/edicion.js` | Modo edición: diálogos, importar/exportar, restablecer, arrastrar y deshacer/rehacer (Ctrl+Z, Ctrl+Y) |
 | `js/fondos.js`, `js/imagen-fondo.js` | Diez dibujos de fondo y la imagen de fondo propia (reducida y guardada solo en el equipo) |
 | `js/motores.js`, `js/ajustes-buscador.js` | Motores de búsqueda y atajos `!clave`, y su pestaña «Buscador» (con sugerencias de Google opcionales) |
+| `js/separador.js` | Franja arrastrable entre los paneles (el izquierdo del 25 al 50 %, doble clic para restaurar) |
 | `js/comandos.js`, `js/atajos.js` | Paleta de comandos (Ctrl+K) y Alt+1…Alt+9 para los nueve primeros enlaces locales |
 | `js/importar.js` | Importar marcadores de Chrome como grupos (permiso `bookmarks` opcional, pedido al pulsar) |
 | `js/historial.js`, `js/copias.js` | Pila de deshacer (20 pasos) y copia automática diaria (7 últimas, en Opciones) |

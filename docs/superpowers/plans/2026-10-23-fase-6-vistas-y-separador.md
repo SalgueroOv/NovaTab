@@ -1,6 +1,6 @@
 # Fase 6: vistas por grupo y separador de paneles — plan de implementación
 
-> **Para agentes:** SUB-SKILL REQUERIDA: superpowers:executing-plans (ejecución nativa, como en las fases anteriores). Los pasos usan casillas (`- [ ]`).
+> **Para agentes:** SUB-SKILL REQUERIDA: superpowers:executing-plans (ejecución nativa, como en las fases anteriores). Los pasos usan casillas (`- [x]`).
 
 **Objetivo:** que cada grupo local pueda mostrarse como lista (como ahora), cuadrícula de iconos o compacta a dos columnas sin IPs, y que el ancho del panel izquierdo se pueda cambiar arrastrando una franja entre los dos paneles.
 
@@ -50,15 +50,15 @@
 - `dialogoGrupo(titulo, valores)` admite `vista` y devuelve `vista` en su resultado; `nuevoGrupo` crea grupos con `vista: 'lista'`; `editarGrupo` aplica la vista elegida y llama a `guardarYPintar(g)` (el grupo editado manda y los vecinos se apartan).
 - Etiquetas del selector: «Lista», «Iconos», «Compacta».
 
-- [ ] **Paso 1:** escribir `vistas.prueba.mjs` (con `abrir({ datos })`, datos de prueba con un grupo de 8 enlaces) y ejecutarla → falla:
+- [x] **Paso 1:** escribir `vistas.prueba.mjs` (con `abrir({ datos })`, datos de prueba con un grupo de 8 enlaces) y ejecutarla → falla:
   - (a) `normalizar` (vía `novatab.datos`): grupos sin `vista`, con `'nada'` o con `5` quedan en `'lista'`; `'iconos'` y `'compacta'` se conservan.
   - (b) `import('/js/rejilla.js').filasDe`: con 8 enlaces, `lista` 8; `compacta` 4; `iconos` con `pos.w` 6 → `2 * ceil(8 / 3)` = 6, con `pos.w` 4 → `2 * ceil(8 / 2)` = 8, con `pos.w` 12 → `2 * ceil(8 / 6)` = 4; con 0 enlaces las tres dan 1 (lista) / 1 (compacta) / 2 (iconos); `alto` de un grupo plegado es 1 con cualquier vista.
   - (c) en modo edición, `Editar grupo` muestra el selector con los tres valores y el actual marcado; elegir `compacta` guarda `vista: 'compacta'`, sobrevive a una recarga y el grupo ocupa las filas esperadas (`gridRow` con `span 5`).
   - (d) con un grupo de 8 enlaces en `lista` (alto 9, filas 1 a 9) y otro justo debajo empezando en la fila 10: pasar el de arriba a `iconos` con `w` 6 (alto 7) deja al de abajo donde estaba; pasarlo a `iconos` con `w` 4 (alto 9) tampoco lo mueve; con 14 enlaces y `iconos` w 4 (alto 15) el de abajo baja a la fila 16 y no se solapan.
   - (e) estrechar con el asa un grupo en `iconos` (de 6 a 4 columnas con 8 enlaces: alto 7 → 9) aparta al vecino de debajo sin solapar.
   - (f) un grupo importado de un JSON sin `vista` y uno creado con «Añadir grupo» quedan en `lista`; los grupos creados por «Importar marcadores» también.
-- [ ] **Paso 2:** implementar.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Vistas de grupo: modelo, alto y selector».
+- [x] **Paso 2:** implementar.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Vistas de grupo: modelo, alto y selector».
 
 ### Task 2 · Tarea 2: pintar las tres vistas
 
@@ -71,15 +71,15 @@
 - Iconos: rejilla de `max(1, floor(w / 2))` columnas iguales (se pone en una variable CSS `--columnas-iconos` del grupo); cada celda es un `a.fila.enlace` en vertical: icono centrado y el nombre debajo (una línea, con elipsis), sin `.dir`; el alto de cada celda es `calc(2 * var(--alto-fila))` más el hueco de fila de la cuadrícula, de modo que dos filas de iconos ocupan exactamente las filas que calcula `filasDe`.
 - En las tres vistas siguen: `dataset.id`, `title` con la dirección completa, `draggable` en edición, el botón de borrar (en iconos y compacta, posicionado en la esquina de la celda y visible solo en edición) y la cifra de Alt+número.
 
-- [ ] **Paso 1:** ampliar la prueba y ejecutarla → falla:
+- [x] **Paso 1:** ampliar la prueba y ejecutarla → falla:
   - (a) con 7 enlaces, en cada vista `.enlaces` mide como mucho lo que mide su grupo menos la cabecera (`scrollHeight <= clientHeight`, sin desbordar) y sin conflictos con la densidad compacta de la fase 4.
   - (b) en `compacta` no hay `.dir` y hay 2 columnas (la `x` de la primera y la segunda celda difieren, y la tercera vuelve a la `x` de la primera); en `iconos` con `w` 6 hay 3 columnas y con `w` 12 hay 6.
   - (c) el nombre de un enlace de 120 caracteres no desborda en `iconos` ni en `compacta` (`scrollWidth <= clientWidth` de la celda).
   - (d) en modo edición, en `iconos` y en `compacta`: el botón de borrar de un enlace lo borra (con `confirm` aceptado), y arrastrar un enlace a otro grupo lo mueve (como en la lista).
   - (e) la cifra de Alt+número está en las tres vistas y Alt+1 sigue abriendo el primer enlace.
   - (f) `title` de cada celda es la dirección completa aunque la IP no se vea.
-- [ ] **Paso 2:** implementar.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Vistas de grupo: lista, iconos y compacta».
+- [x] **Paso 2:** implementar.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Vistas de grupo: lista, iconos y compacta».
 
 ### Task 3 · Tarea 3: separador entre paneles
 
@@ -89,7 +89,7 @@
 - `apariencia.js` exporta `normalizarAnchoIzq(v: unknown): number | null` (entero de 25 a 50, o `null`), y `ponerOpciones` lo aplica: con un número, `document.documentElement.style` recibe `--ancho-izq: X%`, y `.pagina` usa `grid-template-columns: minmax(320px, var(--ancho-izq)) 1fr` solo con la clase `ancho-izq` en `body`; con `null` se quita la variable y la clase y vale `minmax(400px, 36%)`.
 - `separador.js`: `pointerdown` en el separador captura el puntero; `pointermove` calcula `round(x / innerWidth * 100)` limitado a 25–50, lo aplica al momento (variable y `aria-valuenow`) y lo guarda al soltar con `guardarOpciones()` (una sola escritura); `ArrowLeft`/`ArrowRight` con el foco en el separador cambian 1 punto (diferido 250 ms, como los controles que se arrastran); `dblclick` vuelve a `null`. El separador se coloca en el borde derecho del panel izquierdo (sigue al redimensionar la ventana) y no se muestra con `body.sin-izq`, `body.sin-der` ni con la pantalla estrecha. Los ecos de `opciones` recibidos mientras se arrastra no se aplican (se filtran con `esLoUltimo`, como ya hace `main.js`).
 
-- [ ] **Paso 1:** escribir `separador.prueba.mjs` y ejecutarla → falla:
+- [x] **Paso 1:** escribir `separador.prueba.mjs` y ejecutarla → falla:
   - (a) `normalizarAnchoIzq`: `30` → 30; `25` y `50` valen; `24`, `51`, `90`, `-5`, `'x'`, `null`, `undefined`, `33.6` (se redondea a 34) → los fuera de rango y los no numéricos dan `null`.
   - (b) `guardados: { opciones: { anchoIzq: 90 } }` arranca sin errores y con el ancho de siempre (`minmax(400px, 36%)`, `body` sin la clase `ancho-izq`).
   - (c) arrastrar el separador con el ratón desde su posición hasta el 30 % del ancho de la ventana deja `--ancho-izq` en `30%`, `aria-valuenow` 30 y la columna izquierda midiendo el 30 % del ancho disponible; hacia el 10 % se queda en 25; hacia el 80 % se queda en 50; durante el arrastre hay cero escrituras de `opciones` en `sync` y al soltar, una (`__chromeFalso.escritas()`).
@@ -99,12 +99,12 @@
   - (g) tras cambiar el tamaño de la ventana de 1440 a 1200 px de ancho, el separador sigue pegado al borde derecho del panel izquierdo (su `left` coincide con el borde del panel con un margen de 2 px).
   - (h) en modo edición, mover y redimensionar bloques con el ratón sigue cayendo en la celda correcta con el separador movido (se reutiliza la acción de `rejilla.prueba.mjs`).
   - (i) un eco de `opciones` con `anchoIzq: 40` recibido (`__chromeFalso.remoto`) mientras se arrastra no cambia el valor que se está arrastrando.
-- [ ] **Paso 2:** implementar.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Separador arrastrable entre los paneles».
+- [x] **Paso 2:** implementar.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Separador arrastrable entre los paneles».
 
 ### Task 4 · Tarea 4: cierre de la fase
 
-- [ ] **Paso 1:** `version` 4.5.0 en `manifest.json`; `README.md` (fila de `js/separador.js` y una línea sobre las vistas de grupo); `empaquetar/LEEME.txt` con las vistas y el separador en su lista de funciones.
-- [ ] **Paso 2:** comprobar a mano una vez en Chrome real: cambiar un grupo a iconos y a compacta, ensancharlo y arrastrar el separador.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar\empaquetar.ps1` → `dist/novatab-4.5.0.zip` con `js/separador.js` y sin IPs de redes reales.
-- [ ] **Paso 4:** marcar la fase 6 en la hoja de ruta y commit «Fase 6 terminada: versión 4.5.0».
+- [x] **Paso 1:** `version` 4.5.0 en `manifest.json`; `README.md` (fila de `js/separador.js` y una línea sobre las vistas de grupo); `empaquetar/LEEME.txt` con las vistas y el separador en su lista de funciones.
+- [x] **Paso 2:** comprobar a mano una vez en Chrome real: cambiar un grupo a iconos y a compacta, ensancharlo y arrastrar el separador.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar\empaquetar.ps1` → `dist/novatab-4.5.0.zip` con `js/separador.js` y sin IPs de redes reales.
+- [x] **Paso 4:** marcar la fase 6 en la hoja de ruta y commit «Fase 6 terminada: versión 4.5.0».
