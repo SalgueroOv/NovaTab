@@ -101,7 +101,7 @@ export default {
     const hoy = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })();
     pg = await abrir({ chrome: {}, datos: CON_TAREAS, guardados: { 'chrome.sync/tareas:w-tareas': [{ id: 'a', texto: 'De la copia', hecha: false }] } });
     await pg.esperar(600);
-    igual(JSON.parse(await pg.ev(`localStorage.getItem('chrome.local/copia:${hoy}')`)).tareas['w-tareas'].map(t => t.texto), ['De la copia'], 'la copia de hoy lleva las tareas');
+    igual(JSON.parse(await pg.ev(`localStorage.getItem('chrome.local/copia:principal:${hoy}')`)).tareas['w-tareas'].map(t => t.texto), ['De la copia'], 'la copia de hoy lleva las tareas');
     await pg.ev(`document.querySelector('.widget-tareas .borrar-tarea').click()`);
     await pg.esperar(700);
     igual(await textos(pg), [], 'lista vaciada');
@@ -110,7 +110,7 @@ export default {
     await pg.esperar(700);
     igual(await textos(pg), ['De la copia'], 'recuperar la copia restaura las tareas');
     const antigua = { fecha: '2020-01-01', datos: { version: 4, titulos: {}, widgets: [], grupos: [{ id: 'g', nombre: 'Solo', zona: 'local', color: '#8a8c92', pos: { x: 1, y: 1, w: 6 }, plegado: false, privado: false, enlaces: [{ id: 'e', nombre: 'Uno', url: 'http://192.168.1.2/' }] }] }, notas: {}, tareas: {} };
-    await pg.ev(`localStorage.setItem('chrome.local/copia:2020-01-01', ${JSON.stringify(JSON.stringify(antigua))})`);
+    await pg.ev(`localStorage.setItem('chrome.local/copia:principal:2020-01-01', ${JSON.stringify(JSON.stringify(antigua))})`);
     await pg.clic('#btn-tema');
     await pg.clic('#btn-tema');
     await pg.ev(`[...document.querySelectorAll('#lista-copias li')].find(li => li.textContent.includes('1 ene')).querySelector('button').click()`);

@@ -2,7 +2,7 @@ import { afirmar, igual } from './lib/util.mjs';
 
 const modulo = `import('/js/apariencia.js')`;
 const columnas = `getComputedStyle(document.querySelector('.pagina')).gridTemplateColumns`;
-const opcionesSync = `JSON.parse(localStorage.getItem('chrome.sync/opciones') || 'null')`;
+const opcionesSync = `JSON.parse(localStorage.getItem('chrome.sync/perfil:principal:aspecto') || 'null')`;
 // Medidas: el contenido de la página (sin su relleno), el hueco entre paneles y el borde del panel izquierdo.
 const medidas = `(() => {
   const p = document.querySelector('.pagina');
@@ -43,10 +43,10 @@ export default {
     await pg.esperar(100);
     igual(await pg.ev(`document.getElementById('separador-paneles').getAttribute('aria-valuenow')`), '30', 'aria-valuenow durante el arrastre');
     igual(await pg.ev(`document.documentElement.style.getPropertyValue('--ancho-izq')`), '30%', 'variable CSS durante el arrastre');
-    igual((await pg.ev(`__chromeFalso.escritas()`)).filter(k => k === 'opciones').length, 0, 'sin escrituras mientras se arrastra');
+    igual((await pg.ev(`__chromeFalso.escritas()`)).filter(k => k === 'perfil:principal:aspecto').length, 0, 'sin escrituras mientras se arrastra');
     await pg.raton('mouseReleased', xDe(m, 30), m.sepY);
     await pg.esperar(400);
-    igual((await pg.ev(`__chromeFalso.escritas()`)).filter(k => k === 'opciones').length, 1, 'una escritura al soltar');
+    igual((await pg.ev(`__chromeFalso.escritas()`)).filter(k => k === 'perfil:principal:aspecto').length, 1, 'una escritura al soltar');
     igual((await pg.ev(opcionesSync)).anchoIzq, 30, 'anchoIzq guardado');
     m = await pg.ev(medidas);
     afirmar(Math.abs(m.izqAncho - m.ancho * 0.30) <= 2, `la columna izquierda mide el 30 % (mide ${m.izqAncho} de ${m.ancho})`);
@@ -126,7 +126,7 @@ export default {
     m = await pg.ev(medidas);
     await pg.raton('mousePressed', m.sepCentro, m.sepY);
     await pg.raton('mouseMoved', xDe(m, 32), m.sepY);
-    await pg.ev(`__chromeFalso.remoto('sync', 'opciones', { anchoIzq: 40 })`);
+    await pg.ev(`__chromeFalso.remoto('sync', 'perfil:principal:aspecto', { anchoIzq: 40 })`);
     await pg.esperar(200);
     await pg.raton('mouseMoved', xDe(m, 28), m.sepY);
     await pg.raton('mouseReleased', xDe(m, 28), m.sepY);
@@ -140,7 +140,7 @@ export default {
     m = await pg.ev(medidas);
     await pg.raton('mousePressed', m.sepCentro, m.sepY);
     await pg.raton('mouseMoved', xDe(m, 32), m.sepY);
-    await pg.ev(`__chromeFalso.remoto('sync', 'opciones', { sobrio: true, anchoIzq: 45 })`);
+    await pg.ev(`__chromeFalso.remoto('sync', 'perfil:principal:aspecto', { sobrio: true, anchoIzq: 45 })`);
     await pg.esperar(200);
     await pg.raton('mouseMoved', xDe(m, 28), m.sepY);
     await pg.raton('mouseReleased', xDe(m, 28), m.sepY);
@@ -153,7 +153,7 @@ export default {
     await pg.esperar(400);
     m = await pg.ev(medidas);
     await pg.raton('mousePressed', m.sepCentro, m.sepY);
-    await pg.ev(`__chromeFalso.remoto('sync', 'opciones', { sobrio: true })`);
+    await pg.ev(`__chromeFalso.remoto('sync', 'perfil:principal:aspecto', { sobrio: true })`);
     await pg.esperar(200);
     await pg.raton('mouseReleased', m.sepCentro, m.sepY);
     await pg.esperar(300);

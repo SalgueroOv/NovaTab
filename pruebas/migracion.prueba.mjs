@@ -21,7 +21,7 @@ export default {
     let pg = await abrir({ chrome: {}, datos: DATOS_V3, guardados: NOTAS_V3 });
     await pg.esperar(300);
     igual(await pg.ev(enArea('local', 'respaldo-v3')), DATOS_V3, 'respaldo de los datos v3');
-    const estructura = await pg.ev(enArea('sync', 'datos'));
+    const estructura = await pg.ev(enArea('sync', 'perfil:principal:datos'));
     igual(estructura.version, 4, 'versión guardada');
     afirmar(estructura.grupos.every(g => !('enlaces' in g)), 'la estructura no debe llevar los enlaces');
     for (const g of DATOS_V3.grupos) {
@@ -34,7 +34,7 @@ export default {
     await pg.ev(`__chromeFalso.escritas()`);
     await pg.ev(`[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === 'Servidores').querySelector('[data-plegar]').click()`);
     await pg.esperar(300);
-    igual(await pg.ev(`__chromeFalso.escritas()`), ['datos'], 'claves escritas al plegar');
+    igual(await pg.ev(`__chromeFalso.escritas()`), ['perfil:principal:datos'], 'claves escritas al plegar');
     await pg.clic('#btn-editar');
     await pg.ev(`[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === 'Privado local').querySelector('.fila').click()`);
     await pg.esperar(200);
@@ -57,16 +57,17 @@ export default {
     // Con la cuota tan baja, la primera apertura dejó los datos por defecto en local: fuera, para que
     // la página lea los datos v3 de sync.
     await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('chrome.local/')).forEach(k => localStorage.removeItem(k));
-      localStorage.setItem('chrome.sync/datos', ${JSON.stringify(JSON.stringify(DATOS_V3))});
+      localStorage.setItem('chrome.sync/perfiles', ${JSON.stringify(JSON.stringify({ version: 5, lista: [{ id: 'principal', nombre: 'Principal' }] }))});
+      localStorage.setItem('chrome.sync/perfil:principal:datos', ${JSON.stringify(JSON.stringify(DATOS_V3))});
       localStorage.setItem('chrome-falso/localFalla', '1')`);
     await pg.recargar();
     await pg.esperar(300);
-    igual(await pg.ev(`${enArea('sync', 'datos')}.then(d => d.version)`), 3, 'versión en sync tras un fallo al migrar');
+    igual(await pg.ev(`${enArea('sync', 'perfil:principal:datos')}.then(d => d.version)`), 3, 'versión en sync tras un fallo al migrar');
     igual(resumen(await pg.datos()), resumen(DATOS_V3), 'la página sigue mostrando los datos aunque no pueda guardarlos');
     await pg.ev(`localStorage.removeItem('chrome-falso/localFalla')`);
     await pg.recargar();
     await pg.esperar(300);
-    igual(await pg.ev(`${leer('datos')}.then(d => d.version)`), 4, 'versión tras volver a abrir sin fallos');
+    igual(await pg.ev(`${leer('perfil:principal:datos')}.then(d => d.version)`), 4, 'versión tras volver a abrir sin fallos');
 
     // (e) Importar una copia v3 deja el formato v4 y no deja grupos huérfanos.
     pg = await abrir({ chrome: {} });
@@ -83,6 +84,6 @@ export default {
     await pg.esperar(500);
     const claves = await pg.ev(clavesSync);
     igual(claves.filter(k => k.startsWith('grupo:')), ['grupo:g1', 'grupo:g2', 'grupo:g3', 'grupo:g4', 'grupo:g5'], 'claves de grupo tras importar');
-    igual(await pg.ev(`${enArea('sync', 'datos')}.then(d => d.version)`), 4, 'versión tras importar');
+    igual(await pg.ev(`${enArea('sync', 'perfil:principal:datos')}.then(d => d.version)`), 4, 'versión tras importar');
   },
 };

@@ -1,11 +1,12 @@
 // Arranque de NovaTab: carga los datos, aplica tema y opciones y escucha los cambios de otras pestañas.
 import { $, svg } from './util.js';
-import { alCambiar, cargarDatos, esLoUltimo, escribirLocal, leer } from './almacen.js';
+import { alCambiar, bloquearGuardado, cargarDatos, esLoUltimo, escribirLocal, leer } from './almacen.js';
+import { claveAspecto, claveDatos, leerLegado, migrar, perfilActivo } from './perfiles.js';
 import { avisar } from './util.js';
-import { CLAVE, VERSION, datos, normalizar, ponerDatos } from './datos.js';
+import { VERSION, datos, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
 import { pintar, pintarLocal } from './pintado.js';
-import { CLAVE_OPCIONES, CLAVE_TEMA, pintarFondo, ponerOpciones, ponerTema, recibirEco } from './apariencia.js';
+import { CLAVE_OPCIONES, opciones, pintarFondo, ponerOpciones, ponerTema, recibirEco } from './apariencia.js';
 import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
 import './ajustes-buscador.js';
@@ -23,9 +24,16 @@ import './importar.js';
 
 // Cambios hechos en otra pestaña u otro equipo sincronizado.
 alCambiar(cambios => {
-  if (cambios[CLAVE_TEMA]?.newValue) ponerTema(cambios[CLAVE_TEMA].newValue);
-  if (cambios[CLAVE_OPCIONES]?.newValue && !esLoUltimo(CLAVE_OPCIONES, cambios[CLAVE_OPCIONES].newValue)) recibirEco(cambios[CLAVE_OPCIONES].newValue);
-  const deDatos = Object.entries(cambios).filter(([clave]) => clave === CLAVE || clave.startsWith('grupo:'));
+  // El aspecto del perfil activo (tema y demás) y lo común (el buscador); los de otros perfiles no cuentan.
+  const claveAsp = claveAspecto(perfilActivo());
+  const aspecto = cambios[claveAsp]?.newValue;
+  if (aspecto && !esLoUltimo(claveAsp, aspecto)) {
+    if (aspecto.tema) ponerTema(aspecto.tema);
+    recibirEco({ ...aspecto, buscador: opciones.buscador });
+  }
+  const comunes = cambios[CLAVE_OPCIONES]?.newValue;
+  if (comunes && !esLoUltimo(CLAVE_OPCIONES, comunes)) recibirEco({ ...opciones, buscador: comunes.buscador });
+  const deDatos = Object.entries(cambios).filter(([clave]) => clave === claveDatos(perfilActivo()) || clave.startsWith('grupo:'));
   // Los ecos de lo que esta pestaña acaba de guardar no cuentan.
   if (!deDatos.length || deDatos.every(([clave, c]) => esLoUltimo(clave, c.newValue))) return;
   clearTimeout(recarga);
@@ -49,14 +57,25 @@ let recarga;
     redimension = setTimeout(() => { pintarFondo(); if (editando) pintarLocal(); }, 120);
   });
 
-  let tema = null;
+  let aspecto = null;
   let guardados = null;
-  let opcionesGuardadas = null;
+  let comunes = null;
   try {
-    [tema, guardados, opcionesGuardadas] = await Promise.all([leer(CLAVE_TEMA), cargarDatos(), leer(CLAVE_OPCIONES)]);
-  } catch { /* sin datos guardados */ }
-  ponerTema(tema);
-  ponerOpciones(opcionesGuardadas);
+    await migrar();
+    [guardados, aspecto, comunes] = await Promise.all([cargarDatos(perfilActivo()), leer(claveAspecto(perfilActivo())), leer(CLAVE_OPCIONES)]);
+  } catch (err) {
+    // Sin migrar: se enseña lo de antes pero no se guarda nada en las claves nuevas hasta la próxima apertura.
+    bloquearGuardado('Tus datos aún no se han actualizado al formato nuevo: se reintentará al abrir otra pestaña');
+    avisar(`No se pudieron actualizar tus datos al formato nuevo: ${err.message}`);
+    try {
+      const legado = await leerLegado();
+      guardados = legado.datos;
+      aspecto = legado.aspecto;
+      comunes = legado.opciones;
+    } catch { /* sin datos guardados */ }
+  }
+  ponerTema(aspecto?.tema);
+  ponerOpciones({ ...aspecto, buscador: comunes?.buscador });
   try {
     ponerDatos(normalizar(guardados || DATOS_DEFECTO));
   } catch {

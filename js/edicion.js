@@ -9,6 +9,7 @@ import { accionDeWidget, campo, escribirNotas, leerNotas, memoriaNotas, notasGua
 import { leerIcono, refrescarCampoIcono } from './iconos.js';
 import { crearHistorial } from './historial.js';
 import { borrarTareas, escribirTareas, idsDeTareas, leerTareas } from './widgets/tareas-datos.js';
+import { perfilActivo } from './perfiles.js';
 
 export let editando = false;
 export let arrastre = null;
@@ -105,7 +106,7 @@ export function cambioDeFuera() {
 async function recargar() {
   deFuera = false;
   limpiarHistorial(); // lo ajeno ya guardado no se debe pisar al deshacer
-  const d = await cargarDatos();
+  const d = await cargarDatos(perfilActivo());
   if (!d) return;
   ponerDatos(normalizar(d));
   sincronizado();
@@ -117,7 +118,7 @@ async function guardarDentro(sinHistorial = false) {
   if (deFuera && base) {
     deFuera = false;
     limpiarHistorial();
-    const remoto = await cargarDatos();
+    const remoto = await cargarDatos(perfilActivo());
     if (remoto) {
       ponerDatos(normalizar(fusionar(base, datos, remoto)));
       // Lo que llegó de fuera ya no es «antes de mi cambio»: deshacer solo debe revertir lo mío.
@@ -130,7 +131,7 @@ async function guardarDentro(sinHistorial = false) {
     historial.empujar({ datos: base, notas: { ...notasUltimas, ...(await leerNotas()) }, tareas: { ...tareasUltimas, ...(await leerTareas()) } });
     ocultarAvisoAccion();
   }
-  await guardarDatos(datos);
+  await guardarDatos(datos, perfilActivo());
   sincronizado();
 }
 

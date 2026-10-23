@@ -11,10 +11,10 @@ const renombrarBetaFuera = `chrome.storage.sync.get('grupo:g-beta').then(r => {
 })`;
 
 // Lo que haría otra pestaña: borrar el grupo Gamma.
-const borrarGammaFuera = `chrome.storage.sync.get('datos').then(r => {
-  const d = r.datos;
+const borrarGammaFuera = `chrome.storage.sync.get('perfil:principal:datos').then(r => {
+  const d = r['perfil:principal:datos'];
   d.grupos = d.grupos.filter(g => g.id !== 'g-gamma');
-  __chromeFalso.remoto('sync', 'datos', d);
+  __chromeFalso.remoto('sync', 'perfil:principal:datos', d);
   __chromeFalso.remoto('sync', 'grupo:g-gamma', undefined);
 })`;
 
@@ -60,7 +60,7 @@ export default {
     await pg.esperar(400);
     d = await pg.datos();
     igual(d.grupos.some(g => g.id === 'g-gamma'), false, 'Gamma en memoria tras guardar');
-    igual((await pg.ev(enArea('sync', 'datos'))).grupos.some(g => g.id === 'g-gamma'), false, 'Gamma en lo guardado');
+    igual((await pg.ev(enArea('sync', 'perfil:principal:datos'))).grupos.some(g => g.id === 'g-gamma'), false, 'Gamma en lo guardado');
     igual(nombresDe(d, 'g-alfa')[0], 'Proxmox Otra Vez', 'mi cambio en Alfa');
 
     // (c2) Si cancelo el diálogo, lo que llegó mientras tanto se aplica al cerrarlo.

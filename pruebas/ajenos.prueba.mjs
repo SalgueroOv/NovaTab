@@ -10,11 +10,11 @@ export default {
     igual(await pg.ev(`novatab.datos.widgets.length`), 0, 'no se pinta ni se cuenta como widget');
     await pg.ev(`[...document.querySelectorAll('#rejilla .grupo')][0].querySelector('[data-plegar]').click()`);
     await pg.esperar(500);
-    const guardado = await pg.ev(`chrome.storage.sync.get('datos').then(r => r.datos)`);
+    const guardado = await pg.ev(`chrome.storage.sync.get('perfil:principal:datos').then(r => r['perfil:principal:datos'])`);
     igual((guardado.ajenos ?? []).map(w => [w.id, w.tipo, w.config.clave]), [['f1', 'widgetDelFuturo', 'valor']], 'sigue en lo guardado tras editar');
     await pg.recargar();
     await pg.esperar(500);
-    const otra = await pg.ev(`chrome.storage.sync.get('datos').then(r => r.datos)`);
+    const otra = await pg.ev(`chrome.storage.sync.get('perfil:principal:datos').then(r => r['perfil:principal:datos'])`);
     igual((otra.ajenos ?? []).length, 1, 'y tras recargar');
     afirmar(true, 'sin errores');
   },

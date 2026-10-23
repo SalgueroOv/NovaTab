@@ -134,7 +134,7 @@ entrada.addEventListener('keydown', ev => {
   }
 });
 // Si las opciones cambian desde otra pestaña (por ejemplo el modo reunión), la lista ya no vale: se cierra.
-alCambiar(cambios => { if (paleta.open && CLAVE_OPCIONES in cambios) cerrarPaleta(); });
+alCambiar(cambios => { if (paleta.open && Object.keys(cambios).some(k => k === CLAVE_OPCIONES || k.endsWith(':aspecto'))) cerrarPaleta(); });
 // Clic fuera de la paleta (en el fondo oscuro): cierra.
 paleta.addEventListener('click', ev => { if (ev.target === paleta) cerrarPaleta(); });
 paleta.addEventListener('cancel', () => { if (focoAnterior?.isConnected) setTimeout(() => focoAnterior.focus()); });

@@ -1,6 +1,7 @@
 // Tema, opciones, paneles, fondo y reloj.
 import { $, avisar, crear, svg } from './util.js';
 import { alCambiar, escribir, recordar } from './almacen.js';
+import { claveAspecto, perfilActivo } from './perfiles.js';
 import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
@@ -41,14 +42,16 @@ export const muestras = TEMAS.map(t => {
   b.append(crear('i'), t.nombre);
   b.addEventListener('click', () => {
     ponerTema(t.id);
-    escribir(CLAVE_TEMA, t.id);
+    guardarOpciones();
   });
   return b;
 });
 $('#muestras').append(...muestras);
 
+export let temaActual = TEMAS[0].id;
 export function ponerTema(id) {
   const t = TEMAS.find(x => x.id === id) || TEMAS[0];
+  temaActual = t.id;
   document.documentElement.dataset.tema = t.id;
   document.documentElement.dataset.modo = t.modo;
   muestras.forEach(m => m.setAttribute('aria-pressed', String(m.dataset.tema === t.id)));
@@ -176,8 +179,13 @@ export function guardarOpciones() {
   clearTimeout(temporizadorGuardado);
   guardadoPendiente = false;
   fusionarEco();
-  recordar(CLAVE_OPCIONES, opciones);
-  return escribir(CLAVE_OPCIONES, opciones);
+  // Lo común (el buscador) va en «opciones»; el resto, con el tema, en el aspecto del perfil activo.
+  const { buscador, ...resto } = opciones;
+  const comunes = { buscador };
+  const aspecto = { tema: temaActual, ...resto };
+  recordar(CLAVE_OPCIONES, comunes);
+  recordar(claveAspecto(perfilActivo()), aspecto);
+  return Promise.all([escribir(CLAVE_OPCIONES, comunes), escribir(claveAspecto(perfilActivo()), aspecto)]);
 }
 let temporizadorGuardado;
 let guardadoPendiente = false;

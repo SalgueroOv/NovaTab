@@ -4,7 +4,7 @@
 (() => {
   const config = window.__configChromeFalso || {};
   const CUOTA = config.cuotaPorClave ?? 8192;
-  const RITMO = config.escriturasPorMinuto ?? 120;
+  let RITMO = config.escriturasPorMinuto ?? 120;
   const oyentes = [];
   const recientes = { sync: [], local: [] };
   const cuenta = { sync: 0, local: 0 };
@@ -95,5 +95,7 @@
       return r;
     },
     reiniciarRitmo() { recientes.sync = []; },
+    // Cambia el límite de escrituras por minuto después de abrir (la apertura puede escribir varias claves).
+    ponerRitmo(n) { RITMO = n; },
   };
 })();

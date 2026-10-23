@@ -108,7 +108,8 @@ export async function reintentarPendientes() {
 // «datos» guarda la estructura (grupos sin enlaces, widgets y títulos) y «grupo:<id>», los enlaces de cada
 // grupo: cada cambio escribe solo lo que toca y ninguna clave se acerca a los 8 KB de sync.
 
-const CLAVE_DATOS = 'datos';
+export const claveDatos = perfil => `perfil:${perfil}:datos`;
+export const claveAspecto = perfil => `perfil:${perfil}:aspecto`;
 const claveGrupo = id => `grupo:${id}`;
 // Lo último escrito o leído de cada clave (en JSON): lo que no cambió no se reescribe, y un aviso de
 // cambio con ese mismo valor es el eco de una escritura propia.
@@ -141,11 +142,19 @@ ${json}`);
 
 // Devuelve los datos con los enlaces dentro de cada grupo. Si están en un formato anterior (v1-v3, todo
 // en «datos»), los devuelve tal cual para que el arranque los migre.
-export async function cargarDatos() {
-  const d = await leer(CLAVE_DATOS);
+// Los ids de los grupos que tiene cada perfil según lo último leído o guardado: al guardar solo se borran los
+// grupos que este perfil tenía y ya no tiene (los de otros perfiles no se tocan).
+const gruposDelPerfil = new Map();
+// Con la migración fallida no se escribe en las claves nuevas (ver perfiles.js).
+let bloqueado = null;
+export const bloquearGuardado = motivo => { bloqueado = motivo; };
+
+export async function cargarDatos(perfil) {
+  const d = await leer(claveDatos(perfil));
   if (!d) return null;
   if ((d.version || 1) < 4) return d;
-  recordar(CLAVE_DATOS, d);
+  recordar(claveDatos(perfil), d);
+  gruposDelPerfil.set(perfil, new Set((d.grupos || []).map(g => claveGrupo(g.id))));
   const grupos = await Promise.all((d.grupos || []).map(async g => {
     const enlaces = (await leer(claveGrupo(g.id))) || [];
     recordar(claveGrupo(g.id), enlaces);
@@ -158,7 +167,12 @@ export async function cargarDatos() {
 // existen: si algo falla a medias, la estructura anterior sigue apuntando a grupos que existen.
 // Cada valor se recuerda antes de escribirlo: el aviso de cambio puede llegar antes de que acabe la
 // escritura, y así se reconoce como eco propio.
-export async function guardarDatos(datos) {
+export async function guardarDatos(datos, perfil) {
+  if (bloqueado) {
+    avisar(bloqueado);
+    return;
+  }
+  const CLAVE_DATOS = claveDatos(perfil);
   const porGrupo = new Map(datos.grupos.map(g => [claveGrupo(g.id), g.enlaces]));
   const estructura = { ...datos, grupos: datos.grupos.map(({ enlaces, ...resto }) => resto) };
   for (const [clave, enlaces] of porGrupo) {
@@ -170,7 +184,8 @@ export async function guardarDatos(datos) {
     recordar(CLAVE_DATOS, estructura);
     await escribir(CLAVE_DATOS, estructura);
   }
-  const sobran = (await claves('grupo:')).filter(clave => !porGrupo.has(clave));
+  const sobran = [...(gruposDelPerfil.get(perfil) ?? [])].filter(clave => !porGrupo.has(clave));
+  gruposDelPerfil.set(perfil, new Set(porGrupo.keys()));
   if (sobran.length) {
     sobran.forEach(clave => recordar(clave, undefined));
     await borrar(sobran);

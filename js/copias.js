@@ -2,8 +2,9 @@
 import { $, avisarConAccion, crear } from './util.js';
 import { borrar, claves, escribirLocal, leerLocal } from './almacen.js';
 import { deshacerUltimo, reemplazarEstado, tomarFoto } from './edicion.js';
+import { perfilActivo } from './perfiles.js';
 
-const PREFIJO = 'copia:';
+const prefijo = () => `copia:${perfilActivo()}:`;
 const MAXIMO = 7;
 
 const fechaLocal = (d = new Date()) =>
@@ -16,16 +17,16 @@ const legible = fecha => {
 };
 
 // Solo las claves con forma de fecha: cualquier otra «copia:...» no es nuestra.
-const clavesDeCopia = async () => (await claves(PREFIJO)).filter(k => /^copia:\d{4}-\d{2}-\d{2}$/.test(k));
+const clavesDeCopia = async () => (await claves(prefijo())).filter(k => /^copia:[^:]+:\d{4}-\d{2}-\d{2}$/.test(k));
 
 const valida = c => typeof c?.fecha === 'string' && Array.isArray(c?.datos?.grupos);
 
 // Guarda la copia de hoy si aún no existe y deja solo las 7 más recientes. Devuelve si creó una.
 export async function hacerCopiaDelDia() {
   const hoy = fechaLocal();
-  if (valida(await leerLocal(PREFIJO + hoy))) return false;
+  if (valida(await leerLocal(prefijo() + hoy))) return false;
   const foto = await tomarFoto();
-  await escribirLocal(PREFIJO + hoy, { fecha: hoy, datos: foto.datos, notas: foto.notas, tareas: foto.tareas });
+  await escribirLocal(prefijo() + hoy, { fecha: hoy, datos: foto.datos, notas: foto.notas, tareas: foto.tareas });
   const todas = (await clavesDeCopia()).sort();
   await borrar(todas.slice(0, Math.max(0, todas.length - MAXIMO)));
   return true;
@@ -36,13 +37,13 @@ export async function listarCopias() {
   const lista = [];
   for (const clave of (await clavesDeCopia()).sort().reverse()) {
     const c = await leerLocal(clave);
-    if (valida(c)) lista.push({ fecha: clave.slice(PREFIJO.length) });
+    if (valida(c)) lista.push({ fecha: clave.slice(prefijo().length) });
   }
   return lista;
 }
 
 export async function recuperarCopia(fecha) {
-  const c = await leerLocal(PREFIJO + fecha);
+  const c = await leerLocal(prefijo() + fecha);
   if (!valida(c)) return;
   await reemplazarEstado({ datos: c.datos, notas: c.notas || {}, tareas: c.tareas || {} });
   avisarConAccion(`Copia del ${legible(fecha).toLowerCase()} recuperada`, 'Deshacer', deshacerUltimo);

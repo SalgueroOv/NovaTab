@@ -2,7 +2,7 @@ import { afirmar, igual } from './lib/util.mjs';
 
 const modulo = `import('/js/apariencia.js')`;
 const acentoActual = `getComputedStyle(document.documentElement).getPropertyValue('--acento').trim()`;
-const opcionesGuardadas = `JSON.parse(localStorage.getItem('opciones'))`;
+const opcionesGuardadas = `JSON.parse(localStorage.getItem('perfil:principal:aspecto'))`;
 const poner = (id, valor) => `(() => { const e = document.getElementById('${id}'); e.value = '${valor}'; e.dispatchEvent(new Event('input', { bubbles: true })); })()`;
 
 const DEFECTO = {
@@ -169,10 +169,10 @@ export default {
     const ultimoColor = '#' + (0x100000 + 39 * 0x010203).toString(16).padStart(6, '0');
     igual(await pg.ev(acentoActual), ultimoColor, 'el acento se ve al instante mientras se arrastra');
     await pg.esperar(900);
-    const escritasOpciones = (await pg.ev(`__chromeFalso.escritas()`)).filter(k => k === 'opciones').length;
+    const escritasOpciones = (await pg.ev(`__chromeFalso.escritas()`)).filter(k => k === 'perfil:principal:aspecto').length;
     afirmar(escritasOpciones >= 1 && escritasOpciones <= 3, `como mucho 3 escrituras de opciones al arrastrar (hubo ${escritasOpciones})`);
     igual(await pg.ev(acentoActual), ultimoColor, 'ningún eco viejo pisa el acento');
-    igual((await pg.ev(`JSON.parse(localStorage.getItem('chrome.sync/opciones'))`)).apariencia.acento, ultimoColor, 'se guardó el último valor');
+    igual((await pg.ev(`JSON.parse(localStorage.getItem('chrome.sync/perfil:principal:aspecto'))`)).apariencia.acento, ultimoColor, 'se guardó el último valor');
 
     // (l) Con los valores por defecto la página se ve como en 4.2.0.
     pg = await abrir({ datos: { ...structuredClone((await import('./lib/datos-prueba.mjs')).DATOS_PRUEBA), widgets: [{ id: 'w-n', tipo: 'notas', panel: 'izq', pos: { x: 1, y: 1, w: 6, h: 4 }, config: {} }] } });

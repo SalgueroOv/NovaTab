@@ -22,8 +22,8 @@ export default {
 
     // (b) Al pasar el límite de escrituras, lo nuevo se guarda en local, se lee bien y luego se reintenta.
     // Datos ya en v4 y vacíos: al abrir no se escribe nada y no se gasta el límite de la prueba.
-    pg = await abrir({ chrome: { escriturasPorMinuto: 2 }, datos: { version: 4, grupos: [], widgets: [] } });
-    await pg.ev(`__chromeFalso.reiniciarRitmo()`);
+    pg = await abrir({ chrome: {}, datos: { version: 4, grupos: [], widgets: [] } });
+    await pg.ev(`__chromeFalso.ponerRitmo(2); __chromeFalso.reiniciarRitmo()`);
     await pg.ev(almacen(`await m.escribir('a', 1); await m.escribir('b', 2); await m.escribir('c', 3);`));
     igual(await pg.ev(`${enArea('local', 'c')}`), 3, 'la tercera escritura queda en local');
     igual(await pg.ev(almacen(`return m.leer('c');`)), 3, 'leer devuelve el valor nuevo');

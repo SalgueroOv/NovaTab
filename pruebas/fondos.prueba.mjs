@@ -2,7 +2,7 @@ import { afirmar, igual } from './lib/util.mjs';
 
 const IDS = ['curvas', 'grafo', 'teselas', 'ondas', 'puntos', 'rayas', 'cuadricula', 'hexagonos', 'anillos', 'montanas'];
 const modulo = `import('/js/fondos.js')`;
-const opcionesGuardadas = `JSON.parse(localStorage.getItem('opciones'))`;
+const opcionesGuardadas = `JSON.parse(localStorage.getItem('perfil:principal:aspecto'))`;
 
 export default {
   nombre: 'fondos: diez dibujos deterministas, liso e intensidad',

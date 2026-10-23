@@ -2,7 +2,7 @@ import { afirmar, igual } from './lib/util.mjs';
 
 const enLocal = `localStorage.getItem('chrome.local/fondo-imagen')`;
 const enSync = `localStorage.getItem('chrome.sync/fondo-imagen')`;
-const opciones = `JSON.parse(localStorage.getItem('chrome.sync/opciones') || 'null')`;
+const opciones = `JSON.parse(localStorage.getItem('chrome.sync/perfil:principal:aspecto') || 'null')`;
 const aviso = pg => pg.ev(`[...document.querySelectorAll('#aviso, #aviso-accion')].filter(a => !a.hidden).map(a => a.textContent).join('')`);
 
 // Un archivo de imagen enorme: un lienzo con ruido, exportado como PNG (mide más de 8 MB).
