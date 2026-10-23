@@ -36,6 +36,13 @@ export function crear(tag, clase, texto) {
   return el;
 }
 
+// El foco está en un campo donde Ctrl+Z o las teclas son del texto: uno con contenido, un área de texto,
+// un desplegable o algo editable. Un campo vacío (como el buscador al abrir la pestaña) no cuenta.
+export function enCampoDeTexto(el) {
+  const campo = el?.closest?.('input, textarea, select, [contenteditable]');
+  return !!campo && (campo.value !== '' || campo.matches('textarea, select, [contenteditable]'));
+}
+
 export function urlSegura(url) {
   try {
     return ['http:', 'https:'].includes(new URL(url).protocol);

@@ -9,6 +9,7 @@ import { CLAVE_OPCIONES, CLAVE_TEMA, pintarFondo, ponerOpciones, ponerTema } fro
 import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
 import './ajustes-buscador.js';
+import './comandos.js';
 import './widgets.js';
 import './iconos.js';
 import { hacerCopiaDelDia } from './copias.js';
@@ -77,5 +78,6 @@ let recarga;
 globalThis.novatab = {
   get datos() { return datos; },
   pintar,
+  alIr: null, // las pruebas la sustituyen para no salir de la página (ver atajos.js)
   DATOS_DEFECTO, // const de datos-defecto.js (script clásico): visible por su nombre, no en globalThis
 };

@@ -1,5 +1,5 @@
 // Modo edición: diálogos, altas y bajas, importar/exportar, restablecer y arrastrar.
-import { $, $$, avisar, avisarConAccion, crear, ocultarAvisoAccion, limitar, nuevoId, urlSegura } from './util.js';
+import { $, $$, avisar, avisarConAccion, crear, enCampoDeTexto, ocultarAvisoAccion, limitar, nuevoId, urlSegura } from './util.js';
 import { borrar, cargarDatos, claves, escribir, guardarDatos } from './almacen.js';
 import { ALTO_MAXIMO, ALTO_MINIMO, ANCHO_MINIMO, CLAVE, COLUMNAS, datos, fusionar, grupo, gruposDe, normalizar, ponerDatos } from './datos.js';
 import { REJILLAS, alto, bloque, colocarSinPosicion, panelDe, rejillaActiva, resolver } from './rejilla.js';
@@ -83,8 +83,7 @@ document.addEventListener('keydown', ev => {
   const deshacer = tecla === 'z' && !ev.shiftKey;
   if (!rehacer && !deshacer) return;
   // En un campo con texto, Ctrl+Z es del campo. El buscador, vacío y con el foco al abrir la pestaña, no cuenta.
-  const campo = ev.target.closest?.('input, textarea, select, [contenteditable]');
-  if ((campo && (campo.value !== '' || campo.matches('textarea, select, [contenteditable]'))) || ocupado()) return;
+  if (enCampoDeTexto(ev.target) || ocupado()) return;
   ev.preventDefault();
   (rehacer ? rehacerUltimo : deshacerUltimo)();
 });
