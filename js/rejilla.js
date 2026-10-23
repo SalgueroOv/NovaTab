@@ -16,7 +16,16 @@ export const panelDe = b => b.panel || 'der';
 export const visible = b => !(opciones.reunion && b.privado);
 export const bloquesDe = (panel, d = datos) => bloques(d).filter(b => panelDe(b) === panel);
 // Plegado, un bloque ocupa solo la fila del título.
-export const alto = b => b.plegado ? 1 : b.tipo ? b.pos.h : 1 + Math.max(1, b.enlaces.length);
+// Las filas de contenido de un grupo según su vista (sin la fila del título): lista, una por enlace; compacta,
+// dos enlaces por fila; iconos, un icono por cada 2 columnas de ancho y dos filas por fila de iconos.
+export function filasDe(g) {
+  const n = g.enlaces.length;
+  if (g.vista === 'compacta') return Math.max(1, Math.ceil(n / 2));
+  if (g.vista === 'iconos') return Math.max(1, Math.ceil(n / iconosPorFila(g.pos?.w ?? 6))) * 2;
+  return Math.max(1, n);
+}
+export const iconosPorFila = w => Math.max(1, Math.floor(w / 2));
+export const alto = b => b.plegado ? 1 : b.tipo ? b.pos.h : 1 + filasDe(b);
 
 export const solapan = (a, b) =>
   a.pos.x < b.pos.x + b.pos.w && b.pos.x < a.pos.x + a.pos.w &&

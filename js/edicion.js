@@ -220,26 +220,27 @@ export async function borrarEnlace(gid, eid) {
 }
 
 export async function nuevoGrupo(zona) {
-  const r = await dialogoGrupo('Nuevo grupo', { nombre: '', zona, color: '#8a8c92', privado: false });
+  const r = await dialogoGrupo('Nuevo grupo', { nombre: '', zona, color: '#8a8c92', vista: 'lista', privado: false });
   if (!r) return;
-  datos.grupos.push({ id: nuevoId(), nombre: r.nombre.trim(), zona: r.zona, color: r.color, privado: r.privado === 'on', pos: null, enlaces: [] });
+  datos.grupos.push({ id: nuevoId(), nombre: r.nombre.trim(), zona: r.zona, color: r.color, privado: r.privado === 'on', vista: r.vista, pos: null, enlaces: [] });
   colocarSinPosicion(datos);
   await guardarYPintar();
 }
 
 export async function editarGrupo(gid) {
   const g = grupo(gid);
-  const r = await dialogoGrupo('Editar grupo', { nombre: g.nombre, zona: g.zona, color: g.color, privado: g.privado });
+  const r = await dialogoGrupo('Editar grupo', { nombre: g.nombre, zona: g.zona, color: g.color, vista: g.vista, privado: g.privado });
   if (!r) return;
   g.nombre = r.nombre.trim();
   g.color = r.color;
   g.privado = r.privado === 'on';
+  g.vista = r.vista;
   if (r.zona !== g.zona) {
     g.zona = r.zona;
     g.pos = null;
     colocarSinPosicion(datos);
   }
-  await guardarYPintar();
+  await guardarYPintar(g); // el grupo editado manda: si crece, los vecinos se apartan
 }
 
 export async function borrarGrupo(gid) {

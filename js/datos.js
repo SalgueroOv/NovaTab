@@ -12,6 +12,8 @@ export const ANCHO_MINIMO = { der: 4, izq: 2 };
 export const ANCHO_NUEVO = 6;
 export const ALTO_MINIMO = 3;
 export const ALTO_MAXIMO = 40;
+// Cómo se muestran los enlaces de un grupo de la red local.
+export const VISTAS = ['lista', 'iconos', 'compacta'];
 export const TITULOS = { local: 'Red local', online: 'Internet' };
 
 export let datos = null;
@@ -45,6 +47,7 @@ export function normalizar(d) {
     pos: g.zona === 'online' ? null : posValida(g.pos),
     plegado: !!g.plegado,
     privado: !!g.privado,
+    vista: VISTAS.includes(g.vista) ? g.vista : 'lista',
     // Solo enlaces http y https: un javascript: o data: importado o guardado se descarta.
     enlaces: (g.enlaces || []).filter(e => urlSegura(String(e?.url || ''))).map(e => ({
       id: e.id || nuevoId(),
