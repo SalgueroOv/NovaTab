@@ -7,6 +7,7 @@ export default {
   async ejecutar(abrir) {
     const pg = await abrir();
     await pg.clic('#btn-reunion');
+    await pg.esperar(1000); // crea el perfil Demo y cambia a él
     const texto = await pg.ev(`document.querySelector('.pagina').innerText`);
     for (const oculto of ['Gamma', 'Secreto Uno', 'Videos', 'Juegos']) {
       afirmar(!texto.includes(oculto), `«${oculto}» no debería verse en modo reunión (visibles: ${await pg.ev(visibles)})`);

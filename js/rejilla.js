@@ -2,6 +2,7 @@
 import { $ } from './util.js';
 import { ANCHO_NUEVO, COLUMNAS, datos, grupo, gruposDe } from './datos.js';
 import { opciones } from './apariencia.js';
+import { esDemo } from './perfiles.js';
 import { WIDGETS } from './widgets.js';
 
 export const REJILLAS = { der: $('#rejilla'), izq: $('#rejilla-izq') };
@@ -12,8 +13,8 @@ export const REJILLAS = { der: $('#rejilla'), izq: $('#rejilla-izq') };
 export const bloques = (d = datos) => [...gruposDe('local', d), ...d.widgets];
 export const bloque = id => grupo(id) || datos.widgets.find(w => w.id === id);
 export const panelDe = b => b.panel || 'der';
-// En modo reunión los grupos privados no se pintan ni salen en el buscador (siguen ocupando su sitio).
-export const visible = b => !(opciones.reunion && b.privado);
+// En el perfil Demo (el modo reunión) los grupos privados no se pintan ni salen en el buscador (siguen ocupando su sitio).
+export const visible = b => !(esDemo() && b.privado);
 export const bloquesDe = (panel, d = datos) => bloques(d).filter(b => panelDe(b) === panel);
 // Plegado, un bloque ocupa solo la fila del título.
 // Las filas de contenido de un grupo según su vista (sin la fila del título): lista, una por enlace; compacta,

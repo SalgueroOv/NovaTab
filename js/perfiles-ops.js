@@ -1,6 +1,6 @@
 // Operaciones con perfiles que tocan la pantalla: crear, duplicar, borrar y cambiar de perfil.
 import { avisar, nuevoId } from './util.js';
-import { alCambiar, borrar, cargarDatos, claves, esLoUltimo, escribir, guardarDatos, leer } from './almacen.js';
+import { alCambiar, borrar, cargarDatos, claves, escribirLocal, esLoUltimo, escribir, guardarDatos, leer, leerLocal } from './almacen.js';
 import { VERSION, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
 import { pintar } from './pintado.js';
@@ -8,7 +8,7 @@ import { opciones, ponerOpciones, ponerTema } from './apariencia.js';
 import { guardar, limpiarHistorial, ocupado, sincronizado } from './edicion.js';
 import { hacerCopiaDelDia } from './copias.js';
 import {
-  CLAVE_REGISTRO, anadirPerfil, claveAspecto, idDePerfilNuevo, nombreUnico, nombreValido, perfilActivo, perfilesDeLaLista,
+  CLAVE_ANTERIOR, CLAVE_REGISTRO, anadirPerfil, claveAspecto, idDePerfilNuevo, nombreUnico, nombreValido, perfilActivo, perfilesDeLaLista,
   ponerPerfilActivo, quitarPerfil, recibirRegistro, renombrarPerfil as renombrarEnRegistro, MAX_PERFILES,
 } from './perfiles.js';
 
@@ -142,6 +142,30 @@ export async function cambiarPerfil(id, { descartar = false } = {}) {
   await cargarPerfilActivo();
   document.dispatchEvent(new Event('novatab:perfil'));
   hacerCopiaDelDia().catch(() => { /* la copia diaria es un extra */ });
+}
+
+// ---------- Demo (el modo reunión) ----------
+
+// Los widgets que se copian a Demo: los demás podrían enseñar contenido personal en una pantalla compartida.
+const TIPOS_DEMO = ['tiempo', 'relojMundial', 'cuentaAtras'];
+
+// El ojo: del perfil actual a Demo (creándolo la primera vez, sin los grupos privados) y de Demo al de antes.
+export async function alternarDemo() {
+  const lista = perfilesDeLaLista();
+  if (lista.find(p => p.id === perfilActivo())?.demo) {
+    const anterior = await leerLocal(CLAVE_ANTERIOR);
+    const destino = lista.find(p => p.id === anterior && !p.demo) ?? lista.find(p => !p.demo) ?? lista[0];
+    await cambiarPerfil(destino.id);
+    return;
+  }
+  await escribirLocal(CLAVE_ANTERIOR, perfilActivo());
+  let demo = lista.find(p => p.demo);
+  if (!demo) {
+    const { id, omitidos } = await crearPerfil('Demo', { desde: perfilActivo(), demo: true, sinPrivados: true, tipos: TIPOS_DEMO });
+    demo = { id };
+    if (!omitidos) avisar('Ningún grupo era privado: Demo es una copia completa de tus grupos');
+  }
+  await cambiarPerfil(demo.id);
 }
 
 // Un cambio del registro llegado de otro equipo (perfiles nuevos, renombrados o borrados).

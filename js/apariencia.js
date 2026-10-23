@@ -18,7 +18,7 @@ export const APARIENCIA = {
 };
 export const IDS_FONDO = ['curvas', 'grafo', 'teselas', 'ondas', 'puntos', 'rayas', 'cuadricula', 'hexagonos', 'anillos', 'montanas', 'liso', 'imagen'];
 
-export const OPCIONES = { fondoGrupos: true, sobrio: false, reunion: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA, buscador: BUSCADOR, anchoIzq: null };
+export const OPCIONES = { fondoGrupos: true, sobrio: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA, buscador: BUSCADOR, anchoIzq: null };
 
 export const TEMAS = [
   { id: 'bosque', nombre: 'Bosque', modo: 'oscuro', muestra: ['#18221d', '#2f4438'] },
@@ -227,10 +227,6 @@ export function ponerOpciones(o) {
   $('#opt-fondo-grupos').checked = !!opciones.fondoGrupos;
   document.body.classList.toggle('sobrio', !!opciones.sobrio);
   $('#opt-sobrio').checked = !!opciones.sobrio;
-  const reunion = $('#btn-reunion');
-  reunion.setAttribute('aria-pressed', String(!!opciones.reunion));
-  reunion.title = opciones.reunion ? 'Modo reunión activo: pulsa para mostrar los grupos privados' : 'Modo reunión: ocultar los grupos privados';
-  reunion.innerHTML = svg(opciones.reunion ? 'ojoTachado' : 'ojo');
   if (datos) pintar();
   for (const [panel, nombre] of [['izq', 'el panel izquierdo'], ['der', 'la red local']]) {
     const oculto = !!opciones.ocultos[panel];
@@ -240,14 +236,6 @@ export function ponerOpciones(o) {
     b.title = `${oculto ? 'Mostrar' : 'Ocultar'} ${nombre}`;
   }
 }
-
-$('#btn-reunion').addEventListener('click', () => {
-  ponerOpciones({ ...opciones, reunion: !opciones.reunion });
-  guardarOpciones();
-  if (opciones.reunion && !datos.grupos.some(g => g.privado)) {
-    avisar('Ningún grupo es privado todavía: márcalo al editar el grupo con su lápiz.');
-  }
-});
 
 // Ocultar o mostrar un panel entero. Nunca quedan los dos ocultos.
 for (const panel of ['izq', 'der']) {

@@ -26,7 +26,7 @@ export default {
     await pg.esperar(300);
     await pg.ev(intercepta);
     await pg.clic('#btn-reunion');
-    await pg.esperar(200);
+    await pg.esperar(1000);
     igual(await pg.ev(`${modulo}.then(m => m.enlacesDeAtajo().length)`), 7, 'siete enlaces en modo reunión');
     igual(await pulsar(pg, 8), false, 'Alt+8 sin enlace no cancela la tecla');
     igual(await pg.ev(`window.__ir`), [], 'Alt+8 no abre nada');

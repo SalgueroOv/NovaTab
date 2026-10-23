@@ -1,4 +1,4 @@
-import { afirmar, igual } from './lib/util.mjs';
+import { activarDemo, afirmar, igual } from './lib/util.mjs';
 import { DATOS_PRUEBA } from './lib/datos-prueba.mjs';
 
 const intercepta = `window.__ir = []; novatab.alIr = url => window.__ir.push(url)`;
@@ -58,7 +58,7 @@ export default {
     await pg.escribir('reunion');
     igual(await titulos(pg), ['Modo reunión: activar'], 'sin tildes ni mayúsculas');
     await pg.tecla('Enter');
-    await pg.esperar(250);
+    await pg.esperar(1000);
     igual(await pg.ev(`document.getElementById('btn-reunion').getAttribute('aria-pressed')`), 'true', 'modo reunión activo');
     await abrirPaleta(pg);
     const tras = await titulos(pg);
@@ -133,8 +133,9 @@ export default {
     igual(await pg.ev(`document.querySelectorAll('#paleta-lista img, #paleta-lista b').length`), 0, 'ningún elemento HTML dentro de la lista');
 
     // (i) Revisión final: en modo reunión «Nuevo enlace…» no ofrece grupos privados.
-    pg = await abrir({ guardados: { opciones: { reunion: true } } });
+    pg = await abrir();
     await pg.esperar(300);
+    await activarDemo(pg);
     await abrirPaleta(pg);
     await escribirYEnter(pg, 'nuevo enlace');
     const grupos = await titulos(pg);

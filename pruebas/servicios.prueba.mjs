@@ -1,4 +1,4 @@
-import { afirmar, igual } from './lib/util.mjs';
+import { activarDemo, afirmar, igual } from './lib/util.mjs';
 import { conWidgets, DATOS_PRUEBA } from './lib/datos-prueba.mjs';
 
 const modulo = `import('/js/widgets/servicios.js')`;
@@ -103,8 +103,11 @@ export default {
     const n2 = await sondeos(pg);
     await pg.esperar(1500);
     igual(await sondeos(pg), n2, 'borrado el widget no hay más sondeos');
-    pg = await abrir({ chrome: {}, datos: datosCon(), servicios: todos('vivo'), guardados: { 'chrome.sync/opciones': { reunion: true } } });
+    pg = await abrir({ chrome: {}, datos: datosCon(), servicios: todos('vivo') });
     await pg.esperar(800);
+    await activarDemo(pg);
+    await pg.ev(`window.__sondeos.length = 0`);
+    await pg.esperar(1500);
     igual((await leds(pg)).length, 7, 'en modo reunión, siete servicios (sin los privados)');
     afirmar(!(await pg.ev(`window.__sondeos`)).some(o => o.endsWith('.40') || o.endsWith('.41')), 'no se sondean los privados');
 
@@ -157,12 +160,13 @@ export default {
     igual((await leds(pg)).filter(x => x[1] === 'vivo').length, 9, 'los orígenes nuevos se comprueban enseguida');
 
     // (k) El configurador no enseña los grupos privados en modo reunión.
-    pg = await abrir({ chrome: {}, datos: datosCon(), servicios: todos('vivo'), guardados: { 'chrome.sync/opciones': { reunion: true } } });
+    pg = await abrir({ chrome: {}, datos: datosCon(), servicios: todos('vivo') });
     await pg.esperar(600);
+    await activarDemo(pg);
     await pg.clic('#btn-editar');
     await pg.ev(`document.querySelector('.widget-servicios [data-accion-widget="configurar"]').click()`);
     await pg.esperar(300);
-    igual(await pg.ev(`[...document.querySelectorAll('#dlg-widget input[type="checkbox"]')].map(c => c.value)`), ['g-alfa', 'g-beta'], 'solo los grupos visibles');
+    igual(await pg.ev(`[...document.querySelectorAll('#dlg-widget .lista-zonas label')].map(l => l.textContent.trim())`), ['Alfa', 'Beta'], 'solo los grupos visibles');
 
     // (l) Los LEDs dicen su estado a los lectores de pantalla.
     pg = await abrir({ chrome: {}, datos: datosCon(), servicios: todos('vivo') });

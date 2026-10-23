@@ -18,6 +18,13 @@ const TECLAS = {
 };
 const MODIFICADORES = { alt: 1, ctrl: 2, meta: 4, shift: 8 };
 
+// Pasa la página al perfil Demo con una copia completa del actual (grupos privados incluidos, que Demo oculta).
+// Es lo que antes hacía «modo reunión» activado: sirve a las pruebas que necesitan ver cómo se ocultan los privados.
+export async function activarDemo(pg) {
+  await pg.ev(`import('/js/perfiles-ops.js').then(async m => { await m.crearPerfil('Demo', { desde: 'principal', demo: true }); await m.cambiarPerfil('demo'); })`);
+  await pg.esperar(600);
+}
+
 export function afirmar(condicion, mensaje) {
   if (!condicion) throw new Error(mensaje);
 }
