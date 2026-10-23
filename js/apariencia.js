@@ -123,10 +123,8 @@ export function guardarOpciones() {
 }
 let temporizadorGuardado;
 let guardadoPendiente = false;
-// Con «diferir» (controles que se arrastran) se aplica al instante y se guarda al dejar de mover.
-export function cambiarApariencia(parcial, diferir = false) {
-  opciones = { ...opciones, apariencia: normalizarApariencia({ ...opciones.apariencia, ...parcial }) };
-  ponerApariencia(opciones.apariencia);
+// Con «diferir» (controles que se arrastran o campos de texto) se aplica al instante y se guarda al dejar de mover.
+function guardarCambio(diferir) {
   if (!diferir) {
     guardarOpciones();
     return;
@@ -134,6 +132,18 @@ export function cambiarApariencia(parcial, diferir = false) {
   guardadoPendiente = true;
   clearTimeout(temporizadorGuardado);
   temporizadorGuardado = setTimeout(guardarOpciones, 250);
+}
+
+export function cambiarApariencia(parcial, diferir = false) {
+  opciones = { ...opciones, apariencia: normalizarApariencia({ ...opciones.apariencia, ...parcial }) };
+  ponerApariencia(opciones.apariencia);
+  guardarCambio(diferir);
+}
+
+// Motor y atajos del buscador (ver motores.js).
+export function cambiarBuscador(parcial, diferir = false) {
+  opciones = { ...opciones, buscador: normalizarBuscador({ ...opciones.buscador, ...parcial }) };
+  guardarCambio(diferir);
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && guardadoPendiente) guardarOpciones();

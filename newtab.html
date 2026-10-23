@@ -63,6 +63,7 @@
           <button type="button" role="tab" data-pestana="tema" aria-selected="true">Tema</button>
           <button type="button" role="tab" data-pestana="fondo" aria-selected="false">Fondo</button>
           <button type="button" role="tab" data-pestana="diseno" aria-selected="false">Diseño</button>
+          <button type="button" role="tab" data-pestana="buscador" aria-selected="false">Buscador</button>
         </div>
         <div role="tabpanel" id="pestana-tema">
         <div class="muestras" id="muestras"></div>
@@ -87,6 +88,17 @@
           <div class="intensidad">
             <label for="intensidad">Intensidad</label>
             <input type="range" id="intensidad" min="0" max="100" step="1" value="100">
+          </div>
+        </div>
+        <div role="tabpanel" id="pestana-buscador" hidden>
+          <h2>Motor de búsqueda</h2>
+          <select id="motor-buscador" aria-label="Motor de búsqueda"></select>
+          <h2 class="opciones-titulo">Atajos</h2>
+          <p class="ayuda-panel">Escribe «!clave texto» en el buscador. Pon %s donde va el texto.</p>
+          <ul class="lista-atajos" id="lista-atajos"></ul>
+          <div class="acciones-atajos">
+            <button class="boton-texto" type="button" id="atajo-nuevo">Añadir atajo</button>
+            <button class="boton-texto" type="button" id="atajos-restaurar">Restaurar atajos</button>
           </div>
         </div>
         <div role="tabpanel" id="pestana-diseno" hidden>

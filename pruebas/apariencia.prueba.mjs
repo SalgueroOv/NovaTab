@@ -33,7 +33,7 @@ export default {
 
     // (c) Tres pestañas.
     await pg.clic('#btn-tema');
-    igual(await pg.ev(`[...document.querySelectorAll('#panel-tema [role="tab"]')].map(t => t.textContent)`), ['Tema', 'Fondo', 'Diseño'], 'pestañas');
+    igual(await pg.ev(`[...document.querySelectorAll('#panel-tema [role="tab"]')].map(t => t.textContent)`), ['Tema', 'Fondo', 'Diseño', 'Buscador'], 'pestañas');
     afirmar(await pg.ev(`document.getElementById('pestana-fondo').hidden`), 'Fondo oculto al principio');
     await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
     afirmar(!(await pg.ev(`document.getElementById('pestana-fondo').hidden`)), 'Fondo visible tras pulsar su pestaña');

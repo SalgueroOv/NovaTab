@@ -8,6 +8,7 @@ import { pintar, pintarLocal } from './pintado.js';
 import { CLAVE_OPCIONES, CLAVE_TEMA, pintarFondo, ponerOpciones, ponerTema } from './apariencia.js';
 import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
+import './ajustes-buscador.js';
 import './widgets.js';
 import './iconos.js';
 import { hacerCopiaDelDia } from './copias.js';

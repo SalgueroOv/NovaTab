@@ -232,6 +232,26 @@ button { font: inherit; color: inherit; }
   cursor: pointer;
 }
 .pestanas-panel button[aria-selected="true"] { background: var(--superficie); color: var(--texto); box-shadow: var(--sombra); }
+#motor-buscador, .lista-atajos input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 8px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-size: 13px;
+}
+.lista-atajos input[aria-invalid="true"] { border-color: #e5566f; }
+.lista-atajos { margin: 0 0 10px; padding: 0; list-style: none; }
+.lista-atajos li { display: grid; grid-template-columns: 64px 1fr 28px; gap: 6px; margin-bottom: 8px; }
+.lista-atajos li [data-campo="url"] { grid-column: 1 / 3; }
+.lista-atajos .ayuda-fila { grid-column: 1 / -1; margin: 0; color: #e5566f; font-size: 12px; }
+.lista-atajos .borrar-atajo { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--texto-2); cursor: pointer; }
+.lista-atajos .borrar-atajo:hover { background: var(--hover); color: var(--texto); }
+.acciones-atajos { display: flex; flex-wrap: wrap; gap: 8px; }
+.ayuda-panel { margin: -4px 0 10px; color: var(--texto-2); font-size: 12px; }
 .eleccion { display: flex; gap: 6px; }
 .eleccion button {
   flex: 1;

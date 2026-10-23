@@ -68,5 +68,72 @@ export default {
     igual(f[0], ['Buscar «hola» en Bing', 'Bing', 'https://www.bing.com/search?q=hola'], 'fila de Bing');
     afirmar(f.some(x => x[0] === 'Preguntar al Modo IA' && x[1] === 'Google' && x[2].startsWith('https://www.google.com/search?udm=50')), 'Modo IA sigue siendo de Google');
     afirmar((await pg.ev(`document.getElementById('modo-ia').href`)).startsWith('https://www.google.com/search?udm=50'), '#modo-ia apunta a Google');
+
+    // ---- Pestaña Buscador ----
+    const guardado = () => pg.ev(`JSON.parse(localStorage.getItem('opciones'))?.buscador`);
+    const escribirCampo = (selector, valor) => pg.ev(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); e.value = ${JSON.stringify(valor)}; e.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+    const abrirPestana = async () => {
+      await pg.clic('#btn-tema');
+      await pg.ev(`document.querySelector('#panel-tema [data-pestana="buscador"]').click()`);
+    };
+
+    // (e) Cuatro pestañas y el selector con los cinco motores.
+    pg = await abrir();
+    await pg.esperar(300);
+    await pg.clic('#btn-tema');
+    igual(await pg.ev(`[...document.querySelectorAll('#panel-tema [role="tab"]')].map(t => t.textContent)`), ['Tema', 'Fondo', 'Diseño', 'Buscador'], 'pestañas');
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="buscador"]').click()`);
+    igual(await pg.ev(`[...document.querySelectorAll('#motor-buscador option')].map(o => o.textContent)`), ['Google', 'DuckDuckGo', 'Bing', 'Perplexity', 'ChatGPT'], 'motores del selector');
+    igual(await pg.ev(`document.getElementById('motor-buscador').value`), 'google', 'Google marcado');
+
+    // (f) Elegir DuckDuckGo se guarda, se usa y sobrevive a una recarga.
+    await pg.ev(`(() => { const e = document.getElementById('motor-buscador'); e.value = 'duckduckgo'; e.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+    await pg.esperar(450);
+    igual((await guardado()).motor, 'duckduckgo', 'motor guardado');
+    await pg.recargar();
+    await pg.esperar(300);
+    await pg.ev(`document.getElementById('buscar').focus()`);
+    await pg.escribir('pan');
+    igual((await filas(pg))[0][2], 'https://duckduckgo.com/?q=pan', 'el desplegable usa DuckDuckGo tras recargar');
+
+    // (g) Editar la clave de un atajo.
+    pg = await abrir();
+    await pg.esperar(300);
+    await abrirPestana();
+    igual(await pg.ev(`document.querySelectorAll('#lista-atajos li').length`), 4, 'cuatro atajos listados');
+    await escribirCampo('#lista-atajos li:nth-child(1) [data-campo="clave"]', 'yt');
+    await pg.esperar(450);
+    igual((await guardado()).atajos[0].clave, 'yt', 'clave editada guardada');
+    await pg.ev(`document.getElementById('buscar').focus()`);
+    await pg.escribir('!yt gatos');
+    igual((await filas(pg))[0][0], 'Buscar «gatos» en YouTube', '!yt funciona');
+    await pg.tecla('Escape');
+    await pg.escribir('!y gatos');
+    igual((await filas(pg))[0][1], 'Google', '!y ya no es un atajo');
+
+    // (h) Una dirección con javascript: se marca y no se guarda.
+    pg = await abrir();
+    await pg.esperar(300);
+    await abrirPestana();
+    await pg.clic('#atajo-nuevo');
+    await escribirCampo('#lista-atajos li:last-child [data-campo="clave"]', 'xx');
+    await escribirCampo('#lista-atajos li:last-child [data-campo="nombre"]', 'Malo');
+    await escribirCampo('#lista-atajos li:last-child [data-campo="url"]', 'javascript:alert(1)?%s');
+    await pg.esperar(450);
+    igual(await pg.ev(`document.querySelector('#lista-atajos li:last-child [data-campo="url"]').getAttribute('aria-invalid')`), 'true', 'dirección marcada como inválida');
+    afirmar(!JSON.stringify((await guardado())?.atajos ?? []).includes('javascript'), 'el atajo malo no se guarda');
+    await escribirCampo('#lista-atajos li:last-child [data-campo="url"]', 'https://ok.example.com/?q=%s');
+    await pg.esperar(450);
+    igual((await guardado()).atajos.at(-1).clave, 'xx', 'con una dirección válida sí se guarda');
+
+    // (i) Borrar y restaurar.
+    await pg.clic('#lista-atajos li:nth-child(2) [data-accion="borrar"]');
+    await pg.esperar(450);
+    igual((await guardado()).atajos.map(a => a.clave), ['y', 'w', 'm', 'xx'], 'atajo borrado');
+    await pg.ev(`(() => { const e = document.getElementById('motor-buscador'); e.value = 'bing'; e.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+    await pg.clic('#atajos-restaurar');
+    await pg.esperar(450);
+    const tras = await guardado();
+    igual([tras.motor, tras.atajos.map(a => a.clave)], ['bing', ['y', 'gh', 'w', 'm']], 'restaurar conserva el motor');
   },
 };
