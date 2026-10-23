@@ -8,6 +8,7 @@ import { opciones, panelTema } from './apariencia.js';
 import { accionDeWidget, campo, escribirNotas, leerNotas, memoriaNotas, notasGuardadas, nuevoWidget } from './widgets.js';
 import { leerIcono, refrescarCampoIcono } from './iconos.js';
 import { crearHistorial } from './historial.js';
+import { borrarTareas, escribirTareas, idsDeTareas, leerTareas } from './widgets/tareas-datos.js';
 
 export let editando = false;
 export let arrastre = null;
@@ -30,11 +31,16 @@ const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!documen
 const historial = crearHistorial(20);
 const limpiarHistorial = () => { historial.limpiar(); ocultarAvisoAccion(); };
 let notasUltimas = {}; // las notas tal como estaban en la última carga o guardado, y lo escrito desde entonces
+let tareasUltimas = {}; // lo mismo con las listas de tareas
 
 export const sincronizado = () => {
   base = structuredClone(datos);
   leerNotas().then(n => { notasUltimas = n; });
+  leerTareas().then(t => { tareasUltimas = t; });
 };
+
+// Cada cambio de una lista de tareas cuenta aunque aún no se haya guardado (ver widgets/tareas.js).
+document.addEventListener('novatab:tareas', ev => { tareasUltimas[ev.detail.id] = ev.detail.lista; });
 
 // Lo que se escribe en una nota cuenta aunque aún no se haya guardado: si luego se borra su widget,
 // deshacer la recupera con ese texto.
@@ -42,17 +48,20 @@ document.addEventListener('input', ev => {
   if (ev.target.matches?.('textarea[data-nota]')) notasUltimas[ev.target.dataset.nota] = ev.target.value;
 });
 
-export const tomarFoto = async () => ({ datos: structuredClone(datos), notas: await leerNotas() });
+export const tomarFoto = async () => ({ datos: structuredClone(datos), notas: await leerNotas(), tareas: await leerTareas() });
 
 // Pone una foto como estado actual y la guarda sin añadirla al historial. Las notas de widgets que ya
 // estaban se dejan como están (lo escrito después no se revierte); «todasLasNotas» las reescribe también.
 // Solo se llama desde la cola (ver enCola).
 async function aplicarDentro(foto, todasLasNotas = false) {
   const estaban = idsDeNotas(datos);
+  const estabanTareas = idsDeTareas(datos);
   ponerDatos(normalizar(structuredClone(foto.datos)));
   await borrarNotas(idsDeNotas(datos));
   const reaparecen = Object.entries(foto.notas).filter(([id]) => todasLasNotas || !estaban.has(id));
   await escribirNotas(Object.fromEntries(reaparecen));
+  await borrarTareas(idsDeTareas(datos));
+  await escribirTareas(Object.fromEntries(Object.entries(foto.tareas || {}).filter(([id]) => todasLasNotas || !estabanTareas.has(id))));
   resolver();
   pintar();
   await guardarDentro(true);
@@ -118,7 +127,7 @@ async function guardarDentro(sinHistorial = false) {
     }
   }
   if (!sinHistorial && base && JSON.stringify(datos) !== JSON.stringify(base)) {
-    historial.empujar({ datos: base, notas: { ...notasUltimas, ...(await leerNotas()) } });
+    historial.empujar({ datos: base, notas: { ...notasUltimas, ...(await leerNotas()) }, tareas: { ...tareasUltimas, ...(await leerTareas()) } });
     ocultarAvisoAccion();
   }
   await guardarDatos(datos);
@@ -288,7 +297,7 @@ $('#btn-listo').addEventListener('click', () => ponerEdicion(false));
 $('#btn-nuevo-widget').addEventListener('click', () => nuevoWidget());
 
 $('#btn-exportar').addEventListener('click', async () => {
-  const copia = { ...datos, notas: await leerNotas() };
+  const copia = { ...datos, notas: await leerNotas(), tareas: await leerTareas() };
   const blob = new Blob([JSON.stringify(copia, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -308,6 +317,8 @@ $('#archivo').addEventListener('change', async ev => {
     if (!confirm('¿Reemplazar todos los enlaces por los del archivo?')) return;
     await borrarNotas(idsDeNotas(nuevos));
     await escribirNotas(leido.notas);
+    await borrarTareas(idsDeTareas(nuevos));
+    await escribirTareas(Object.fromEntries(Object.entries(leido.tareas || {}).filter(([id]) => idsDeTareas(nuevos).has(id))));
     ponerDatos(nuevos);
     await guardarYPintar();
     avisar('Enlaces importados');
@@ -330,6 +341,7 @@ export const idsDeNotas = d => new Set(d.widgets.filter(w => w.tipo === 'notas')
 export async function restablecerTodo() {
   try {
     await borrarNotas();
+    await borrarTareas();
   } catch (err) {
     avisar(`No se pudo restablecer: ${err.message}`);
     return;

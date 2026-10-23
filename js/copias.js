@@ -25,7 +25,7 @@ export async function hacerCopiaDelDia() {
   const hoy = fechaLocal();
   if (valida(await leerLocal(PREFIJO + hoy))) return false;
   const foto = await tomarFoto();
-  await escribirLocal(PREFIJO + hoy, { fecha: hoy, datos: foto.datos, notas: foto.notas });
+  await escribirLocal(PREFIJO + hoy, { fecha: hoy, datos: foto.datos, notas: foto.notas, tareas: foto.tareas });
   const todas = (await clavesDeCopia()).sort();
   await borrar(todas.slice(0, Math.max(0, todas.length - MAXIMO)));
   return true;
@@ -44,7 +44,7 @@ export async function listarCopias() {
 export async function recuperarCopia(fecha) {
   const c = await leerLocal(PREFIJO + fecha);
   if (!valida(c)) return;
-  await reemplazarEstado({ datos: c.datos, notas: c.notas || {} });
+  await reemplazarEstado({ datos: c.datos, notas: c.notas || {}, tareas: c.tareas || {} });
   avisarConAccion(`Copia del ${legible(fecha).toLowerCase()} recuperada`, 'Deshacer', deshacerUltimo);
 }
 

@@ -27,11 +27,13 @@ export const widget = id => datos.widgets.find(w => w.id === id);
 
 // Los widgets que viven en su propio archivo (js/widgets/) se dan de alta aquí al cargarse:
 // def = { nombre, descripcion, w, h, configurable, alto? }, pintar(w, cuerpo) y configurador(actual).
-export function registrar(tipo, { def, pintar, configurador }) {
+export const ALBORRAR = {}; // tipo → función que borra los datos propios del widget
+export function registrar(tipo, { def, pintar, configurador, alBorrar }) {
   if (WIDGETS[tipo]) throw new Error(`El widget «${tipo}» ya está registrado`);
   WIDGETS[tipo] = def;
   PINTORES[tipo] = pintar;
   if (configurador) CONFIGURADORES[tipo] = configurador;
+  if (alBorrar) ALBORRAR[tipo] = alBorrar;
 }
 
 // ---------- Pintado ----------
@@ -40,7 +42,7 @@ export function pintarWidget(w) {
   const src = srcDe(w);
   // Un reproductor o calendario ya cargado, o una nota, se conservan al repintar: rehacerlos cortaría
   // la música o quitaría el foco a quien está escribiendo.
-  const conservar = src || (w.tipo === 'notas' ? claveNota(w.id) : null);
+  const conservar = src || (w.tipo === 'notas' ? claveNota(w.id) : w.tipo === 'tareas' ? `tareas:${w.id}` : null);
   const previo = document.querySelector(`.rejilla .widget[data-id="${w.id}"]`);
   const sec = conservar && previo?.dataset.conservar === conservar ? previo : crear('section', `bloque widget widget-${w.tipo}`);
   sec.style.gridColumn = `${w.pos.x} / span ${w.pos.w}`;
@@ -559,6 +561,7 @@ export async function accionDeWidget(accion, id) {
     if (!confirm(`¿Borrar el widget «${tituloWidget(w)}»?`)) return;
     datos.widgets.splice(datos.widgets.indexOf(w), 1);
     if (w.tipo === 'notas') borrarNota(w.id);
+    ALBORRAR[w.tipo]?.(w);
     await guardarYPintar();
   } else if (accion === 'configurar') {
     const config = await configurar(w.tipo, w.config);
