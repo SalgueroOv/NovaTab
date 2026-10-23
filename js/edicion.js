@@ -55,6 +55,12 @@ export async function aplicarEstado(foto) {
   try { await guardar(); } finally { aplicando = false; }
 }
 
+// Como aplicarEstado, pero el estado de ahora queda en el historial para poder deshacerlo.
+export async function reemplazarEstado(foto) {
+  historial.empujar(await tomarFoto());
+  await aplicarEstado(foto);
+}
+
 // Deshace o rehace un paso. Los diálogos, arrastres y títulos a medio escribir mandan sobre el atajo.
 async function pasoDeHistorial(sentido) {
   const foto = historial[sentido](await tomarFoto());

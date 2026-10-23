@@ -10,6 +10,7 @@ import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
 import './widgets.js';
 import './iconos.js';
+import { hacerCopiaDelDia } from './copias.js';
 
 // Cambios hechos en otra pestaña u otro equipo sincronizado.
 alCambiar(cambios => {
@@ -69,6 +70,7 @@ let recarga;
       avisar(`No se pudieron actualizar tus datos al formato nuevo: ${err.message}`);
     }
   }
+  if (guardados) hacerCopiaDelDia().catch(() => { /* la copia diaria es un extra */ });
 })();
 
 // Para las pruebas automáticas: el estado actual y la forma de repintar, solo lectura.
