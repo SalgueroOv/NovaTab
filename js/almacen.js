@@ -27,7 +27,8 @@ export async function escribirLocal(clave, valor) {
 export async function claves(prefijo) {
   if (!hayChrome) return Object.keys(localStorage).filter(k => k.startsWith(prefijo));
   const todas = [];
-  for (const area of [chrome.storage.sync, chrome.storage.local]) todas.push(...Object.keys(await area.get(null)));
+  // getKeys (Chrome 130+) no trae los valores: así no se copia la imagen de fondo en cada guardado.
+  for (const area of [chrome.storage.sync, chrome.storage.local]) todas.push(...(area.getKeys ? await area.getKeys() : Object.keys(await area.get(null))));
   return [...new Set(todas)].filter(k => k.startsWith(prefijo));
 }
 

@@ -37,6 +37,7 @@
         const lista = typeof claves === 'string' ? [claves] : Array.isArray(claves) ? claves : Object.keys(claves);
         return Object.fromEntries(lista.filter(k => k in valores).map(k => [k, valores[k]]));
       },
+      async getKeys() { return Object.keys(todo()); },
       async set(obj) {
         // Interruptor para simular un almacenamiento local que rechaza escrituras (sobrevive a recargar).
         if (!conLimites && localStorage.getItem('chrome-falso/localFalla') === '1') throw new Error('IO error: almacenamiento local no disponible');

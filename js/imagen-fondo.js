@@ -5,6 +5,8 @@ const CLAVE_IMAGEN = 'fondo-imagen';
 const MAX_BYTES = 3 * 1024 * 1024; // de la data: URL ya codificada
 const ANCHOS = [1920, 1440, 1024];
 const CALIDADES = [0.8, 0.6, 0.4];
+const ALTO_MAX = 4096;
+const PESO_MAX = 40 * 1024 * 1024; // de la imagen original
 
 // Solo una data: URL WebP: es lo único que guardamos, y lo que se vuelve a leer se comprueba igual.
 export const esImagenGuardable = url => typeof url === 'string' && url.length <= MAX_BYTES && /^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(url);
@@ -19,6 +21,7 @@ const aUrl = blob => new Promise((resolver, rechazar) => {
 // Devuelve una data: URL WebP de como mucho 1920 px de ancho y 3 MB. Si con la calidad más baja aún no
 // cabe, se prueba con anchos menores. Lanza un Error con un mensaje en español si no se puede.
 export async function reducirImagen(archivo) {
+  if (archivo.size > PESO_MAX) throw new Error('La imagen pesa demasiado (máximo 40 MB)');
   let imagen;
   try {
     imagen = await createImageBitmap(archivo);
@@ -27,14 +30,16 @@ export async function reducirImagen(archivo) {
   }
   try {
     for (const anchoMax of ANCHOS) {
-      const escala = Math.min(1, anchoMax / imagen.width);
+      const escala = Math.min(1, anchoMax / imagen.width, ALTO_MAX / imagen.height);
       const lienzo = document.createElement('canvas');
       lienzo.width = Math.max(1, Math.round(imagen.width * escala));
       lienzo.height = Math.max(1, Math.round(imagen.height * escala));
-      lienzo.getContext('2d').drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+      const x = lienzo.getContext('2d');
+      if (!x) throw new Error('No se pudo preparar la imagen');
+      x.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
       for (const calidad of CALIDADES) {
         const blob = await new Promise(resolver => lienzo.toBlob(resolver, 'image/webp', calidad));
-        if (!blob || blob.type !== 'image/webp') throw new Error('Este navegador no puede reducir la imagen');
+        if (!blob || blob.type !== 'image/webp') throw new Error('No se pudo reducir la imagen a WebP');
         const url = await aUrl(blob);
         if (url.length <= MAX_BYTES) return url;
       }

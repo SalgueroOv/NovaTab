@@ -46,7 +46,7 @@ export default {
     await pg.clic('#btn-tema');
     await pg.ev(`document.querySelector('#panel-tema [data-pestana="tema"]').click()`);
     await pg.ev(poner('acento-libre', '#e0245e'));
-    await pg.esperar(200);
+    await pg.esperar(450); // el guardado de un control que se arrastra espera 250 ms
     igual(await pg.ev(acentoActual), '#e0245e', 'acento libre aplicado');
     igual((await pg.ev(opcionesGuardadas)).apariencia.acento, '#e0245e', 'acento guardado');
     await pg.ev(`document.querySelector('.muestra[data-tema="papel"]').click()`);
@@ -144,5 +144,52 @@ export default {
     igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '32px', 'densidad tras recargar');
     igual(await pg.ev(radio('#rejilla .grupo')), '24px', 'esquinas tras recargar');
     igual((await pg.ev(horaFecha))[1], true, 'fecha oculta tras recargar');
+
+    // ---- Revisión final ----
+    // (j) Contraste del texto sobre el acento: elige el de mayor contraste con la luminosidad real.
+    pg = await abrir();
+    await pg.esperar(300);
+    await pg.clic('#btn-tema');
+    for (const [color, texto] of [['#ff9800', '#1f1f1f'], ['#4caf50', '#1f1f1f'], ['#4fc3f7', '#1f1f1f'], ['#7e57c2', '#ffffff']]) {
+      await pg.ev(poner('acento-libre', color));
+      await pg.esperar(100);
+      igual(await pg.ev(sobre), texto, `texto sobre ${color}`);
+    }
+
+    // (k) Arrastrar un control continuo no inunda sync ni deja que un eco viejo pise el valor.
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(300);
+    await pg.clic('#btn-tema');
+    await pg.ev(`__chromeFalso.escritas()`);
+    for (let i = 0; i < 40; i++) {
+      const color = '#' + (0x100000 + i * 0x010203).toString(16).padStart(6, '0');
+      await pg.ev(poner('acento-libre', color));
+      await pg.esperar(15);
+    }
+    const ultimoColor = '#' + (0x100000 + 39 * 0x010203).toString(16).padStart(6, '0');
+    igual(await pg.ev(acentoActual), ultimoColor, 'el acento se ve al instante mientras se arrastra');
+    await pg.esperar(900);
+    const escritasOpciones = (await pg.ev(`__chromeFalso.escritas()`)).filter(k => k === 'opciones').length;
+    afirmar(escritasOpciones >= 1 && escritasOpciones <= 3, `como mucho 3 escrituras de opciones al arrastrar (hubo ${escritasOpciones})`);
+    igual(await pg.ev(acentoActual), ultimoColor, 'ningún eco viejo pisa el acento');
+    igual((await pg.ev(`JSON.parse(localStorage.getItem('chrome.sync/opciones'))`)).apariencia.acento, ultimoColor, 'se guardó el último valor');
+
+    // (l) Con los valores por defecto la página se ve como en 4.2.0.
+    pg = await abrir({ datos: { ...structuredClone((await import('./lib/datos-prueba.mjs')).DATOS_PRUEBA), widgets: [{ id: 'w-n', tipo: 'notas', panel: 'izq', pos: { x: 1, y: 1, w: 6, h: 4 }, config: {} }] } });
+    await pg.esperar(300);
+    await pg.clic('#btn-tema');
+    igual(await pg.ev(`getComputedStyle(document.getElementById('panel-tema')).borderTopLeftRadius`), '16px', 'radio del panel de personalizar');
+    igual(await pg.ev(`getComputedStyle(document.querySelector('.widget')).borderTopLeftRadius`), '16px', 'radio de un widget');
+    igual(await pg.ev(`getComputedStyle(document.querySelector('.derecha')).borderTopLeftRadius`), '28px', 'radio del panel derecho');
+
+    // (m) El reloj con segundos late en el cambio de segundo, no a mitad.
+    pg = await abrir({ guardados: { opciones: { apariencia: { segundos: true } } } });
+    await pg.esperar(300);
+    const desfase = [];
+    for (let i = 0; i < 4; i++) {
+      await pg.esperar(1000);
+      desfase.push(await pg.ev(`(() => { const [h, m, s] = document.getElementById('hora').textContent.split(':').map(Number); const d = new Date(); return (d.getSeconds() - s + 60) % 60; })()`));
+    }
+    afirmar(desfase.every(d => d <= 1), `la hora mostrada va como mucho 1 s por detrás (desfases ${desfase})`);
   },
 };

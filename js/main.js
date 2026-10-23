@@ -16,7 +16,7 @@ import './importar.js';
 // Cambios hechos en otra pestaña u otro equipo sincronizado.
 alCambiar(cambios => {
   if (cambios[CLAVE_TEMA]?.newValue) ponerTema(cambios[CLAVE_TEMA].newValue);
-  if (cambios[CLAVE_OPCIONES]?.newValue) ponerOpciones(cambios[CLAVE_OPCIONES].newValue);
+  if (cambios[CLAVE_OPCIONES]?.newValue && !esLoUltimo(CLAVE_OPCIONES, cambios[CLAVE_OPCIONES].newValue)) ponerOpciones(cambios[CLAVE_OPCIONES].newValue);
   const deDatos = Object.entries(cambios).filter(([clave]) => clave === CLAVE || clave.startsWith('grupo:'));
   // Los ecos de lo que esta pestaña acaba de guardar no cuentan.
   if (!deDatos.length || deDatos.every(([clave, c]) => esLoUltimo(clave, c.newValue))) return;

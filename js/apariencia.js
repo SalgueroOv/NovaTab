@@ -1,6 +1,6 @@
 // Tema, opciones, paneles, fondo y reloj.
 import { $, avisar, crear, svg } from './util.js';
-import { alCambiar, escribir } from './almacen.js';
+import { alCambiar, escribir, recordar } from './almacen.js';
 import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
@@ -84,7 +84,9 @@ export function ponerApariencia(a) {
   const raiz = document.documentElement.style;
   if (apariencia.acento) {
     raiz.setProperty('--acento', apariencia.acento);
-    raiz.setProperty('--sobre-acento', luminosidad(apariencia.acento) > 0.5 ? '#1f1f1f' : '#ffffff');
+    // Texto oscuro o claro, el que dé más contraste con el acento (luminosidad del #1f1f1f: 0,0137).
+    const l = luminosidad(apariencia.acento);
+    raiz.setProperty('--sobre-acento', (l + 0.05) / 0.0637 > 1.05 / (l + 0.05) ? '#1f1f1f' : '#ffffff');
     $('#acento-libre').value = apariencia.acento;
   } else {
     raiz.removeProperty('--acento');
@@ -99,16 +101,36 @@ export function ponerApariencia(a) {
   $('#opt-segundos').checked = apariencia.segundos;
   $('#opt-fecha').checked = apariencia.fecha;
   muestrasFondo.forEach(m => m.setAttribute('aria-pressed', String(m.dataset.fondo === apariencia.fondo)));
-  $('#intensidad').value = String(apariencia.fondo === 'imagen' ? apariencia.intensidadImagen : apariencia.intensidad);
+  $('#intensidad').value = String(usaImagen() ? apariencia.intensidadImagen : apariencia.intensidad);
   pintarFondo();
   reloj();
   programarReloj();
 }
 
-export function cambiarApariencia(parcial) {
-  ponerOpciones({ ...opciones, apariencia: { ...opciones.apariencia, ...parcial } });
-  escribir(CLAVE_OPCIONES, opciones);
+// Guarda las opciones; lo recuerda antes para reconocer su eco como propio (ver almacen.recordar).
+export function guardarOpciones() {
+  clearTimeout(temporizadorGuardado);
+  guardadoPendiente = false;
+  recordar(CLAVE_OPCIONES, opciones);
+  return escribir(CLAVE_OPCIONES, opciones);
 }
+let temporizadorGuardado;
+let guardadoPendiente = false;
+// Con «diferir» (controles que se arrastran) se aplica al instante y se guarda al dejar de mover.
+export function cambiarApariencia(parcial, diferir = false) {
+  opciones = { ...opciones, apariencia: normalizarApariencia({ ...opciones.apariencia, ...parcial }) };
+  ponerApariencia(opciones.apariencia);
+  if (!diferir) {
+    guardarOpciones();
+    return;
+  }
+  guardadoPendiente = true;
+  clearTimeout(temporizadorGuardado);
+  temporizadorGuardado = setTimeout(guardarOpciones, 250);
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && guardadoPendiente) guardarOpciones();
+});
 
 export function ponerOpciones(o) {
   const nuevas = o && typeof o === 'object' ? o : {};
@@ -134,7 +156,7 @@ export function ponerOpciones(o) {
 
 $('#btn-reunion').addEventListener('click', () => {
   ponerOpciones({ ...opciones, reunion: !opciones.reunion });
-  escribir(CLAVE_OPCIONES, opciones);
+  guardarOpciones();
   if (opciones.reunion && !datos.grupos.some(g => g.privado)) {
     avisar('Ningún grupo es privado todavía: márcalo al editar el grupo con su lápiz.');
   }
@@ -146,19 +168,19 @@ for (const panel of ['izq', 'der']) {
     const ocultos = { ...opciones.ocultos, [panel]: !opciones.ocultos[panel] };
     if (ocultos.izq && ocultos.der) ocultos[panel === 'izq' ? 'der' : 'izq'] = false;
     ponerOpciones({ ...opciones, ocultos });
-    escribir(CLAVE_OPCIONES, opciones);
+    guardarOpciones();
     if (editando) pintarLocal();
   });
 }
 
 $('#opt-sobrio').addEventListener('change', ev => {
   ponerOpciones({ ...opciones, sobrio: ev.target.checked });
-  escribir(CLAVE_OPCIONES, opciones);
+  guardarOpciones();
 });
 
 $('#opt-fondo-grupos').addEventListener('change', ev => {
   ponerOpciones({ ...opciones, fondoGrupos: ev.target.checked });
-  escribir(CLAVE_OPCIONES, opciones);
+  guardarOpciones();
 });
 
 export const panelTema = $('#panel-tema');
@@ -174,7 +196,7 @@ for (const pestana of document.querySelectorAll('#panel-tema [role="tab"]')) {
   });
 }
 
-$('#acento-libre').addEventListener('input', ev => cambiarApariencia({ acento: ev.target.value }));
+$('#acento-libre').addEventListener('input', ev => cambiarApariencia({ acento: ev.target.value }, true));
 for (const b of document.querySelectorAll('[data-densidad]')) b.addEventListener('click', () => cambiarApariencia({ densidad: b.dataset.densidad }));
 for (const b of document.querySelectorAll('[data-esquinas]')) b.addEventListener('click', () => cambiarApariencia({ esquinas: b.dataset.esquinas }));
 $('#opt-hora24').addEventListener('change', ev => cambiarApariencia({ hora24: ev.target.checked }));
@@ -195,19 +217,29 @@ document.addEventListener('keydown', ev => {
 // El dibujo de fondo elegido (o nada, con «liso») a la intensidad elegida.
 // Con «imagen» y una imagen guardada en este equipo se pinta la imagen con su velo; sin ella, las curvas
 // (el ajuste guardado no cambia: en otro equipo de la misma cuenta puede que la imagen exista).
+// El dibujo solo se rehace si cambia el dibujo, la imagen o el tamaño; la intensidad solo toca la opacidad.
 let imagenFondo = null;
+let claveFondo = '';
+const usaImagen = () => apariencia.fondo === 'imagen' && !!imagenFondo;
 export function pintarFondo() {
   const w = innerWidth, h = innerHeight;
   const fondo = $('#fondo');
-  if (apariencia.fondo === 'imagen' && imagenFondo) {
-    fondo.style.backgroundImage = `url("${imagenFondo}")`;
+  if (usaImagen()) {
+    if (claveFondo !== imagenFondo) {
+      claveFondo = imagenFondo;
+      fondo.style.backgroundImage = `url("${imagenFondo}")`;
+      fondo.innerHTML = '<div class="velo"></div>';
+    }
     fondo.style.opacity = '1';
-    fondo.innerHTML = '<div class="velo"></div>';
     fondo.firstChild.style.opacity = String(1 - apariencia.intensidadImagen / 100);
   } else {
-    const dibujo = FONDOS[apariencia.fondo] || (apariencia.fondo === 'imagen' ? FONDOS.curvas : null);
-    fondo.style.backgroundImage = '';
-    fondo.innerHTML = dibujo ? `<svg viewBox="0 0 ${w} ${h}">${dibujo.dibujar(w, h)}</svg>` : '';
+    const id = FONDOS[apariencia.fondo] ? apariencia.fondo : apariencia.fondo === 'imagen' ? 'curvas' : null;
+    const clave = `${id}|${w}|${h}`;
+    if (claveFondo !== clave) {
+      claveFondo = clave;
+      fondo.style.backgroundImage = '';
+      fondo.innerHTML = id ? `<svg viewBox="0 0 ${w} ${h}">${FONDOS[id].dibujar(w, h)}</svg>` : '';
+    }
     fondo.style.opacity = String(apariencia.intensidad / 100);
   }
   $('#quitar-imagen').hidden = !imagenFondo;
@@ -217,22 +249,28 @@ leerImagenFondo().then(url => { imagenFondo = url; pintarFondo(); }).catch(() =>
 // La imagen cambió en esta u otra pestaña.
 alCambiar(cambios => {
   if (!(CLAVE_FONDO_IMAGEN in cambios)) return;
-  leerImagenFondo().then(url => { imagenFondo = url; pintarFondo(); });
+  leerImagenFondo().then(url => { imagenFondo = url; pintarFondo(); }).catch(() => {});
 });
 
 // Las muestras de la pestaña Fondo.
+// Cada imagen elegida es una petición: si mientras se reduce se pide otra cosa, el resultado viejo se descarta.
+let peticionImagen = 0;
 const muestrasFondo = Object.entries(FONDOS).concat([['liso', { nombre: 'Liso' }], ['imagen', { nombre: 'Imagen propia' }]]).map(([id, f]) => {
   const b = crear('button', null, f.nombre);
   b.type = 'button';
   b.dataset.fondo = id;
-  b.addEventListener('click', () => (id === 'imagen' && !imagenFondo ? $('#archivo-fondo').click() : cambiarApariencia({ fondo: id })));
+  b.addEventListener('click', () => {
+    peticionImagen++; // elegir un fondo cancela una imagen que aún se esté reduciendo
+    if (id === 'imagen' && !imagenFondo) $('#archivo-fondo').click();
+    else cambiarApariencia({ fondo: id });
+  });
   return b;
 });
 $('#muestras-fondo').append(...muestrasFondo);
 // El deslizador gobierna la intensidad del dibujo, o la de la imagen cuando el fondo es la imagen.
 $('#intensidad').addEventListener('input', ev => {
   const valor = Number(ev.target.value);
-  cambiarApariencia(apariencia.fondo === 'imagen' ? { intensidadImagen: valor } : { intensidad: valor });
+  cambiarApariencia(usaImagen() ? { intensidadImagen: valor } : { intensidad: valor }, true);
 });
 
 $('#elegir-imagen').addEventListener('click', () => $('#archivo-fondo').click());
@@ -240,19 +278,23 @@ $('#archivo-fondo').addEventListener('change', async ev => {
   const archivo = ev.target.files[0];
   ev.target.value = '';
   if (!archivo) return;
+  const mia = ++peticionImagen;
+  avisar('Reduciendo la imagen…');
   let url;
   try {
     url = await reducirImagen(archivo);
   } catch (err) {
-    avisar(err.message);
+    if (mia === peticionImagen) avisar(err.message);
     return;
   }
+  if (mia !== peticionImagen) return;
   try {
     await guardarImagenFondo(url);
   } catch (err) {
     avisar(`No se pudo guardar la imagen: ${err.message}`);
     return;
   }
+  if (mia !== peticionImagen) return;
   imagenFondo = url;
   cambiarApariencia({ fondo: 'imagen' });
   avisar('Imagen de fondo guardada');
@@ -264,8 +306,10 @@ $('#quitar-imagen').addEventListener('click', async () => {
     avisar(`No se pudo quitar la imagen: ${err.message}`);
     return;
   }
+  peticionImagen++;
   imagenFondo = null;
-  cambiarApariencia({ fondo: 'curvas' });
+  if (apariencia.fondo === 'imagen') cambiarApariencia({ fondo: 'curvas' });
+  else pintarFondo();
 });
 
 export function reloj() {
@@ -280,6 +324,8 @@ export function reloj() {
 // Cada segundo solo si se muestran los segundos; si no, cada 10 s.
 let temporizadorReloj;
 export function programarReloj() {
-  clearInterval(temporizadorReloj);
-  temporizadorReloj = setInterval(reloj, apariencia.segundos ? 1000 : 10000);
+  clearTimeout(temporizadorReloj);
+  // Con segundos, justo después de cada cambio de segundo.
+  const espera = apariencia.segundos ? 1000 - Date.now() % 1000 + 5 : 10000;
+  temporizadorReloj = setTimeout(() => { reloj(); programarReloj(); }, espera);
 }

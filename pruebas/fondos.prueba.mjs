@@ -52,11 +52,11 @@ export default {
     // (e) Intensidad.
     await pg.ev(`document.querySelector('[data-fondo="curvas"]').click()`);
     await pg.ev(`(() => { const e = document.getElementById('intensidad'); e.value = '30'; e.dispatchEvent(new Event('input', { bubbles: true })); })()`);
-    await pg.esperar(100);
+    await pg.esperar(450);
     igual(await pg.ev(`getComputedStyle(document.getElementById('fondo')).opacity`), '0.3', 'opacidad con intensidad 30');
     igual((await pg.ev(opcionesGuardadas)).apariencia.intensidad, 30, 'intensidad guardada');
     await pg.ev(`(() => { const e = document.getElementById('intensidad'); e.value = '0'; e.dispatchEvent(new Event('input', { bubbles: true })); })()`);
-    await pg.esperar(100);
+    await pg.esperar(450);
     igual(await pg.ev(`getComputedStyle(document.getElementById('fondo')).opacity`), '0', 'con intensidad 0 no se ve');
 
     // (f) Al cambiar el tamaño de la ventana queda un solo dibujo del tamaño nuevo.
@@ -64,5 +64,15 @@ export default {
     await pg.esperar(500);
     igual(await pg.ev(`document.querySelectorAll('#fondo svg').length`), 1, 'un solo svg tras redimensionar');
     igual(await pg.ev(`document.querySelector('#fondo svg').getAttribute('viewBox')`), `0 0 ${await pg.ev('innerWidth')} ${await pg.ev('innerHeight')}`, 'viewBox con el tamaño nuevo');
+
+    // (g) Revisión final: con fondo «imagen» sin imagen guardada, el deslizador gobierna la intensidad visible.
+    pg = await abrir({ guardados: { opciones: { apariencia: { fondo: 'imagen', intensidad: 100, intensidadImagen: 40 } } } });
+    await pg.esperar(400);
+    await pg.clic('#btn-tema');
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
+    igual(await pg.ev(`document.getElementById('intensidad').value`), '100', 'el deslizador muestra la intensidad del dibujo si no hay imagen');
+    await pg.ev(`(() => { const e = document.getElementById('intensidad'); e.value = '50'; e.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+    await pg.esperar(500);
+    igual(await pg.ev(`getComputedStyle(document.getElementById('fondo')).opacity`), '0.5', 'la intensidad afecta al dibujo que se ve');
   },
 };
