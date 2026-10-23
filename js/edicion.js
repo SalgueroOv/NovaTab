@@ -7,6 +7,7 @@ import { pintar, plegar } from './pintado.js';
 import { opciones, panelTema } from './apariencia.js';
 import { accionDeWidget, campo, escribirNotas, leerNotas, memoriaNotas, notasGuardadas, nuevoWidget } from './widgets.js';
 import { leerIcono, refrescarCampoIcono } from './iconos.js';
+import { crearHistorial } from './historial.js';
 
 export let editando = false;
 export let arrastre = null;
@@ -24,7 +25,56 @@ const enCola = tarea => (cola = cola.catch(() => {}).then(tarea));
 
 const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!document.activeElement?.matches('[data-titulo]');
 
-export const sincronizado = () => { base = structuredClone(datos); };
+// Deshacer y rehacer: cada foto es { datos, notas } (notas por id de widget). La foto del estado anterior
+// se empuja dentro de guardar(), por donde pasa todo cambio de datos.
+const historial = crearHistorial(20);
+let notasUltimas = {}; // las notas tal como estaban en la última carga o guardado, y lo escrito desde entonces
+let aplicando = false;
+
+export const sincronizado = () => {
+  base = structuredClone(datos);
+  leerNotas().then(n => { notasUltimas = n; });
+};
+
+// Lo que se escribe en una nota cuenta aunque aún no se haya guardado: si luego se borra su widget,
+// deshacer la recupera con ese texto.
+document.addEventListener('input', ev => {
+  if (ev.target.matches?.('textarea[data-nota]')) notasUltimas[ev.target.dataset.nota] = ev.target.value;
+});
+
+export const tomarFoto = async () => ({ datos: structuredClone(datos), notas: await leerNotas() });
+
+// Pone una foto como estado actual y la guarda sin añadirla al historial.
+export async function aplicarEstado(foto) {
+  ponerDatos(normalizar(structuredClone(foto.datos)));
+  await borrarNotas(idsDeNotas(datos));
+  await escribirNotas(foto.notas);
+  resolver();
+  pintar();
+  aplicando = true;
+  try { await guardar(); } finally { aplicando = false; }
+}
+
+// Deshace o rehace un paso. Los diálogos, arrastres y títulos a medio escribir mandan sobre el atajo.
+async function pasoDeHistorial(sentido) {
+  const foto = historial[sentido](await tomarFoto());
+  if (foto) await aplicarEstado(foto);
+}
+export const deshacerUltimo = () => pasoDeHistorial('deshacer');
+export const rehacerUltimo = () => pasoDeHistorial('rehacer');
+
+document.addEventListener('keydown', ev => {
+  if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
+  const tecla = ev.key.toLowerCase();
+  const rehacer = tecla === 'y' || (tecla === 'z' && ev.shiftKey);
+  const deshacer = tecla === 'z' && !ev.shiftKey;
+  if (!rehacer && !deshacer) return;
+  // En un campo con texto, Ctrl+Z es del campo. El buscador, vacío y con el foco al abrir la pestaña, no cuenta.
+  const campo = ev.target.closest?.('input, textarea, select, [contenteditable]');
+  if ((campo && (campo.value !== '' || campo.matches('textarea, select, [contenteditable]'))) || ocupado()) return;
+  ev.preventDefault();
+  (rehacer ? rehacerUltimo : deshacerUltimo)();
+});
 
 export function cambioDeFuera() {
   if (ocupado()) deFuera = true;
@@ -33,6 +83,7 @@ export function cambioDeFuera() {
 
 async function recargar() {
   deFuera = false;
+  historial.limpiar(); // lo ajeno ya guardado no se debe pisar al deshacer
   const d = await cargarDatos();
   if (!d) return;
   ponerDatos(normalizar(d));
@@ -43,12 +94,16 @@ async function recargar() {
 export const guardar = () => enCola(async () => {
   if (deFuera && base) {
     deFuera = false;
+    historial.limpiar();
     const remoto = await cargarDatos();
     if (remoto) {
       ponerDatos(normalizar(fusionar(base, datos, remoto)));
       resolver();
       pintar();
     }
+  }
+  if (!aplicando && base && JSON.stringify(datos) !== JSON.stringify(base)) {
+    historial.empujar({ datos: base, notas: { ...notasUltimas, ...(await leerNotas()) } });
   }
   await guardarDatos(datos);
   sincronizado();
@@ -260,7 +315,9 @@ export async function restablecerTodo() {
     return;
   }
   ponerDatos(normalizar(DATOS_DEFECTO));
-  await guardarYPintar();
+  historial.limpiar(); // el diálogo avisa de que no se puede deshacer
+  aplicando = true;
+  try { await guardarYPintar(); } finally { aplicando = false; }
 }
 
 $('#btn-restablecer').addEventListener('click', () => {
