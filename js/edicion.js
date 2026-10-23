@@ -9,7 +9,8 @@ import { accionDeWidget, campo, escribirNotas, leerNotas, memoriaNotas, notasGua
 import { leerIcono, refrescarCampoIcono } from './iconos.js';
 import { crearHistorial } from './historial.js';
 import { borrarTareas, escribirTareas, idsDeTareas, leerTareas } from './widgets/tareas-datos.js';
-import { idsDeOtrosPerfiles, perfilActivo } from './perfiles.js';
+import { idsDeOtrosPerfiles, migracionFallida, perfilActivo } from './perfiles.js';
+import { renumerar, trasladarPorWidget } from './renumerar.js';
 
 export let editando = false;
 export let arrastre = null;
@@ -51,6 +52,15 @@ document.addEventListener('input', ev => {
 
 export const tomarFoto = async () => ({ datos: structuredClone(datos), notas: await leerNotas(), tareas: await leerTareas() });
 
+// Los ids de widgets de los demás perfiles, o null si no se pudieron comprobar.
+async function idsDeWidgetsAjenos() {
+  try {
+    return (await idsDeOtrosPerfiles()).widgets;
+  } catch {
+    return null;
+  }
+}
+
 // Pone una foto como estado actual y la guarda sin añadirla al historial. Las notas de widgets que ya
 // estaban se dejan como están (lo escrito después no se revierte); «todasLasNotas» las reescribe también.
 // Solo se llama desde la cola (ver enCola).
@@ -58,11 +68,12 @@ async function aplicarDentro(foto, todasLasNotas = false) {
   const estaban = idsDeNotas(datos);
   const estabanTareas = idsDeTareas(datos);
   ponerDatos(normalizar(structuredClone(foto.datos)));
-  const otros = (await idsDeOtrosPerfiles()).widgets;
-  await borrarNotas(new Set([...idsDeNotas(datos), ...otros]));
+  // Los widgets de los demás perfiles se respetan; si no se pueden comprobar, no se borra nada.
+  const otros = await idsDeWidgetsAjenos();
+  if (otros) await borrarNotas(new Set([...idsDeNotas(datos), ...otros]));
   const reaparecen = Object.entries(foto.notas).filter(([id]) => todasLasNotas || !estaban.has(id));
   await escribirNotas(Object.fromEntries(reaparecen));
-  await borrarTareas(new Set([...idsDeTareas(datos), ...otros]));
+  if (otros) await borrarTareas(new Set([...idsDeTareas(datos), ...otros]));
   await escribirTareas(Object.fromEntries(Object.entries(foto.tareas || {}).filter(([id]) => todasLasNotas || !estabanTareas.has(id))));
   resolver();
   pintar();
@@ -315,13 +326,30 @@ $('#archivo').addEventListener('change', async ev => {
   if (!archivo) return;
   try {
     const leido = JSON.parse(await archivo.text());
-    const nuevos = normalizar(leido);
+    if (migracionFallida) return avisar('Tus datos aún no se han actualizado al formato nuevo: no se puede importar todavía');
+    let nuevos = normalizar(leido);
     if (!confirm('¿Reemplazar todos los enlaces por los del archivo?')) return;
-    const otros = (await idsDeOtrosPerfiles()).widgets;
+    let ajenos;
+    try {
+      ajenos = await idsDeOtrosPerfiles();
+    } catch (err) {
+      return avisar(`No se pudo importar: ${err.message}`);
+    }
+    let notas = leido.notas;
+    let tareas = leido.tareas;
+    // Un archivo exportado de otro perfil (o de antes de los perfiles) trae ids que ya usa otro perfil: se renumeran,
+    // si no, los dos perfiles compartirían enlaces, notas y tareas y borrar uno borraría lo del otro.
+    if (nuevos.grupos.some(g => ajenos.grupos.has(g.id)) || nuevos.widgets.some(w => ajenos.widgets.has(w.id))) {
+      const r = renumerar(nuevos);
+      nuevos = r.datos;
+      notas = trasladarPorWidget(notas, r.widgets);
+      tareas = trasladarPorWidget(tareas, r.widgets);
+    }
+    const otros = ajenos.widgets;
     await borrarNotas(new Set([...idsDeNotas(nuevos), ...otros]));
-    await escribirNotas(leido.notas);
+    await escribirNotas(notas);
     await borrarTareas(otros); // las listas de este perfil se vacían: las que no vengan en el archivo quedan sin tareas
-    await escribirTareas(Object.fromEntries(Object.entries(leido.tareas || {}).filter(([id]) => idsDeTareas(nuevos).has(id))));
+    await escribirTareas(Object.fromEntries(Object.entries(tareas || {}).filter(([id]) => idsDeTareas(nuevos).has(id))));
     ponerDatos(nuevos);
     await guardarYPintar();
     avisar('Enlaces importados');
@@ -332,7 +360,7 @@ $('#archivo').addEventListener('change', async ev => {
 
 // Borra las notas guardadas cuyo widget no está en «conservar» (ids de widget); sin argumento, todas.
 export async function borrarNotas(conservar = new Set()) {
-  await borrar((await claves('nota:')).filter(clave => !conservar.has(clave.slice(5))));
+  await borrar((await claves('notas:')).filter(clave => !conservar.has(clave.slice(6))));
   for (const id of [...memoriaNotas.keys()]) if (!conservar.has(id)) memoriaNotas.delete(id);
   for (const id of [...notasGuardadas.keys()]) if (!conservar.has(id)) notasGuardadas.delete(id);
 }
@@ -342,6 +370,7 @@ export const idsDeNotas = d => new Set(d.widgets.filter(w => w.tipo === 'notas')
 // Restablecer todo: los datos de ejemplo y ninguna nota guardada. Si no se pueden borrar las notas,
 // no se cambia nada y se avisa (antes se cambiaba la memoria y el siguiente guardado lo hacía a medias).
 export async function restablecerTodo() {
+  if (migracionFallida) return avisar('Tus datos aún no se han actualizado al formato nuevo: no se puede restablecer todavía');
   try {
     const otros = (await idsDeOtrosPerfiles()).widgets;
     await borrarNotas(otros);

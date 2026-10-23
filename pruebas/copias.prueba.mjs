@@ -21,7 +21,7 @@ export default {
   nombre: 'copias: una por día, las 7 últimas y recuperables desde Opciones',
   async ejecutar(abrir) {
     // (a) Al abrir con datos sin copias se crea la de hoy, con grupos y notas; recargar no la repite.
-    let pg = await abrir({ datos: NOTAS, guardados: { 'nota:w-notas': 'apunte del día' } });
+    let pg = await abrir({ datos: NOTAS, guardados: { 'notas:w-notas': 'apunte del día' } });
     await pg.esperar(400);
     igual(await pg.ev(copiasGuardadas), [`copia:principal:${fechaLocal()}`], 'copia de hoy');
     let c = JSON.parse(await pg.ev(`localStorage.getItem('copia:principal:${fechaLocal()}')`));
@@ -63,12 +63,12 @@ export default {
     igual((await pg.datos()).grupos.map(g => g.nombre), antes, 'Ctrl+Z devuelve el estado de antes de recuperar');
 
     // (d) Recuperar una copia sin widgets de notas no deja notas huérfanas.
-    pg = await abrir({ datos: NOTAS, guardados: { 'nota:w-notas': 'texto', [`copia:principal:${fechaLocal(-3)}`]: copia(3, 'Sin widgets') } });
+    pg = await abrir({ datos: NOTAS, guardados: { 'notas:w-notas': 'texto', [`copia:principal:${fechaLocal(-3)}`]: copia(3, 'Sin widgets') } });
     await pg.esperar(400);
     await pg.clic('#btn-tema');
     await pg.ev(`document.querySelectorAll('#lista-copias li')[1].querySelector('button').click()`);
     await pg.esperar(500);
-    igual(await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('nota:'))`), [], 'sin notas huérfanas');
+    igual(await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('notas:'))`), [], 'sin notas huérfanas');
 
     // Revisión final · (e) Una copia de hoy corrupta no bloquea la del día y una clave que no es fecha no cuenta.
     const sembradas = { [`copia:principal:${fechaLocal()}`]: { basura: 1 }, 'copia:principal:zzz': copia(1, 'Rara') };

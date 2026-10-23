@@ -25,7 +25,7 @@ export default {
     igual(estructura.version, 4, 'versión guardada');
     afirmar(estructura.grupos.every(g => !('enlaces' in g)), 'la estructura no debe llevar los enlaces');
     for (const g of DATOS_V3.grupos) {
-      igual((await pg.ev(enArea('sync', `grupo:${g.id}`))).map(e => e.nombre), g.enlaces.map(e => e.nombre), `enlaces guardados de ${g.nombre}`);
+      igual((await pg.ev(enArea('sync', `enlaces:${g.id}`))).map(e => e.nombre), g.enlaces.map(e => e.nombre), `enlaces guardados de ${g.nombre}`);
     }
     igual(resumen(await pg.datos()), resumen(DATOS_V3), 'datos en memoria tras migrar');
     igual(await pg.ev(`[...document.querySelectorAll('.notas-texto')].map(t => t.value)`), ['nota uno', 'nota dos'], 'notas tras migrar');
@@ -41,7 +41,7 @@ export default {
     await pg.ev(`document.querySelector('#dlg-enlace input[name="nombre"]').value = 'Copias nuevas'`);
     await pg.clic('#dlg-enlace button[value="ok"]');
     await pg.esperar(300);
-    igual(await pg.ev(`__chromeFalso.escritas()`), ['grupo:g3'], 'claves escritas al editar un enlace');
+    igual(await pg.ev(`__chromeFalso.escritas()`), ['enlaces:g3'], 'claves escritas al editar un enlace');
 
     // (c) 200 enlaces en 4 grupos se guardan y se recargan iguales.
     pg = await abrir({ chrome: {}, datos: conMuchosEnlaces() });
@@ -83,7 +83,7 @@ export default {
     })()`);
     await pg.esperar(500);
     const claves = await pg.ev(clavesSync);
-    igual(claves.filter(k => k.startsWith('grupo:')), ['grupo:g1', 'grupo:g2', 'grupo:g3', 'grupo:g4', 'grupo:g5'], 'claves de grupo tras importar');
+    igual(claves.filter(k => k.startsWith('enlaces:')), ['enlaces:g1', 'enlaces:g2', 'enlaces:g3', 'enlaces:g4', 'enlaces:g5'], 'claves de grupo tras importar');
     igual(await pg.ev(`${enArea('sync', 'perfil:principal:datos')}.then(d => d.version)`), 4, 'versión tras importar');
   },
 };

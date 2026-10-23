@@ -8,8 +8,8 @@ const BASE = conWidgets([
 const estructura = d => ({ ...structuredClone(d), version: 4, grupos: d.grupos.map(({ enlaces, ...g }) => g) });
 const guardables = enlaces => enlaces.map(e => ({ ...e, icono: null }));
 const SEMILLA = {
-  ...Object.fromEntries(BASE.grupos.map(g => [`chrome.sync/grupo:${g.id}`, guardables(g.enlaces)])),
-  'chrome.sync/nota:w-notas': 'nota original',
+  ...Object.fromEntries(BASE.grupos.map(g => [`chrome.sync/enlaces:${g.id}`, guardables(g.enlaces)])),
+  'chrome.sync/notas:w-notas': 'nota original',
   'chrome.sync/tareas:w-tareas': [{ id: 't1', texto: 'tarea original', hecha: false }],
   'chrome.sync/tema': 'papel',
 };
@@ -53,17 +53,17 @@ export default {
     afirmar(de.grupos.every(g => !idsPrincipal.has(g.id)) && de.widgets.every(w => !idsPrincipal.has(w.id)), 'ids de grupos y widgets nuevos');
     const widgetNotas = de.widgets.find(w => w.tipo === 'notas').id;
     const widgetTareas = de.widgets.find(w => w.tipo === 'tareas').id;
-    igual([s[`nota:${widgetNotas}`], s[`tareas:${widgetTareas}`][0].texto], ['nota original', 'tarea original'], 'notas y tareas copiadas');
+    igual([s[`notas:${widgetNotas}`], s[`tareas:${widgetTareas}`][0].texto], ['nota original', 'tarea original'], 'notas y tareas copiadas');
     await ops(pg, `await m.cambiarPerfil('${copia.id}');`);
     await pg.ev(`(() => { const t = document.querySelector('.notas-texto'); t.focus(); t.value = 'cambio en la copia'; t.dispatchEvent(new Event('input')); t.blur(); })()`);
     await pg.esperar(2600);
     s = await sync(pg);
-    igual([s['nota:w-notas'], s[`nota:${widgetNotas}`]], ['nota original', 'cambio en la copia'], 'editar la nota de la copia no toca la original');
+    igual([s['notas:w-notas'], s[`notas:${widgetNotas}`]], ['nota original', 'cambio en la copia'], 'editar la nota de la copia no toca la original');
     await ops(pg, `await m.cambiarPerfil('principal');`);
     await pg.ev(`(() => { const t = document.querySelector('.notas-texto'); t.focus(); t.value = 'cambio en el original'; t.dispatchEvent(new Event('input')); t.blur(); })()`);
     await pg.esperar(2600);
     s = await sync(pg);
-    igual([s['nota:w-notas'], s[`nota:${widgetNotas}`]], ['cambio en el original', 'cambio en la copia'], 'y al revés');
+    igual([s['notas:w-notas'], s[`notas:${widgetNotas}`]], ['cambio en el original', 'cambio en la copia'], 'y al revés');
 
     // (c) Cambiar con una nota recién escrita y una tarea recién añadida: se guardan en el perfil que se deja.
     await pg.ev(`(() => { const t = document.querySelector('.notas-texto'); t.focus(); t.value = 'recién escrita'; t.dispatchEvent(new Event('input')); })()`);
@@ -73,7 +73,7 @@ export default {
     await ops(pg, `await m.cambiarPerfil('${creado.id}');`);
     await pg.esperar(300);
     s = await sync(pg);
-    igual(s['nota:w-notas'], 'recién escrita', 'la nota sin guardar se guardó en el perfil que se dejó');
+    igual(s['notas:w-notas'], 'recién escrita', 'la nota sin guardar se guardó en el perfil que se dejó');
     igual(s['tareas:w-tareas'].map(t => t.texto), ['tarea original', 'tarea reciente'], 'y la tarea pendiente también');
     igual((await estado(pg)).nota, null, 'y no aparecen en el perfil nuevo');
     const datosAntes = JSON.stringify((await estado(pg)).datos);
@@ -103,12 +103,12 @@ export default {
 
     // (f) Borrar: solo las claves del perfil; el activo salta; el único no se puede borrar.
     s = await sync(pg);
-    const clavesCopia = [`perfil:${copia.id}:datos`, `perfil:${copia.id}:aspecto`, `nota:${widgetNotas}`, `tareas:${widgetTareas}`, ...de.grupos.map(g => `grupo:${g.id}`)];
+    const clavesCopia = [`perfil:${copia.id}:datos`, `perfil:${copia.id}:aspecto`, `notas:${widgetNotas}`, `tareas:${widgetTareas}`, ...de.grupos.map(g => `enlaces:${g.id}`)];
     afirmar(clavesCopia.every(k => k in s), 'antes de borrar, las claves de la copia existen');
     await ops(pg, `await m.borrarPerfil('${copia.id}');`);
     s = await sync(pg);
     afirmar(clavesCopia.every(k => !(k in s)), 'tras borrar, ninguna clave de la copia queda');
-    afirmar(['perfil:principal:datos', 'nota:w-notas', 'tareas:w-tareas', 'grupo:g-alfa'].every(k => k in s), 'y no se tocó nada de principal');
+    afirmar(['perfil:principal:datos', 'notas:w-notas', 'tareas:w-tareas', 'enlaces:g-alfa'].every(k => k in s), 'y no se tocó nada de principal');
     await ops(pg, `await m.cambiarPerfil('${creado.id}');`);
     await ops(pg, `await m.borrarPerfil('${creado.id}');`);
     igual(await activo(pg), 'principal', 'borrar el activo cambia al primero');
@@ -127,5 +127,36 @@ export default {
     igual(await activo(pg), 'principal', 'salta al perfil que queda');
     igual(await pg.ev(`[...document.querySelectorAll('#aviso, #aviso-accion')].filter(a => !a.hidden).map(a => a.textContent).join('')`), 'Ese perfil se borró en otro equipo', 'con aviso');
     afirmar(!(`perfil:${nuevoActivo}:datos` in await sync(pg)) || true, 'sin comprobar claves del perfil borrado en otro equipo');
+
+    // ---- Revisión final ----
+    // (i) Importar en otro perfil un archivo de principal renumera los ids; borrar ese perfil no toca principal.
+    pg = await nuevaPagina();
+    const otro = (await ops(pg, `return await m.crearPerfil('Otro');`)).id;
+    await pg.ev(`window.__blob = null; const o = URL.createObjectURL; URL.createObjectURL = b => { window.__blob = b; return o.call(URL, b); }`);
+    await pg.ev(`window.confirm = () => true`);
+    await pg.clic('#btn-editar');
+    await pg.clic('#btn-exportar');
+    await pg.esperar(300);
+    const json = await pg.ev(`window.__blob.text()`);
+    await pg.clic('#btn-editar');
+    await ops(pg, `await m.cambiarPerfil('${otro}');`);
+    await pg.clic('#btn-editar');
+    await pg.ev(`(() => {
+      const dt = new DataTransfer();
+      dt.items.add(new File([${JSON.stringify(json)}], 'marcadores.json', { type: 'application/json' }));
+      const i = document.getElementById('archivo');
+      i.files = dt.files;
+      i.dispatchEvent(new Event('change', { bubbles: true }));
+    })()`);
+    await pg.esperar(1000);
+    s = await sync(pg);
+    const idsOtro = s[`perfil:${otro}:datos`].grupos.map(g => g.id);
+    afirmar(idsOtro.length > 0 && idsOtro.every(id => !['g-alfa', 'g-beta', 'g-gamma', 'g-trabajo', 'g-ocio'].includes(id)), 'los grupos importados tienen ids nuevos');
+    igual([s['notas:w-notas'], s['tareas:w-tareas'][0].texto, s['enlaces:g-alfa'].length], ['nota original', 'tarea original', 4], 'principal sigue exactamente igual');
+    const widgetNotasOtro = s[`perfil:${otro}:datos`].widgets.find(w => w.tipo === 'notas')?.id;
+    igual(s[`notas:${widgetNotasOtro}`], 'nota original', 'la nota importada se trasladó al widget nuevo');
+    await ops(pg, `await m.borrarPerfil('${otro}');`);
+    s = await sync(pg);
+    afirmar(['perfil:principal:datos', 'notas:w-notas', 'tareas:w-tareas', 'enlaces:g-alfa', 'enlaces:g-trabajo'].every(k => k in s), 'borrar el perfil importado no toca nada de principal');
   },
 };

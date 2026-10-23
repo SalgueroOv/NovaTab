@@ -1,7 +1,7 @@
 // Tema, opciones, paneles, fondo y reloj.
 import { $, avisar, crear, svg } from './util.js';
 import { alCambiar, escribir, recordar } from './almacen.js';
-import { claveAspecto, perfilActivo } from './perfiles.js';
+import { claveAspecto, migracionFallida, perfilActivo } from './perfiles.js';
 import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
@@ -161,6 +161,14 @@ export function recibirEco(nuevo) {
   else ponerOpciones(nuevo);
 }
 
+// Al cambiar de perfil: lo pendiente del anterior (un guardado diferido, un eco retenido) no debe acabar en el nuevo.
+export function descartarEco() {
+  clearTimeout(temporizadorGuardado);
+  guardadoPendiente = false;
+  ecoRetenido = null;
+  tocadas.clear();
+}
+
 export function fusionarEco() {
   if (ecoRetenido) {
     const mias = Object.fromEntries([...tocadas].map(k => [k, opciones[k]]));
@@ -179,6 +187,7 @@ export function guardarOpciones() {
   clearTimeout(temporizadorGuardado);
   guardadoPendiente = false;
   fusionarEco();
+  if (migracionFallida) return Promise.resolve(); // sin migrar no se escribe nada en las claves nuevas
   // Lo común (el buscador) va en «opciones»; el resto, con el tema, en el aspecto del perfil activo.
   const { buscador, tema, ...resto } = opciones; // «tema» viene del aspecto leído: manda el tema actual
   const comunes = { buscador };

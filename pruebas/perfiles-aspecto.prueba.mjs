@@ -7,7 +7,7 @@ const DOS_PERFILES = (activo = 'principal') => ({
   'chrome.sync/perfiles': { version: 5, lista: [{ id: 'principal', nombre: 'Principal' }, { id: 'otro', nombre: 'Otro' }] },
   'chrome.sync/perfil:principal:datos': estructura(DATOS_PRUEBA),
   'chrome.sync/perfil:otro:datos': { ...estructura(DATOS_PRUEBA), grupos: [] },
-  ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/grupo:${g.id}`, guardables(g.enlaces)])),
+  ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/enlaces:${g.id}`, guardables(g.enlaces)])),
   'chrome.sync/perfil:principal:aspecto': { tema: 'papel', apariencia: { acento: '#e0245e' }, sobrio: true },
   'chrome.sync/perfil:otro:aspecto': { tema: 'noche', apariencia: { acento: '#00aa66', densidad: 'compacta' }, ocultos: { izq: true, der: false }, anchoIzq: 30 },
   'chrome.sync/opciones': { buscador: { motor: 'duckduckgo' } },

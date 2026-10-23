@@ -1,6 +1,6 @@
 // Importar los marcadores de Chrome como grupos.
 import { $, avisar, avisarConAccion, crear, nuevoId, partes, dominio, urlSegura } from './util.js';
-import { clavesSoloLocal } from './almacen.js';
+import { claveGrupo, clavesSoloLocal } from './almacen.js';
 import { datos } from './datos.js';
 import { colocarSinPosicion } from './rejilla.js';
 import { claveSitio } from './widgets.js';
@@ -116,7 +116,7 @@ async function importar() {
   datos.grupos.push(...grupos);
   colocarSinPosicion(datos);
   await guardarYPintar();
-  const grande = grupos.some(g => clavesSoloLocal.has(`grupo:${g.id}`))
+  const grande = grupos.some(g => clavesSoloLocal.has(claveGrupo(g.id)))
     ? '. Algún grupo es demasiado grande para sincronizar y solo estará en este equipo'
     : '';
   const repetidos = omitidos ? ` (${omitidos} ${omitidos === 1 ? 'repetido omitido' : 'repetidos omitidos'})` : '';

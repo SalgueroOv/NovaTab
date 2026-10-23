@@ -105,12 +105,14 @@ export async function reintentarPendientes() {
 }
 
 // ---------- Formato v4 ----------
-// «datos» guarda la estructura (grupos sin enlaces, widgets y títulos) y «grupo:<id>», los enlaces de cada
+// «datos» guarda la estructura (grupos sin enlaces, widgets y títulos) y «enlaces:<id>», los enlaces de cada
 // grupo: cada cambio escribe solo lo que toca y ninguna clave se acerca a los 8 KB de sync.
 
 export const claveDatos = perfil => `perfil:${perfil}:datos`;
 export const claveAspecto = perfil => `perfil:${perfil}:aspecto`;
-const claveGrupo = id => `grupo:${id}`;
+// «enlaces:<id>» y «notas:<id>» (la versión 4 usaba «grupo:» y «nota:»): con otro nombre, un equipo que aún tenga la
+// versión 4 no puede borrar ni pisar los datos de los perfiles al limpiar «lo que sobra» en sus propias claves.
+export const claveGrupo = id => `enlaces:${id}`;
 // Lo último escrito o leído de cada clave (en JSON): lo que no cambió no se reescribe, y un aviso de
 // cambio con ese mismo valor es el eco de una escritura propia.
 const ultimo = new Map();

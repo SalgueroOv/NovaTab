@@ -1,7 +1,7 @@
 // Arranque de NovaTab: carga los datos, aplica tema y opciones y escucha los cambios de otras pestañas.
 import { $, svg } from './util.js';
-import { alCambiar, bloquearGuardado, cargarDatos, esLoUltimo, escribirLocal, leer } from './almacen.js';
-import { claveAspecto, claveDatos, leerLegado, migrar, perfilActivo } from './perfiles.js';
+import { alCambiar, bloquearGuardado, cargarDatos, claveGrupo, esLoUltimo, escribirLocal, leer } from './almacen.js';
+import { claveAspecto, claveDatos, leerLegado, migracionFallida, migrar, perfilActivo } from './perfiles.js';
 import { avisar } from './util.js';
 import { VERSION, datos, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
@@ -26,6 +26,10 @@ import './selector-perfiles.js';
 
 // Cambios hechos en otra pestaña u otro equipo sincronizado.
 alCambiar(cambios => {
+  // «datos» o «tema» solo vuelven a cambiar si un equipo con la versión 4 sigue en marcha.
+  if (!migracionFallida && ('datos' in cambios || 'tema' in cambios)) {
+    avisar('Otro de tus equipos usa una versión anterior de NovaTab: actualízalo, o sus cambios no llegarán aquí y empezará con datos vacíos');
+  }
   // El aspecto del perfil activo (tema y demás) y lo común (el buscador); los de otros perfiles no cuentan.
   const claveAsp = claveAspecto(perfilActivo());
   const aspecto = cambios[claveAsp]?.newValue;
@@ -35,7 +39,7 @@ alCambiar(cambios => {
   }
   const comunes = cambios[CLAVE_OPCIONES]?.newValue;
   if (comunes && !esLoUltimo(CLAVE_OPCIONES, comunes)) recibirEco({ ...opciones, buscador: comunes.buscador });
-  const deDatos = Object.entries(cambios).filter(([clave]) => clave === claveDatos(perfilActivo()) || clave.startsWith('grupo:'));
+  const deDatos = Object.entries(cambios).filter(([clave]) => clave === claveDatos(perfilActivo()) || datos?.grupos.some(g => claveGrupo(g.id) === clave));
   // Los ecos de lo que esta pestaña acaba de guardar no cuentan.
   if (!deDatos.length || deDatos.every(([clave, c]) => esLoUltimo(clave, c.newValue))) return;
   clearTimeout(recarga);
@@ -98,7 +102,7 @@ let recarga;
       avisar(`No se pudieron actualizar tus datos al formato nuevo: ${err.message}`);
     }
   }
-  if (guardados) hacerCopiaDelDia().catch(() => { /* la copia diaria es un extra */ });
+  if (guardados && !migracionFallida) hacerCopiaDelDia().catch(() => { /* la copia diaria es un extra */ });
   document.dispatchEvent(new Event('novatab:perfil')); // el selector de perfiles muestra el perfil cargado
 })();
 

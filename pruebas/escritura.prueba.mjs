@@ -22,7 +22,7 @@ export default {
 
     // Entrar y salir de una nota sin cambiarla no gasta una escritura.
     await pg.esperar(2200); // deja que se guarde «a medias» (2 s sin escribir)
-    await pg.ev(`(() => { window.__escrituras = 0; const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (k.startsWith('nota:')) window.__escrituras++; return set.call(this, k, v); }; })()`);
+    await pg.ev(`(() => { window.__escrituras = 0; const set = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (k.startsWith('notas:')) window.__escrituras++; return set.call(this, k, v); }; })()`);
     await pg.ev(`(() => { const t = document.querySelector('.notas-texto'); t.blur(); t.focus(); t.blur(); })()`);
     igual(await pg.ev(`window.__escrituras`), 0, 'escrituras de nota sin cambios');
 

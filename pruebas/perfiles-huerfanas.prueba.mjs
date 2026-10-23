@@ -9,10 +9,10 @@ const PERFILES = {
   'chrome.sync/perfiles': { version: 5, lista: [{ id: 'principal', nombre: 'Principal' }, { id: 'otro', nombre: 'Otro' }] },
   'chrome.sync/perfil:principal:datos': estructura(DATOS_PRUEBA.grupos, [widget('wn-p', 'notas', 1), widget('wt-p', 'tareas', 5), widget('wr-p', 'rss', 9, { url: 'https://p.example.com/feed', cantidad: 5 })]),
   'chrome.sync/perfil:otro:datos': estructura([GRUPO_O], [widget('wn-o', 'notas', 1), widget('wt-o', 'tareas', 5), widget('wr-o', 'rss', 9, { url: 'https://o.example.com/feed', cantidad: 5 })]),
-  ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/grupo:${g.id}`, guardables(g.enlaces)])),
-  'chrome.sync/grupo:g-otro': guardables(GRUPO_O.enlaces),
-  'chrome.sync/nota:wn-p': 'nota de principal',
-  'chrome.sync/nota:wn-o': 'nota del otro',
+  ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/enlaces:${g.id}`, guardables(g.enlaces)])),
+  'chrome.sync/enlaces:g-otro': guardables(GRUPO_O.enlaces),
+  'chrome.sync/notas:wn-p': 'nota de principal',
+  'chrome.sync/notas:wn-o': 'nota del otro',
   'chrome.sync/tareas:wt-p': [{ id: 'a', texto: 'tarea de principal', hecha: false }],
   'chrome.sync/tareas:wt-o': [{ id: 'b', texto: 'tarea del otro', hecha: false }],
   'chrome.local/rss:wr-p': { t: 1, url: 'https://p.example.com/feed', titulo: 'P', items: [] },
@@ -22,7 +22,7 @@ const PERFILES = {
 const sync = pg => pg.ev(`chrome.storage.sync.get(null).then(t => Object.keys(t).sort())`);
 const loc = pg => pg.ev(`chrome.storage.local.get(null).then(t => Object.keys(t).filter(k => k.startsWith('rss:')).sort())`);
 const sinFeeds = { 'https://p.example.com/feed': 'falla', 'https://o.example.com/feed': 'falla' };
-const DEL_OTRO = ['grupo:g-otro', 'nota:wn-o', 'perfil:otro:datos', 'tareas:wt-o'];
+const DEL_OTRO = ['enlaces:g-otro', 'notas:wn-o', 'perfil:otro:datos', 'tareas:wt-o'];
 const delOtroPresente = (claves, rss) => DEL_OTRO.every(k => claves.includes(k)) && rss.includes('rss:wr-o');
 
 export default {
@@ -45,14 +45,14 @@ export default {
     })()`);
     await pg.esperar(800);
     let claves = await sync(pg);
-    afirmar(!claves.includes('nota:wn-p') && !claves.includes('tareas:wt-p'), 'lo propio (notas y tareas de principal) se limpia');
+    afirmar(!claves.includes('notas:wn-p') && !claves.includes('tareas:wt-p'), 'lo propio (notas y tareas de principal) se limpia');
     afirmar(delOtroPresente(claves, await loc(pg)), 'lo del otro perfil sigue intacto tras importar');
     await pg.ev(`document.activeElement.blur()`);
     await pg.tecla('z', 'ctrl');
     await pg.esperar(800);
     claves = await sync(pg);
     afirmar(delOtroPresente(claves, await loc(pg)), 'y tras deshacer');
-    afirmar(claves.includes('nota:wn-p'), 'deshacer recupera la nota propia');
+    afirmar(claves.includes('notas:wn-p'), 'deshacer recupera la nota propia');
 
     // (c) «Restablecer todo» deja el perfil activo con el ejemplo y el otro intacto.
     pg = await abrirDos();
@@ -63,7 +63,7 @@ export default {
     await pg.clic('#confirmar-restablecer');
     await pg.esperar(900);
     claves = await sync(pg);
-    afirmar(!claves.includes('nota:wn-p') && !claves.includes('tareas:wt-p'), 'se borran las notas y tareas de este perfil');
+    afirmar(!claves.includes('notas:wn-p') && !claves.includes('tareas:wt-p'), 'se borran las notas y tareas de este perfil');
     igual((await loc(pg)).includes('rss:wr-p'), false, 'y su caché de RSS');
     afirmar(delOtroPresente(claves, await loc(pg)), 'pero no nada del otro perfil');
     afirmar((await pg.datos()).grupos.length > 0 && !(await pg.datos()).widgets.some(w => ['wn-p', 'wt-p', 'wr-p'].includes(w.id)), 'el perfil activo vuelve al ejemplo inicial');
@@ -79,12 +79,12 @@ export default {
     await pg.esperar(500);
     await pg.ev(`(() => { const t = document.querySelectorAll('.notas-texto'); const u = t[t.length - 1]; u.focus(); u.value = 'nueva'; u.dispatchEvent(new Event('input')); u.blur(); })()`);
     await pg.esperar(2600);
-    const tras = (await sync(pg)).filter(k => k.startsWith('nota:'));
+    const tras = (await sync(pg)).filter(k => k.startsWith('notas:'));
     igual(tras.length, 3, 'la nota nueva se guardó');
     await pg.clic('#btn-editar');
     await pg.ev(`document.activeElement.blur()`);
     await pg.tecla('z', 'ctrl');
     await pg.esperar(800);
-    igual((await sync(pg)).filter(k => k.startsWith('nota:')).sort(), ['nota:wn-o', 'nota:wn-p'], 'deshacer borra la nota del widget que ya no existe, y solo esa');
+    igual((await sync(pg)).filter(k => k.startsWith('notas:')).sort(), ['notas:wn-o', 'notas:wn-p'], 'deshacer borra la nota del widget que ya no existe, y solo esa');
   },
 };

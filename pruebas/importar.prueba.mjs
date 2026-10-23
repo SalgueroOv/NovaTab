@@ -6,7 +6,7 @@ export default {
   async ejecutar(abrir) {
     // Importar una copia sin el widget de notas borra la nota del widget que desaparece.
     let pg = await abrir({ datos: conWidgets([{ id: 'w-viejo', tipo: 'notas', panel: 'izq', pos: { x: 1, y: 1, w: 6, h: 4 }, config: {} }]) });
-    await pg.ev(`localStorage.setItem('nota:w-viejo', JSON.stringify('nota antigua'))`);
+    await pg.ev(`localStorage.setItem('notas:w-viejo', JSON.stringify('nota antigua'))`);
     await pg.clic('#btn-editar');
     await pg.ev(`(() => {
       window.confirm = () => true;
@@ -17,7 +17,7 @@ export default {
       i.dispatchEvent(new Event('change'));
     })()`);
     await pg.esperar(500);
-    igual(await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('nota:'))`), [], 'notas que quedan tras importar');
+    igual(await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('notas:'))`), [], 'notas que quedan tras importar');
 
     // Importar tu propia copia: la nota que ya estaba en pantalla muestra el texto importado.
     const conNota = conWidgets([{ id: 'w-mia', tipo: 'notas', panel: 'izq', pos: { x: 1, y: 1, w: 6, h: 4 }, config: {} }]);

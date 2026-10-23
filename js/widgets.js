@@ -213,7 +213,7 @@ export function vistaTiempo(d) {
 
 export const memoriaNotas = new Map();
 export const notasGuardadas = new Map();
-export const claveNota = id => `nota:${id}`;
+export const claveNota = id => `notas:${id}`;
 // Notas con texto aún sin guardar: id → la función que la guarda.
 const notasSinGuardar = new Map();
 
@@ -290,8 +290,8 @@ document.addEventListener('visibilitychange', () => {
 // Una nota editada en otra pestaña u otro equipo se actualiza aquí si no la estás escribiendo.
 alCambiar(cambios => {
   for (const [clave, { newValue }] of Object.entries(cambios)) {
-    if (!clave.startsWith('nota:') || typeof newValue !== 'string') continue;
-    const id = clave.slice(5);
+    if (!clave.startsWith('notas:') || typeof newValue !== 'string') continue;
+    const id = clave.slice(6);
     memoriaNotas.set(id, newValue);
     notasGuardadas.set(id, newValue); // ya está guardado: entrar y salir de la nota no lo reescribe
     const ta = document.querySelector(`textarea[data-nota="${CSS.escape(id)}"]`);

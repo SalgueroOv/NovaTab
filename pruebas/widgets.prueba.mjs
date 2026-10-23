@@ -8,7 +8,7 @@ export default {
     let pg = await abrir({ datos: conWidgets([{ id: 'w-notas', tipo: 'notas', panel: 'izq', pos: { x: 1, y: 1, w: 6, h: 4 }, config: {} }]) });
     await pg.ev(`(() => { const t = document.querySelector('.notas-texto'); t.focus(); t.value = 'Revisar copias'; t.dispatchEvent(new Event('input')); t.blur(); })()`);
     await pg.esperar(300);
-    igual(await pg.ev(`JSON.parse(localStorage.getItem('nota:w-notas'))`), 'Revisar copias', 'nota guardada');
+    igual(await pg.ev(`JSON.parse(localStorage.getItem('notas:w-notas'))`), 'Revisar copias', 'nota guardada');
 
     // El reproductor de Spotify no se recrea al repintar (cortaría la música).
     pg = await abrir({ datos: conWidgets([{ id: 'w-spotify', tipo: 'spotify', panel: 'izq', pos: { x: 1, y: 1, w: 6, h: 9 }, config: { url: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M' } }]) });

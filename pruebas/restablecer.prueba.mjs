@@ -7,7 +7,7 @@ export default {
   nombre: 'restablecer todo: desde Opciones, con confirmación escrita y sin notas huérfanas',
   async ejecutar(abrir) {
     const pg = await abrir({ datos: conWidgets([{ id: 'w-notas', tipo: 'notas', panel: 'izq', pos: { x: 1, y: 1, w: 6, h: 4 }, config: {} }]) });
-    await pg.ev(`localStorage.setItem('nota:w-notas', JSON.stringify('Texto de prueba'))`);
+    await pg.ev(`localStorage.setItem('notas:w-notas', JSON.stringify('Texto de prueba'))`);
     afirmar(!(await pg.ev(`!!document.getElementById('btn-restaurar')`)), 'Restaurar ya no debe estar en la barra de edición');
 
     await pg.clic('#btn-tema');
@@ -22,11 +22,11 @@ export default {
     await pg.clic('#confirmar-restablecer');
     await pg.esperar(300);
     igual((await pg.datos()).grupos.map(g => g.nombre), await pg.ev(`novatab.DATOS_DEFECTO.grupos.map(g => g.nombre)`), 'grupos tras restablecer');
-    igual(await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('nota:'))`), [], 'claves de notas que quedan');
+    igual(await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('notas:'))`), [], 'claves de notas que quedan');
 
     // Si borrar las notas falla, no se restablece nada a medias y se avisa.
     const pg2 = await abrir({ datos: conWidgets([{ id: 'w-notas', tipo: 'notas', panel: 'izq', pos: { x: 1, y: 1, w: 6, h: 4 }, config: {} }]) });
-    await pg2.ev(`localStorage.setItem('nota:w-notas', JSON.stringify('Texto'))`);
+    await pg2.ev(`localStorage.setItem('notas:w-notas', JSON.stringify('Texto'))`);
     await pg2.ev(`Storage.prototype.removeItem = () => { throw new Error('almacenamiento bloqueado'); }`);
     await pg2.clic('#btn-tema');
     await pg2.clic('#btn-restablecer');

@@ -4,10 +4,10 @@ const enArea = (area, clave) => `chrome.storage.${area}.get('${clave}').then(r =
 const abrirEnlaceDeAlfa = `[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === 'Alfa').querySelector('.fila').click()`;
 
 // Lo que haría otra pestaña: renombrar el primer enlace de Beta.
-const renombrarBetaFuera = `chrome.storage.sync.get('grupo:g-beta').then(r => {
-  const enlaces = r['grupo:g-beta'];
+const renombrarBetaFuera = `chrome.storage.sync.get('enlaces:g-beta').then(r => {
+  const enlaces = r['enlaces:g-beta'];
   enlaces[0] = { ...enlaces[0], nombre: 'Router Remoto' };
-  __chromeFalso.remoto('sync', 'grupo:g-beta', enlaces);
+  __chromeFalso.remoto('sync', 'enlaces:g-beta', enlaces);
 })`;
 
 // Lo que haría otra pestaña: borrar el grupo Gamma.
@@ -15,7 +15,7 @@ const borrarGammaFuera = `chrome.storage.sync.get('perfil:principal:datos').then
   const d = r['perfil:principal:datos'];
   d.grupos = d.grupos.filter(g => g.id !== 'g-gamma');
   __chromeFalso.remoto('sync', 'perfil:principal:datos', d);
-  __chromeFalso.remoto('sync', 'grupo:g-gamma', undefined);
+  __chromeFalso.remoto('sync', 'enlaces:g-gamma', undefined);
 })`;
 
 const nombresDe = (d, id) => d.grupos.find(g => g.id === id)?.enlaces.map(e => e.nombre);
@@ -45,7 +45,7 @@ export default {
     let d = await pg.datos();
     igual(nombresDe(d, 'g-alfa')[0], 'Proxmox Local', 'mi cambio en Alfa');
     igual(nombresDe(d, 'g-beta')[0], 'Router Remoto', 'el cambio remoto en Beta');
-    igual((await pg.ev(enArea('sync', 'grupo:g-beta')))[0].nombre, 'Router Remoto', 'Beta guardado (no se pisa con lo viejo)');
+    igual((await pg.ev(enArea('sync', 'enlaces:g-beta')))[0].nombre, 'Router Remoto', 'Beta guardado (no se pisa con lo viejo)');
 
     // (c) Con el diálogo de Alfa abierto, otra pestaña borra Gamma: al guardar, Gamma no reaparece.
     pg = await abrir({ chrome: {} });

@@ -1,7 +1,7 @@
 // El selector de perfiles junto al título del panel derecho: cambiar, crear, duplicar, renombrar y borrar.
 import { $, avisar, crear, svg } from './util.js';
 import { abrirDialogo } from './edicion.js';
-import { MAX_PERFILES, esDemo, perfilActivo, perfilesDeLaLista } from './perfiles.js';
+import { MAX_PERFILES, esDemo, perfilActivo, perfilesDeLaLista, perfilesListos } from './perfiles.js';
 import { alternarDemo, borrarPerfil, cambiarPerfil, crearPerfil, renombrarPerfil } from './perfiles-ops.js';
 
 const boton = $('#btn-perfil');
@@ -13,6 +13,7 @@ const elementos = () => [...menu.querySelectorAll('[role^="menuitem"]')];
 // El ojo (modo reunión): pasa al perfil Demo y vuelve al de antes.
 const ojo = $('#btn-reunion');
 function pintarOjo() {
+  ojo.disabled = !perfilesListos(); // sin migrar (o sin terminar de cargar) no se puede cambiar de perfil
   const demo = esDemo();
   const volver = perfilesDeLaLista().find(p => !p.demo)?.nombre ?? '';
   ojo.setAttribute('aria-pressed', String(demo));
@@ -24,6 +25,7 @@ ojo.addEventListener('click', () => alternarDemo().catch(err => avisar(err.messa
 
 function pintar() {
   pintarOjo();
+  boton.hidden = !perfilesListos();
   const lista = perfilesDeLaLista();
   const act = actual();
   boton.replaceChildren(crear('span', 'nombre-perfil', act?.nombre ?? ''), ' ▾');

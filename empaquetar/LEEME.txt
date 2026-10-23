@@ -11,7 +11,7 @@ Sustituye la pestaña nueva de Chrome por una página con:
 - Atajos de teclado: Ctrl+K (paleta de comandos), Alt+1 a Alt+9 (tus primeros enlaces locales) y «!y gatos», «!gh», «!w», «!m» en el buscador (editables en Personalizar > Buscador).
 - Diez temas, fondos, color de acento, motor de búsqueda a elegir, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 
-IMPORTANTE al actualizar desde la versión 4: la versión 5 guarda los datos en claves nuevas (tus datos se migran solos y se guarda una copia de seguridad en el equipo). Actualiza todos tus equipos a la vez: un equipo con la versión 4 no se sincronizará con los de la versión 5.
+IMPORTANTE al actualizar desde la versión 4: la versión 5 guarda los datos en claves nuevas. Tus datos se migran solos al abrir una pestaña nueva y se guarda una copia de seguridad (con enlaces y notas) en ese equipo. Actualiza todos tus equipos: uno que siga con la versión 4 ya no verá tus datos (empezará con el ejemplo inicial) pero tampoco puede dañar los de la versión 5, que están en otras claves.
 
 Todo se guarda en tu cuenta de Chrome y se sincroniza entre tus equipos. Nada se envía a ningún servidor, salvo lo que escribes en el buscador si activas las sugerencias de Google (es opcional y pide permiso).
 

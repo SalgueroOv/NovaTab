@@ -2,9 +2,9 @@
 import { $, avisarConAccion, crear } from './util.js';
 import { borrar, claves, escribirLocal, leerLocal } from './almacen.js';
 import { deshacerUltimo, reemplazarEstado, tomarFoto } from './edicion.js';
-import { perfilActivo } from './perfiles.js';
+import { migracionFallida, perfilActivo } from './perfiles.js';
 
-const prefijo = () => `copia:${perfilActivo()}:`;
+const prefijo = (perfil = perfilActivo()) => `copia:${perfil}:`;
 const MAXIMO = 7;
 
 const fechaLocal = (d = new Date()) =>
@@ -23,10 +23,13 @@ const valida = c => typeof c?.fecha === 'string' && Array.isArray(c?.datos?.grup
 
 // Guarda la copia de hoy si aún no existe y deja solo las 7 más recientes. Devuelve si creó una.
 export async function hacerCopiaDelDia() {
+  if (migracionFallida) return false;
   const hoy = fechaLocal();
-  if (valida(await leerLocal(prefijo() + hoy))) return false;
+  const perfil = perfilActivo(); // se captura ahora: si se cambia de perfil a medias, la copia no cae en el equivocado
+  if (valida(await leerLocal(prefijo(perfil) + hoy))) return false;
   const foto = await tomarFoto();
-  await escribirLocal(prefijo() + hoy, { fecha: hoy, datos: foto.datos, notas: foto.notas, tareas: foto.tareas });
+  if (perfil !== perfilActivo()) return false;
+  await escribirLocal(prefijo(perfil) + hoy, { fecha: hoy, datos: foto.datos, notas: foto.notas, tareas: foto.tareas });
   const todas = (await clavesDeCopia()).sort();
   await borrar(todas.slice(0, Math.max(0, todas.length - MAXIMO)));
   return true;

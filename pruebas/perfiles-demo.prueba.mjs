@@ -86,5 +86,20 @@ export default {
     await pg.esperar(1000);
     igual([await activo(pg), await ojo(pg)], ['principal', 'false'], 'tras migrar se está en el perfil principal, con el ojo suelto');
     afirmar((await pg.ev(`document.querySelector('.pagina').innerText`)).includes('Secreto Uno'), 'y los grupos privados se ven');
+
+    // ---- Revisión final ----
+    // (g) Un doble clic en el ojo no mezcla perfiles: Demo se crea una sola vez, con ids propios, y principal queda intacto.
+    pg = await abrir({ chrome: {}, datos: TODOS, rss });
+    await pg.esperar(1000);
+    const previo = JSON.stringify((await sync(pg))['perfil:principal:datos']);
+    await pg.ev(`(() => { const b = document.getElementById('btn-reunion'); b.click(); b.click(); })()`);
+    await pg.esperar(3000);
+    s = await sync(pg);
+    igual(s.perfiles.lista.filter(p => p.demo).length, 1, 'un solo perfil Demo');
+    igual(JSON.stringify(s['perfil:principal:datos']), previo, 'la estructura de principal no cambió');
+    const idsP = new Set(s['perfil:principal:datos'].grupos.map(g => g.id));
+    afirmar(s['perfil:demo:datos'].grupos.every(g => !idsP.has(g.id)), 'Demo tiene ids propios');
+    afirmar([...idsP].every(id => `enlaces:${id}` in s), 'los enlaces de principal siguen en sus claves');
+    igual(await activo(pg), 'principal', 'dos clics seguidos dejan el perfil de antes');
   },
 };

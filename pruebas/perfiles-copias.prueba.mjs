@@ -10,8 +10,8 @@ const semilla = (activo, extra = {}) => ({
   'chrome.sync/perfiles': { version: 5, lista: [{ id: 'principal', nombre: 'Principal' }, { id: 'casa', nombre: 'Casa' }] },
   'chrome.sync/perfil:principal:datos': estructura(DATOS_PRUEBA.grupos),
   'chrome.sync/perfil:casa:datos': estructura([GRUPO_C]),
-  ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/grupo:${g.id}`, guardables(g.enlaces)])),
-  'chrome.sync/grupo:g-casa': guardables(GRUPO_C.enlaces),
+  ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/enlaces:${g.id}`, guardables(g.enlaces)])),
+  'chrome.sync/enlaces:g-casa': guardables(GRUPO_C.enlaces),
   'chrome.local/perfil-activo': activo,
   ...extra,
 });
@@ -59,7 +59,7 @@ export default {
     igual(await pg.ev(`novatab.datos.grupos.map(g => g.nombre)`), ['GrupoCasa'], 'Ctrl+Z devuelve lo de antes');
 
     // (d) Una copia antigua (clave sin perfil) de antes de la migración aparece en principal.
-    pg = await abrir({ chrome: {}, datos: { ...estructura(DATOS_PRUEBA.grupos) }, guardados: { ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/grupo:${g.id}`, guardables(g.enlaces)])), 'chrome.local/copia:2020-01-01': copia(0, 'DeAntes') } });
+    pg = await abrir({ chrome: {}, datos: { ...estructura(DATOS_PRUEBA.grupos) }, guardados: { ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/enlaces:${g.id}`, guardables(g.enlaces)])), 'chrome.local/copia:2020-01-01': copia(0, 'DeAntes') } });
     await pg.esperar(900);
     await pg.clic('#btn-tema');
     afirmar((await lista(pg)).some(t => t.includes('ene')), 'la copia antigua se lista en principal');

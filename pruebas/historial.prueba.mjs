@@ -109,9 +109,9 @@ export default {
     await pg.esperar(300);
     await pg.ev(plegar('Alfa'));
     await pg.esperar(300);
-    await pg.ev(`chrome.storage.sync.get('grupo:g-beta').then(r => {
-      const e = r['grupo:g-beta']; e[0] = { ...e[0], nombre: 'Router Remoto' };
-      __chromeFalso.remoto('sync', 'grupo:g-beta', e);
+    await pg.ev(`chrome.storage.sync.get('enlaces:g-beta').then(r => {
+      const e = r['enlaces:g-beta']; e[0] = { ...e[0], nombre: 'Router Remoto' };
+      __chromeFalso.remoto('sync', 'enlaces:g-beta', e);
     })`);
     await pg.esperar(400);
     await pg.tecla('z', 'ctrl');
@@ -184,9 +184,9 @@ export default {
     await pg.clic('#btn-editar');
     await pg.ev(`[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === 'Alfa').querySelector('.fila').click()`);
     await pg.esperar(200);
-    await pg.ev(`chrome.storage.sync.get('grupo:g-beta').then(r => {
-      const e = r['grupo:g-beta']; e[0] = { ...e[0], nombre: 'Router Remoto' };
-      __chromeFalso.remoto('sync', 'grupo:g-beta', e);
+    await pg.ev(`chrome.storage.sync.get('enlaces:g-beta').then(r => {
+      const e = r['enlaces:g-beta']; e[0] = { ...e[0], nombre: 'Router Remoto' };
+      __chromeFalso.remoto('sync', 'enlaces:g-beta', e);
     })`);
     await pg.esperar(300);
     await pg.ev(`document.querySelector('#dlg-enlace input[name="nombre"]').value = 'Proxmox Local'`);
@@ -198,7 +198,7 @@ export default {
     d = await pg.datos();
     igual(grupo(d, 'Beta').enlaces[0].nombre, 'Router Remoto', 'deshacer no pisa el cambio de otra pestaña');
     igual(grupo(d, 'Alfa').enlaces[0].nombre, 'Proxmox Alfa', 'deshacer sí revierte mi edición');
-    igual((await pg.ev(`chrome.storage.sync.get('grupo:g-beta').then(r => r['grupo:g-beta'][0].nombre)`)), 'Router Remoto', 'y lo guardado en sync tampoco');
+    igual((await pg.ev(`chrome.storage.sync.get('enlaces:g-beta').then(r => r['enlaces:g-beta'][0].nombre)`)), 'Router Remoto', 'y lo guardado en sync tampoco');
 
     // (l) Deshacer no revierte el texto de una nota escrito después del cambio.
     pg = await abrir({ chrome: {}, datos: NOTAS });
@@ -213,7 +213,7 @@ export default {
     await pg.tecla('z', 'ctrl');
     await pg.esperar(500);
     igual(await pg.ev(`document.querySelector('.notas-texto').value`), 'uno dos tres', 'nota en pantalla tras deshacer un plegado');
-    igual(await pg.ev(`chrome.storage.sync.get('nota:w-notas').then(r => r['nota:w-notas'])`), 'uno dos tres', 'nota guardada tras deshacer un plegado');
+    igual(await pg.ev(`chrome.storage.sync.get('notas:w-notas').then(r => r['notas:w-notas'])`), 'uno dos tres', 'nota guardada tras deshacer un plegado');
 
     // (m) El aviso «Deshacer» desaparece si hay un cambio nuevo: no deshace otra cosa.
     pg = await abrir({ chrome: {} });
