@@ -87,9 +87,9 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 **Archivos:** `js/importar.js` (nuevo), `manifest.json` (`optional_permissions: ["bookmarks"]`), `newtab.html`.
 
-- [ ] Botón "Importar marcadores" en modo edición: pide el permiso en el clic y muestra el árbol de carpetas con casillas.
-- [ ] Cada carpeta elegida se convierte en un grupo. Zona local si la mayoría de sus URLs son IPs privadas (10/8, 172.16/12, 192.168/16) o `localhost`; si no, Internet.
-- [ ] Sin duplicados: se omiten las URLs que ya están en algún grupo (misma comparación por dominio y puerto que "Más usadas").
+- [x] Botón "Importar marcadores" en modo edición: pide el permiso en el clic y muestra el árbol de carpetas con casillas.
+- [x] Cada carpeta elegida se convierte en un grupo. Zona local si la mayoría de sus URLs son IPs privadas (10/8, 172.16/12, 192.168/16) o `localhost`; si no, Internet.
+- [x] Sin duplicados: se omiten las URLs que ya están en algún grupo (misma comparación por dominio y puerto que "Más usadas").
 
 **Hecho cuando:** importar un árbol simulado con carpetas anidadas, duplicados y una URL `javascript:` crea los grupos correctos y omite los duplicados y la URL insegura.
 

@@ -1,6 +1,6 @@
 # Fase 3: importar marcadores de Chrome — plan de implementación
 
-> **Para agentes:** SUB-SKILL REQUERIDA: superpowers:executing-plans (ejecución nativa, como en las fases anteriores). Los pasos usan casillas (`- [ ]`).
+> **Para agentes:** SUB-SKILL REQUERIDA: superpowers:executing-plans (ejecución nativa, como en las fases anteriores). Los pasos usan casillas (`- [x]`).
 
 **Objetivo:** que quien instala NovaTab pueda traer sus marcadores de Chrome como grupos, eligiendo carpetas, sin duplicar lo que ya tiene y sin aceptar enlaces peligrosos.
 
@@ -48,14 +48,14 @@
   - `carpetasDeArbol(raices: Nodo[]): Carpeta[]` con `Carpeta = { id: string, nombre: string, enlaces: { nombre: string, url: string }[] }`. Recorre «Barra de marcadores» y «Otros marcadores» (y «Marcadores móviles» si tiene algo), por posición bajo la raíz `'0'`: la primera es la barra, la segunda «Otros» y la tercera «Móviles»; los nombres de las carpetas de primer nivel son su título, los de subcarpetas `Padre / Hija`, y los enlaces sueltos de una raíz forman una carpeta con el nombre de la raíz. Solo `http:` y `https:` (`urlSegura`). Las carpetas sin enlaces válidos no aparecen.
   - `gruposDeCarpetas(carpetas: Carpeta[], elegidas: Set<string>, guardados: Set<string>): { grupos: Grupo[], omitidos: number }`: para cada carpeta elegida, quita los enlaces cuyo `claveSitio` ya está en `guardados` o ya se usó antes en esta importación, y no crea grupo si no queda ningún enlace. `omitidos` cuenta los enlaces descartados por duplicados. El nombre del grupo se recorta a 40 caracteres.
 
-- [ ] **Paso 1:** escribir `importar-marcadores.prueba.mjs` (abre `abrir()` y evalúa `import('/js/importar.js')`, como `migracion.prueba.mjs`) y ejecutarla → falla (el módulo no existe):
+- [x] **Paso 1:** escribir `importar-marcadores.prueba.mjs` (abre `abrir()` y evalúa `import('/js/importar.js')`, como `migracion.prueba.mjs`) y ejecutarla → falla (el módulo no existe):
   - (a) `esLocal`: `192.168.1.5`, `http://10.1.2.3/`, `http://172.16.0.1/`, `http://172.31.255.1/` y `http://localhost:8080/` son locales; `http://172.32.0.1/`, `https://example.com/` y `http://8.8.8.8/` no.
   - (b) `carpetasDeArbol(ARBOL_PRUEBA)` devuelve, en este orden y con estos nombres: «Barra de marcadores» (1 enlace: NAS), «Casa» (3), «Casa / Domótica» (2), «Trabajo» (4 válidos: mail, docs, la otra ruta de mail y el sin título). No aparecen «Vacía», «Solo malos» ni «Marcadores móviles»; ningún enlace tiene esquema `javascript:` ni `chrome:`.
   - (c) `gruposDeCarpetas` eligiendo las cuatro con `guardados` vacío: el enlace repetido de mail se omite (`omitidos === 1`); «Casa» y «Barra de marcadores» salen en zona `local`, «Trabajo» y «Casa / Domótica» en `online` (1 de 2 enlaces privados no es mayoría); el enlace sin título se llama `sin-titulo.example.com`.
   - (d) con `guardados = new Set(['mail.example.com:443'])`, «Trabajo» pierde mail y su otra ruta (`omitidos === 2`); con todos sus sitios guardados, «Trabajo» no crea grupo.
   - (e) una carpeta de nombre vacío o de 80 caracteres produce un grupo con nombre «Sin nombre» o de 40 caracteres.
-- [ ] **Paso 2:** implementar `js/importar.js` y `marcadores-prueba.mjs`.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Importar marcadores: lógica de carpetas, zona y duplicados».
+- [x] **Paso 2:** implementar `js/importar.js` y `marcadores-prueba.mjs`.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Importar marcadores: lógica de carpetas, zona y duplicados».
 
 ### Task 2 · Tarea 2: botón, permiso y diálogo
 
@@ -65,19 +65,19 @@
 - `abrir({ marcadores: Nodo[], permisoMarcadores: 'concedido' | 'denegado' | 'pendiente' })` inyecta, antes de cargar la página, `chrome.bookmarks.getTree(cb)` con el árbol dado y `chrome.permissions.contains/request` que responden según `permisoMarcadores` (con `'pendiente'`, `contains` da `false` y `request` da `true` y lo recuerda). Sin la opción no se inyecta nada.
 - `importar.js` registra el clic de `#btn-importar-marcadores`: `chrome.permissions.request({ permissions: ['bookmarks'] })` (la llamada ocurre dentro del manejador del clic, sin `await` previo); si se deniega, `avisar('Sin permiso para leer tus marcadores')`; si se concede, `chrome.bookmarks.getTree`, `carpetasDeArbol` y se abre el diálogo con una fila por carpeta (casilla, nombre y «N enlaces»), todas desmarcadas. «Importar» está desactivado con ninguna marcada. Al aceptar, `gruposDeCarpetas` con los `claveSitio` de los enlaces ya guardados, los grupos se añaden a `datos.grupos`, `colocarSinPosicion(datos)` y `guardarYPintar()`; después `avisarConAccion('N grupos importados', 'Deshacer', deshacerUltimo)`, o `avisar('No hay nada nuevo que importar: todos los enlaces ya están en tus grupos')` si no se creó ninguno. Si hay omitidos, el texto añade «(M repetidos omitidos)».
 
-- [ ] **Paso 1:** ampliar `importar-marcadores.prueba.mjs` y ejecutarla → falla:
+- [x] **Paso 1:** ampliar `importar-marcadores.prueba.mjs` y ejecutarla → falla:
   - (a) con `permisoMarcadores: 'concedido'`, en modo edición, clic en `#btn-importar-marcadores`: `#dlg-marcadores` abierto con 4 filas de carpetas con las casillas desmarcadas y `Importar` desactivado; marcar «Casa» activa `Importar`.
   - (b) marcar «Casa» y «Trabajo» e importar: `novatab.datos.grupos` incluye «Casa» (3 enlaces, `local`) y «Trabajo» (3 enlaces: mail, docs y sin título; `online`), ninguno con URL `javascript:`; el aviso dice «2 grupos importados (1 repetidos omitidos)»; Ctrl+Z los quita.
   - (c) importar otra vez el mismo árbol eligiendo todo: no se crea ningún grupo y el aviso es «No hay nada nuevo que importar: todos los enlaces ya están en tus grupos».
   - (d) con `permisoMarcadores: 'denegado'`: el diálogo no se abre, `datos` no cambia y el aviso es «Sin permiso para leer tus marcadores».
   - (e) cancelar el diálogo con casillas marcadas no crea nada.
   - (f) `manifest.json` tiene `bookmarks` en `optional_permissions` y no en `permissions` (la prueba lee el archivo).
-- [ ] **Paso 2:** implementar.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Botón Importar marcadores con permiso opcional».
+- [x] **Paso 2:** implementar.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Botón Importar marcadores con permiso opcional».
 
 ### Task 3 · Tarea 3: cierre de la fase
 
-- [ ] **Paso 1:** `version` 4.2.0 en `manifest.json`; `README.md` (fila de `js/importar.js` y el permiso opcional); `empaquetar/LEEME.txt` solo si lista permisos.
-- [ ] **Paso 2:** comprobar a mano una vez en Chrome real: cargar la carpeta como extensión sin empaquetar, pulsar «Importar marcadores», aceptar el permiso e importar una carpeta.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar\empaquetar.ps1` → `dist/novatab-4.2.0.zip` con `js/importar.js` y sin IPs de redes reales.
-- [ ] **Paso 4:** marcar la fase 3 en la hoja de ruta y commit «Fase 3 terminada: versión 4.2.0».
+- [x] **Paso 1:** `version` 4.2.0 en `manifest.json`; `README.md` (fila de `js/importar.js` y el permiso opcional); `empaquetar/LEEME.txt` solo si lista permisos.
+- [x] **Paso 2:** comprobar a mano una vez en Chrome real: cargar la carpeta como extensión sin empaquetar, pulsar «Importar marcadores», aceptar el permiso e importar una carpeta.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar\empaquetar.ps1` → `dist/novatab-4.2.0.zip` con `js/importar.js` y sin IPs de redes reales.
+- [x] **Paso 4:** marcar la fase 3 en la hoja de ruta y commit «Fase 3 terminada: versión 4.2.0».
