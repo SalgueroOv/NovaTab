@@ -1,10 +1,11 @@
 // Tema, opciones, paneles, fondo y reloj.
 import { $, avisar, crear, svg } from './util.js';
-import { escribir } from './almacen.js';
+import { alCambiar, escribir } from './almacen.js';
 import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
 import { FONDOS } from './fondos.js';
+import { CLAVE_FONDO_IMAGEN, borrarImagenFondo, guardarImagenFondo, leerImagenFondo, reducirImagen } from './imagen-fondo.js';
 
 export const CLAVE_TEMA = 'tema';
 export const CLAVE_OPCIONES = 'opciones';
@@ -98,7 +99,7 @@ export function ponerApariencia(a) {
   $('#opt-segundos').checked = apariencia.segundos;
   $('#opt-fecha').checked = apariencia.fecha;
   muestrasFondo.forEach(m => m.setAttribute('aria-pressed', String(m.dataset.fondo === apariencia.fondo)));
-  $('#intensidad').value = String(apariencia.intensidad);
+  $('#intensidad').value = String(apariencia.fondo === 'imagen' ? apariencia.intensidadImagen : apariencia.intensidad);
   pintarFondo();
   reloj();
   programarReloj();
@@ -192,24 +193,80 @@ document.addEventListener('keydown', ev => {
 });
 
 // El dibujo de fondo elegido (o nada, con «liso») a la intensidad elegida.
+// Con «imagen» y una imagen guardada en este equipo se pinta la imagen con su velo; sin ella, las curvas
+// (el ajuste guardado no cambia: en otro equipo de la misma cuenta puede que la imagen exista).
+let imagenFondo = null;
 export function pintarFondo() {
   const w = innerWidth, h = innerHeight;
   const fondo = $('#fondo');
-  const dibujo = FONDOS[apariencia.fondo];
-  fondo.innerHTML = dibujo ? `<svg viewBox="0 0 ${w} ${h}">${dibujo.dibujar(w, h)}</svg>` : '';
-  fondo.style.opacity = String(apariencia.intensidad / 100);
+  if (apariencia.fondo === 'imagen' && imagenFondo) {
+    fondo.style.backgroundImage = `url("${imagenFondo}")`;
+    fondo.style.opacity = '1';
+    fondo.innerHTML = '<div class="velo"></div>';
+    fondo.firstChild.style.opacity = String(1 - apariencia.intensidadImagen / 100);
+  } else {
+    const dibujo = FONDOS[apariencia.fondo] || (apariencia.fondo === 'imagen' ? FONDOS.curvas : null);
+    fondo.style.backgroundImage = '';
+    fondo.innerHTML = dibujo ? `<svg viewBox="0 0 ${w} ${h}">${dibujo.dibujar(w, h)}</svg>` : '';
+    fondo.style.opacity = String(apariencia.intensidad / 100);
+  }
+  $('#quitar-imagen').hidden = !imagenFondo;
 }
 
+leerImagenFondo().then(url => { imagenFondo = url; pintarFondo(); }).catch(() => {});
+// La imagen cambió en esta u otra pestaña.
+alCambiar(cambios => {
+  if (!(CLAVE_FONDO_IMAGEN in cambios)) return;
+  leerImagenFondo().then(url => { imagenFondo = url; pintarFondo(); });
+});
+
 // Las muestras de la pestaña Fondo.
-const muestrasFondo = Object.entries(FONDOS).concat([['liso', { nombre: 'Liso' }]]).map(([id, f]) => {
+const muestrasFondo = Object.entries(FONDOS).concat([['liso', { nombre: 'Liso' }], ['imagen', { nombre: 'Imagen propia' }]]).map(([id, f]) => {
   const b = crear('button', null, f.nombre);
   b.type = 'button';
   b.dataset.fondo = id;
-  b.addEventListener('click', () => cambiarApariencia({ fondo: id }));
+  b.addEventListener('click', () => (id === 'imagen' && !imagenFondo ? $('#archivo-fondo').click() : cambiarApariencia({ fondo: id })));
   return b;
 });
 $('#muestras-fondo').append(...muestrasFondo);
-$('#intensidad').addEventListener('input', ev => cambiarApariencia({ intensidad: Number(ev.target.value) }));
+// El deslizador gobierna la intensidad del dibujo, o la de la imagen cuando el fondo es la imagen.
+$('#intensidad').addEventListener('input', ev => {
+  const valor = Number(ev.target.value);
+  cambiarApariencia(apariencia.fondo === 'imagen' ? { intensidadImagen: valor } : { intensidad: valor });
+});
+
+$('#elegir-imagen').addEventListener('click', () => $('#archivo-fondo').click());
+$('#archivo-fondo').addEventListener('change', async ev => {
+  const archivo = ev.target.files[0];
+  ev.target.value = '';
+  if (!archivo) return;
+  let url;
+  try {
+    url = await reducirImagen(archivo);
+  } catch (err) {
+    avisar(err.message);
+    return;
+  }
+  try {
+    await guardarImagenFondo(url);
+  } catch (err) {
+    avisar(`No se pudo guardar la imagen: ${err.message}`);
+    return;
+  }
+  imagenFondo = url;
+  cambiarApariencia({ fondo: 'imagen' });
+  avisar('Imagen de fondo guardada');
+});
+$('#quitar-imagen').addEventListener('click', async () => {
+  try {
+    await borrarImagenFondo();
+  } catch (err) {
+    avisar(`No se pudo quitar la imagen: ${err.message}`);
+    return;
+  }
+  imagenFondo = null;
+  cambiarApariencia({ fondo: 'curvas' });
+});
 
 export function reloj() {
   const d = new Date();

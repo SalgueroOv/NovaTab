@@ -73,7 +73,7 @@ body {
 .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
 
-.fondo { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.fondo { position: fixed; inset: 0; z-index: 0; background: center / cover no-repeat; pointer-events: none; }
 .fondo svg { display: block; width: 100%; height: 100%; }
 .fondos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .fondos button {
@@ -89,6 +89,8 @@ body {
 }
 .fondos button:hover { background: var(--hover); }
 .fondos button[aria-pressed="true"] { border-color: var(--acento); box-shadow: inset 0 0 0 1px var(--acento); }
+.imagen-propia { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.fondo .velo { position: absolute; inset: 0; background: var(--bg); }
 .intensidad { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 13px; }
 .intensidad input { flex: 1; min-width: 0; accent-color: var(--acento); }
 .fondo line { stroke: var(--l); stroke-width: 1; }

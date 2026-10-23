@@ -80,6 +80,11 @@
         </div>
         <div role="tabpanel" id="pestana-fondo" hidden>
           <div class="fondos" id="muestras-fondo"></div>
+          <div class="imagen-propia">
+            <button class="boton-texto" type="button" id="elegir-imagen">Elegir imagen…</button>
+            <button class="boton-texto" type="button" id="quitar-imagen" hidden>Quitar imagen</button>
+            <input type="file" id="archivo-fondo" accept="image/png,image/jpeg,image/webp" hidden>
+          </div>
           <div class="intensidad">
             <label for="intensidad">Intensidad</label>
             <input type="range" id="intensidad" min="0" max="100" step="1" value="100">
