@@ -883,6 +883,15 @@ dialog menu button {
 .borrar-tarea:hover { background: var(--hover); color: #e5566f; }
 .borrar-hechas { align-self: flex-start; }
 
+.rss { display: flex; flex-direction: column; gap: 6px; min-height: 0; padding: 4px 16px 12px; overflow-y: auto; }
+.rss-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.rss-titulo { font-size: 13px; font-weight: 600; color: var(--texto-2); }
+.rss-lista { margin: 0; padding: 0; list-style: none; }
+.rss-item { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--borde); }
+.rss-item a { color: var(--texto); font-size: 14px; text-decoration: none; overflow-wrap: anywhere; }
+.rss-item a:hover { color: var(--acento); }
+.rss-item .fecha { color: var(--texto-2); font-size: 11px; }
+
 /* ---------- Pantallas estrechas: los grupos se apilan ---------- */
 
 @media (max-width: 1000px) {

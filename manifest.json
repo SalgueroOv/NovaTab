@@ -6,7 +6,7 @@
   "chrome_url_overrides": { "newtab": "newtab.html" },
   "permissions": ["storage", "favicon", "geolocation", "topSites"],
   "optional_permissions": ["bookmarks"],
-  "optional_host_permissions": ["https://suggestqueries.google.com/*"],
+  "optional_host_permissions": ["http://*/*", "https://*/*", "https://suggestqueries.google.com/*"],
   "action": { "default_title": "NovaTab" },
   "background": { "service_worker": "background.js" }
 }

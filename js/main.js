@@ -15,6 +15,7 @@ import './widgets.js';
 import './widgets/reloj-mundial.js';
 import './widgets/cuenta-atras.js';
 import './widgets/tareas.js';
+import './widgets/rss.js';
 import './iconos.js';
 import { hacerCopiaDelDia } from './copias.js';
 import './importar.js';

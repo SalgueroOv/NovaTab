@@ -35,7 +35,7 @@ export function igual(real, esperado, mensaje) {
 export function crearAbrir(navegador, urlBase) {
   const URL_PAGINA = `${urlBase}/newtab.html`;
   // guardados: entradas extra de localStorage (o del simulador, «chrome.sync/clave») antes de cargar.
-  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', sugerenciasGoogle = null, permisoSugerencias = 'concedido', chrome = null, guardados = {} } = {}) {
+  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', sugerenciasGoogle = null, permisoSugerencias = 'concedido', rss = null, permisoRss = 'concedido', chrome = null, guardados = {} } = {}) {
     const p = await navegador.newPage({ width: ancho, height: alto });
     const errores = [];
     await p.send('Runtime.enable');
@@ -88,6 +88,34 @@ ${CHROME_FALSO}`,
             permissions: {
               contains: (_p, cb) => setTimeout(() => cb(permiso === 'concedido'), 0),
               request: (_p, cb) => setTimeout(() => { if (permiso === 'pendiente') permiso = 'concedido'; cb(permiso === 'concedido'); }, 0),
+            },
+          });
+        })()`,
+      });
+    }
+    if (rss) {
+      // fetch simulado de feeds ({ url: xml | 'falla' | 'lento' }) y chrome.permissions para su origen.
+      await p.send('Page.addScriptToEvaluateOnNewDocument', {
+        source: `(() => {
+          let permiso = ${JSON.stringify(permisoRss)};
+          const feeds = ${JSON.stringify(rss)};
+          window.__rss = [];
+          window.__permisos = 0;
+          const original = window.fetch.bind(window);
+          window.fetch = (url, opciones = {}) => {
+            if (!(String(url) in feeds)) return original(url, opciones);
+            window.__rss.push(String(url));
+            const v = feeds[String(url)];
+            if (v === 'falla') return Promise.reject(new TypeError('Failed to fetch'));
+            if (v === 'lento') {
+              return new Promise((_, rechazar) => opciones.signal?.addEventListener('abort', () => rechazar(new DOMException('abortado', 'AbortError'))));
+            }
+            return Promise.resolve(new Response(v, { status: 200, headers: { 'content-type': 'application/xml' } }));
+          };
+          window.chrome = Object.assign(window.chrome || {}, {
+            permissions: {
+              contains: (_p, cb) => setTimeout(() => cb(permiso === 'concedido'), 0),
+              request: (_p, cb) => setTimeout(() => { window.__permisos++; if (permiso === 'pendiente') permiso = 'concedido'; cb(permiso === 'concedido'); }, 0),
             },
           });
         })()`,

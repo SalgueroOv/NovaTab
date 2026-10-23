@@ -342,6 +342,7 @@ export async function restablecerTodo() {
   try {
     await borrarNotas();
     await borrarTareas();
+    await borrar(await claves('rss:')); // cachés de los feeds
   } catch (err) {
     avisar(`No se pudo restablecer: ${err.message}`);
     return;
