@@ -3,6 +3,8 @@ import { $, crear, direccion, dominio, svg } from './util.js';
 import { datos } from './datos.js';
 import { visible } from './rejilla.js';
 import { icono } from './pintado.js';
+import { opciones } from './apariencia.js';
+import { resolverConsulta } from './motores.js';
 
 // Búsqueda en Google. udm=50 es el modo IA, udm=2 imágenes y udm=7 vídeos.
 export const GOOGLE = [
@@ -54,7 +56,10 @@ export function pintarSugerencias() {
     .map(({ e, g }) => fila(e.url, icono(e, g), e.nombre,
       g.zona === 'online' ? dominio(e.url) : direccion(e.url),
       g.zona === 'online' ? 'Internet' : g.nombre));
-  const deGoogle = GOOGLE.map(o => fila(o.url(qq), svg(o.icono), o.titulo(q), '', 'Google'));
+  // La primera fila busca en tu motor (o en el atajo «!clave»); Modo IA, Imágenes… siguen siendo de Google.
+  const { q: consulta, destino } = resolverConsulta(buscar.value, opciones.buscador);
+  const filaMotor = fila(destino.url, svg('buscar'), `Buscar «${consulta}» en ${destino.etiqueta}`, '', destino.etiqueta);
+  const deGoogle = [filaMotor, ...GOOGLE.slice(1).map(o => fila(o.url(qq), svg(o.icono), o.titulo(q), '', 'Google'))];
   items = [...propios, ...deGoogle];
   primeraGoogle = propios.length;
   sugerencias.replaceChildren(...(propios.length ? [...propios, crear('div', 'separador'), ...deGoogle] : deGoogle));

@@ -5,6 +5,7 @@ import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
 import { FONDOS } from './fondos.js';
+import { BUSCADOR, normalizarBuscador } from './motores.js';
 import { CLAVE_FONDO_IMAGEN, borrarImagenFondo, guardarImagenFondo, leerImagenFondo, reducirImagen } from './imagen-fondo.js';
 
 export const CLAVE_TEMA = 'tema';
@@ -16,7 +17,7 @@ export const APARIENCIA = {
 };
 export const IDS_FONDO = ['curvas', 'grafo', 'teselas', 'ondas', 'puntos', 'rayas', 'cuadricula', 'hexagonos', 'anillos', 'montanas', 'liso', 'imagen'];
 
-export const OPCIONES = { fondoGrupos: true, sobrio: false, reunion: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA };
+export const OPCIONES = { fondoGrupos: true, sobrio: false, reunion: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA, buscador: BUSCADOR };
 
 export const TEMAS = [
   { id: 'bosque', nombre: 'Bosque', modo: 'oscuro', muestra: ['#18221d', '#2f4438'] },
@@ -140,7 +141,7 @@ document.addEventListener('visibilitychange', () => {
 
 export function ponerOpciones(o) {
   const nuevas = o && typeof o === 'object' ? o : {};
-  opciones = { ...OPCIONES, ...nuevas, ocultos: { ...OPCIONES.ocultos, ...(nuevas.ocultos || {}) }, apariencia: normalizarApariencia(nuevas.apariencia) };
+  opciones = { ...OPCIONES, ...nuevas, ocultos: { ...OPCIONES.ocultos, ...(nuevas.ocultos || {}) }, apariencia: normalizarApariencia(nuevas.apariencia), buscador: normalizarBuscador(nuevas.buscador) };
   ponerApariencia(opciones.apariencia);
   document.body.classList.toggle('grupos-con-fondo', !!opciones.fondoGrupos);
   $('#opt-fondo-grupos').checked = !!opciones.fondoGrupos;
