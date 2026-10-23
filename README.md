@@ -46,6 +46,8 @@ Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pru
 | `js/rejilla.js`, `js/pintado.js` | Cuadrícula (posiciones y colisiones) y pintado de grupos |
 | `js/edicion.js` | Modo edición: diálogos, importar/exportar, restablecer, arrastrar y deshacer/rehacer (Ctrl+Z, Ctrl+Y) |
 | `js/fondos.js`, `js/imagen-fondo.js` | Diez dibujos de fondo y la imagen de fondo propia (reducida y guardada solo en el equipo) |
+| `js/motores.js`, `js/ajustes-buscador.js` | Motores de búsqueda y atajos `!clave`, y su pestaña «Buscador» (con sugerencias de Google opcionales) |
+| `js/comandos.js`, `js/atajos.js` | Paleta de comandos (Ctrl+K) y Alt+1…Alt+9 para los nueve primeros enlaces locales |
 | `js/importar.js` | Importar marcadores de Chrome como grupos (permiso `bookmarks` opcional, pedido al pulsar) |
 | `js/historial.js`, `js/copias.js` | Pila de deshacer (20 pasos) y copia automática diaria (7 últimas, en Opciones) |
 | `js/buscador.js`, `js/apariencia.js` | Buscador y editor de apariencia: diez temas, acento, fondo, densidad, esquinas, reloj y paneles |

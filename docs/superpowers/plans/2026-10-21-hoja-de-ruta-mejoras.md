@@ -108,10 +108,10 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 **Archivos:** `js/comandos.js` (nuevo), `js/buscador.js`, `manifest.json` (`optional_host_permissions` para las sugerencias).
 
-- [ ] Paleta de comandos con Ctrl+K: abrir enlace, modo reunión, cambiar tema, nuevo grupo/enlace/widget, ocultar paneles.
-- [ ] Alt+1 … Alt+9 abren los nueve primeros enlaces locales (en orden de la cuadrícula).
-- [ ] Buscador: motor por defecto configurable (Google, DuckDuckGo, Bing, Perplexity, ChatGPT) y atajos `!y`, `!gh`, `!w`, `!m` editables en Opciones.
-- [ ] Sugerencias de Google mientras se escribe, solo si se concede el permiso.
+- [x] Paleta de comandos con Ctrl+K: abrir enlace, modo reunión, cambiar tema, nuevo grupo/enlace/widget, ocultar paneles.
+- [x] Alt+1 … Alt+9 abren los nueve primeros enlaces locales (en orden de la cuadrícula).
+- [x] Buscador: motor por defecto configurable (Google, DuckDuckGo, Bing, Perplexity, ChatGPT) y atajos `!y`, `!gh`, `!w`, `!m` editables en Opciones.
+- [x] Sugerencias de Google mientras se escribe, solo si se concede el permiso.
 
 **Hecho cuando:** las pruebas de teclado abren lo esperado y `!y gatos` va a la búsqueda de YouTube.
 

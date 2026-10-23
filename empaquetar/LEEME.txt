@@ -6,9 +6,10 @@ Sustituye la pestaña nueva de Chrome por una página con:
 - Tus servicios de casa o del trabajo (servidores, NAS, router...) en grupos que colocas donde quieras.
 - Tus webs favoritas como accesos directos.
 - Widgets: tiempo, notas, Google Calendar, Spotify y tus webs más visitadas.
-- Temas, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
+- Atajos de teclado: Ctrl+K (paleta de comandos), Alt+1 a Alt+9 (tus primeros enlaces locales) y «!y gatos», «!gh», «!w», «!m» en el buscador (editables en Personalizar > Buscador).
+- Diez temas, fondos, color de acento, motor de búsqueda a elegir, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 
-Todo se guarda en tu cuenta de Chrome y se sincroniza entre tus equipos. Nada se envía a ningún servidor.
+Todo se guarda en tu cuenta de Chrome y se sincroniza entre tus equipos. Nada se envía a ningún servidor, salvo lo que escribes en el buscador si activas las sugerencias de Google (es opcional y pide permiso).
 
 
 INSTALAR
