@@ -128,9 +128,9 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 **Archivos:** `js/widgets/*.js` (uno por widget), `widgets.js` pasa a ser solo el registro.
 
-- [ ] Estado de servicios: los LEDs de antes como widget opcional (permisos de host pedidos al añadirlo; HTTPS autofirmado marcado como "sin verificar").
-- [ ] Tareas (con casillas, sincronizadas como las notas), reloj mundial y cuenta atrás.
-- [ ] RSS (permiso de host del feed pedido al configurarlo).
+- [x] Estado de servicios: los LEDs de antes como widget opcional (permisos de host pedidos al añadirlo; HTTPS autofirmado marcado como "sin verificar").
+- [x] Tareas (con casillas, sincronizadas como las notas), reloj mundial y cuenta atrás.
+- [x] RSS (permiso de host del feed pedido al configurarlo).
 
 **Hecho cuando:** cada widget pasa su prueba de añadir, configurar, recargar y borrar.
 

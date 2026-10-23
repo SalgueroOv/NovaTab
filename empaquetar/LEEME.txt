@@ -5,7 +5,7 @@ Sustituye la pestaña nueva de Chrome por una página con:
 - Buscador de Google (con Modo IA, imágenes, vídeos, noticias y Maps) que también busca en tus enlaces.
 - Tus servicios de casa o del trabajo (servidores, NAS, router...) en grupos que colocas donde quieras.
 - Tus webs favoritas como accesos directos.
-- Widgets: tiempo, notas, Google Calendar, Spotify y tus webs más visitadas.
+- Widgets: tiempo, notas, Google Calendar, Spotify, tus webs más visitadas, reloj mundial, cuenta atrás, tareas, titulares RSS y estado de tus servicios (un LED por servicio). El RSS y el estado de servicios piden permiso para los sitios que consultan; es opcional y solo se pide al añadirlos.
 - Cada grupo de la red local se puede ver como lista, iconos o compacta (Editar grupo), y el ancho del panel izquierdo se cambia arrastrando la franja entre los paneles.
 - Atajos de teclado: Ctrl+K (paleta de comandos), Alt+1 a Alt+9 (tus primeros enlaces locales) y «!y gatos», «!gh», «!w», «!m» en el buscador (editables en Personalizar > Buscador).
 - Diez temas, fondos, color de acento, motor de búsqueda a elegir, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
