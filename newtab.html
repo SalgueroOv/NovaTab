@@ -59,7 +59,7 @@
       <button class="icono-boton" type="button" id="btn-editar" title="Editar enlaces" aria-pressed="false"></button>
       <button class="icono-boton" type="button" id="btn-tema" title="Personalizar" aria-expanded="false"></button>
       <div class="panel-tema" id="panel-tema" hidden>
-        <div class="pestanas" role="tablist" aria-label="Personalizar">
+        <div class="pestanas-panel" role="tablist" aria-label="Personalizar">
           <button type="button" role="tab" data-pestana="tema" aria-selected="true">Tema</button>
           <button type="button" role="tab" data-pestana="fondo" aria-selected="false">Fondo</button>
           <button type="button" role="tab" data-pestana="diseno" aria-selected="false">Diseño</button>
@@ -79,7 +79,23 @@
         <button class="boton-texto peligro" type="button" id="btn-restablecer">Restablecer todo…</button>
         </div>
         <div role="tabpanel" id="pestana-fondo" hidden></div>
-        <div role="tabpanel" id="pestana-diseno" hidden></div>
+        <div role="tabpanel" id="pestana-diseno" hidden>
+          <h2>Densidad</h2>
+          <div class="eleccion" role="group" aria-label="Densidad">
+            <button type="button" id="densidad-comoda" data-densidad="comoda">Cómoda</button>
+            <button type="button" id="densidad-compacta" data-densidad="compacta">Compacta</button>
+          </div>
+          <h2 class="opciones-titulo">Esquinas</h2>
+          <div class="eleccion" role="group" aria-label="Esquinas">
+            <button type="button" id="esquinas-recto" data-esquinas="recto">Recto</button>
+            <button type="button" id="esquinas-medio" data-esquinas="medio">Medio</button>
+            <button type="button" id="esquinas-redondo" data-esquinas="redondo">Redondo</button>
+          </div>
+          <h2 class="opciones-titulo">Reloj</h2>
+          <label class="opcion"><input type="checkbox" id="opt-hora24"> Reloj de 24 horas</label>
+          <label class="opcion"><input type="checkbox" id="opt-segundos"> Mostrar segundos</label>
+          <label class="opcion"><input type="checkbox" id="opt-fecha"> Mostrar la fecha</label>
+        </div>
       </div>
     </div>
   </main>

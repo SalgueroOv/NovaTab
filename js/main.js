@@ -5,7 +5,7 @@ import { avisar } from './util.js';
 import { CLAVE, VERSION, datos, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
 import { pintar, pintarLocal } from './pintado.js';
-import { CLAVE_OPCIONES, CLAVE_TEMA, pintarFondo, ponerOpciones, ponerTema, reloj } from './apariencia.js';
+import { CLAVE_OPCIONES, CLAVE_TEMA, pintarFondo, ponerOpciones, ponerTema } from './apariencia.js';
 import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
 import './widgets.js';
@@ -34,8 +34,6 @@ let recarga;
   $('#ico-buscar').innerHTML = svg('buscar');
   $('#modo-ia').innerHTML = `${svg('ia')}Modo IA`;
 
-  reloj();
-  setInterval(reloj, 10000);
   let redimension;
   pintarFondo();
   addEventListener('resize', () => {

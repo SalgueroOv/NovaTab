@@ -65,5 +65,84 @@ export default {
     await pg.ev(poner('acento-libre', '#1a237e'));
     await pg.esperar(150);
     igual(await pg.ev(sobre), '#ffffff', 'texto sobre azul oscuro');
+
+    // ---- Diseño ----
+    const conApariencia = a => ({ guardados: { opciones: { apariencia: a } } });
+    const PASOS = `(() => {
+      const r = document.querySelector('#rejilla');
+      const e = getComputedStyle(r);
+      const cols = Number(e.getPropertyValue('--columnas')) || 12;
+      return [(r.getBoundingClientRect().width + parseFloat(e.columnGap)) / cols, parseFloat(e.gridAutoRows) + parseFloat(e.rowGap)];
+    })()`;
+    const tituloDe = nombre => `[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === '${nombre}')`;
+
+    // (f) Densidad: la altura de fila cambia y el arrastre sigue cayendo en la celda correcta.
+    pg = await abrir(conApariencia({ densidad: 'compacta' }));
+    await pg.esperar(300);
+    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '32px', 'filas compactas');
+    pg = await abrir();
+    await pg.esperar(300);
+    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '40px', 'filas cómodas');
+    pg = await abrir(conApariencia({ densidad: 'compacta' }));
+    await pg.esperar(300);
+    await pg.clic('#btn-editar');
+    const [col, fila] = await pg.ev(PASOS);
+    const [x, y] = await pg.ev(`(() => { const r = ${tituloDe('Beta')}.querySelector('h3').getBoundingClientRect(); return [r.left + 10, r.top + r.height / 2]; })()`);
+    await pg.arrastrar([x, y], [x - 6 * col, y + 7 * fila]);
+    const grupos = (await pg.datos()).grupos.filter(g => g.zona === 'local');
+    igual(grupos.find(g => g.nombre === 'Beta').pos.x, 1, 'Beta en la columna 1 con filas compactas');
+    afirmar(grupos.find(g => g.nombre === 'Beta').pos.y >= 8, 'Beta en la fila 8 o más abajo con filas compactas');
+    const solapan = (a, b) => a.pos.x < b.pos.x + b.pos.w && b.pos.x < a.pos.x + a.pos.w;
+    afirmar(!grupos.some((a, i) => grupos.slice(i + 1).some(b => solapan(a, b) && Math.abs(a.pos.y - b.pos.y) < 1)), 'nada solapado');
+
+    // (g) Esquinas: cambian los bloques y no los iconos redondos.
+    const radio = (sel) => `getComputedStyle(document.querySelector('${sel}')).borderTopLeftRadius`;
+    for (const [valor, px] of [['recto', '4px'], ['medio', '14px'], ['redondo', '24px']]) {
+      pg = await abrir(conApariencia({ esquinas: valor }));
+      await pg.esperar(300);
+      igual(await pg.ev(radio('#rejilla .grupo')), px, `radio del grupo con esquinas ${valor}`);
+      igual(await pg.ev(radio('#btn-editar')), '50%', `el icono redondo no cambia con ${valor}`);
+    }
+
+    // (h) Reloj: 12/24 h, segundos y fecha.
+    const horaFecha = `[document.getElementById('hora').textContent, document.getElementById('fecha').hidden]`;
+    pg = await abrir(conApariencia({ hora24: false }));
+    await pg.esperar(300);
+    afirmar(/[ap]\.?\s?m\./i.test((await pg.ev(horaFecha))[0]), 'reloj de 12 horas con a. m. o p. m.');
+    pg = await abrir(conApariencia({ hora24: true }));
+    await pg.esperar(300);
+    afirmar(!/[ap]\.?\s?m\./i.test((await pg.ev(horaFecha))[0]), 'reloj de 24 horas sin a. m. ni p. m.');
+    pg = await abrir(conApariencia({ segundos: true }));
+    await pg.esperar(300);
+    afirmar(/^\d{2}:\d{2}:\d{2}$/.test((await pg.ev(horaFecha))[0]), 'hora con segundos hh:mm:ss');
+    const antes = (await pg.ev(horaFecha))[0];
+    await pg.esperar(2200);
+    afirmar((await pg.ev(horaFecha))[0] !== antes, 'con segundos la hora cambia en menos de 2,2 s');
+    pg = await abrir(conApariencia({ fecha: false }));
+    await pg.esperar(300);
+    igual((await pg.ev(horaFecha))[1], true, 'fecha oculta');
+    pg = await abrir(conApariencia({ segundos: false }));
+    await pg.esperar(300);
+    const sinSeg = (await pg.ev(horaFecha))[0];
+    await pg.esperar(2200);
+    igual((await pg.ev(horaFecha))[0], sinSeg, 'sin segundos la hora no cambia en 2,2 s');
+
+    // (i) Los controles de la pestaña Diseño guardan los cinco ajustes y sobreviven a una recarga.
+    pg = await abrir();
+    await pg.esperar(300);
+    await pg.clic('#btn-tema');
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="diseno"]').click()`);
+    await pg.clic('#densidad-compacta');
+    await pg.clic('#esquinas-redondo');
+    await pg.ev(`document.getElementById('opt-hora24').click(); document.getElementById('opt-segundos').click(); document.getElementById('opt-fecha').click()`);
+    await pg.esperar(300);
+    const esperado = { densidad: 'compacta', esquinas: 'redondo', hora24: false, segundos: true, fecha: false };
+    const guardado = (await pg.ev(opcionesGuardadas)).apariencia;
+    igual({ densidad: guardado.densidad, esquinas: guardado.esquinas, hora24: guardado.hora24, segundos: guardado.segundos, fecha: guardado.fecha }, esperado, 'ajustes guardados');
+    await pg.recargar();
+    await pg.esperar(300);
+    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '32px', 'densidad tras recargar');
+    igual(await pg.ev(radio('#rejilla .grupo')), '24px', 'esquinas tras recargar');
+    igual((await pg.ev(horaFecha))[1], true, 'fecha oculta tras recargar');
   },
 };

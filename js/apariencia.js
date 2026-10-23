@@ -88,6 +88,16 @@ export function ponerApariencia(a) {
     raiz.removeProperty('--acento');
     raiz.removeProperty('--sobre-acento');
   }
+  const clases = document.body.classList;
+  clases.toggle('compacta', apariencia.densidad === 'compacta');
+  for (const e of ['recto', 'medio', 'redondo']) clases.toggle(`esquinas-${e}`, apariencia.esquinas === e);
+  for (const d of ['comoda', 'compacta']) $(`#densidad-${d}`).setAttribute('aria-pressed', String(apariencia.densidad === d));
+  for (const e of ['recto', 'medio', 'redondo']) $(`#esquinas-${e}`).setAttribute('aria-pressed', String(apariencia.esquinas === e));
+  $('#opt-hora24').checked = apariencia.hora24;
+  $('#opt-segundos').checked = apariencia.segundos;
+  $('#opt-fecha').checked = apariencia.fecha;
+  reloj();
+  programarReloj();
 }
 
 export function cambiarApariencia(parcial) {
@@ -160,6 +170,11 @@ for (const pestana of document.querySelectorAll('#panel-tema [role="tab"]')) {
 }
 
 $('#acento-libre').addEventListener('input', ev => cambiarApariencia({ acento: ev.target.value }));
+for (const b of document.querySelectorAll('[data-densidad]')) b.addEventListener('click', () => cambiarApariencia({ densidad: b.dataset.densidad }));
+for (const b of document.querySelectorAll('[data-esquinas]')) b.addEventListener('click', () => cambiarApariencia({ esquinas: b.dataset.esquinas }));
+$('#opt-hora24').addEventListener('change', ev => cambiarApariencia({ hora24: ev.target.checked }));
+$('#opt-segundos').addEventListener('change', ev => cambiarApariencia({ segundos: ev.target.checked }));
+$('#opt-fecha').addEventListener('change', ev => cambiarApariencia({ fecha: ev.target.checked }));
 $('#acento-restaurar').addEventListener('click', () => cambiarApariencia({ acento: null }));
 $('#btn-tema').addEventListener('click', () => {
   panelTema.hidden = !panelTema.hidden;
@@ -194,6 +209,16 @@ export function pintarFondo() {
 
 export function reloj() {
   const d = new Date();
-  $('#hora').textContent = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const formato = { hour: '2-digit', minute: '2-digit', hour12: !apariencia.hora24 };
+  if (apariencia.segundos) formato.second = '2-digit';
+  $('#hora').textContent = d.toLocaleTimeString('es-ES', formato);
   $('#fecha').textContent = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  $('#fecha').hidden = !apariencia.fecha;
+}
+
+// Cada segundo solo si se muestran los segundos; si no, cada 10 s.
+let temporizadorReloj;
+export function programarReloj() {
+  clearInterval(temporizadorReloj);
+  temporizadorReloj = setInterval(reloj, apariencia.segundos ? 1000 : 10000);
 }

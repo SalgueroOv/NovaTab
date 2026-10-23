@@ -29,6 +29,15 @@
   --sombra: 0 1px 6px rgba(32, 33, 36, .16);
   --sombra-fuerte: 0 2px 14px rgba(32, 33, 36, .24);
 }
+/* Densidad y esquinas (ver «Diseño» en el panel de personalizar). */
+:root {
+  --alto-fila: 40px; --icono-fila: 30px; --texto-fila: 14px;
+  --radio-bloque: 14px; --radio-panel: 28px; --radio-control: 20px;
+}
+body.compacta { --alto-fila: 32px; --icono-fila: 24px; --texto-fila: 13px; }
+body.esquinas-recto { --radio-bloque: 4px; --radio-panel: 8px; --radio-control: 6px; }
+body.esquinas-redondo { --radio-bloque: 24px; --radio-panel: 36px; --radio-control: 28px; }
+
 [data-modo="oscuro"] {
   color-scheme: dark;
   --texto: #e8eaed;
@@ -97,7 +106,7 @@ body {
   flex-direction: column;
   min-width: 0;
   padding: 36px 40px;
-  border-radius: 28px;
+  border-radius: var(--radio-panel);
   background: var(--panel);
 }
 .derecha-cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-bottom: 24px; }
@@ -170,12 +179,12 @@ button { font: inherit; color: inherit; }
   right: 0;
   width: 300px;
   padding: 16px;
-  border-radius: 16px;
+  border-radius: var(--radio-control);
   background: var(--superficie);
   box-shadow: var(--sombra-fuerte);
 }
-.pestanas { display: flex; gap: 4px; margin-bottom: 14px; padding: 3px; border-radius: 12px; background: var(--superficie-2); }
-.pestanas button {
+.pestanas-panel { display: flex; gap: 4px; margin-bottom: 14px; padding: 3px; border-radius: 12px; background: var(--superficie-2); }
+.pestanas-panel button {
   flex: 1;
   padding: 6px 4px;
   border: 0;
@@ -186,7 +195,21 @@ button { font: inherit; color: inherit; }
   font-size: 13px;
   cursor: pointer;
 }
-.pestanas button[aria-selected="true"] { background: var(--superficie); color: var(--texto); box-shadow: var(--sombra); }
+.pestanas-panel button[aria-selected="true"] { background: var(--superficie); color: var(--texto); box-shadow: var(--sombra); }
+.eleccion { display: flex; gap: 6px; }
+.eleccion button {
+  flex: 1;
+  padding: 7px 4px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.eleccion button:hover { background: var(--hover); }
+.eleccion button[aria-pressed="true"] { border-color: var(--acento); box-shadow: inset 0 0 0 1px var(--acento); }
 .acento { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; }
 .acento label { flex: 1; }
 .acento input[type="color"] { width: 36px; height: 28px; padding: 0; border: 1px solid var(--borde-fuerte); border-radius: 8px; background: none; cursor: pointer; }
@@ -342,14 +365,14 @@ dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
   position: relative;
   display: grid;
   grid-template-columns: repeat(var(--columnas, 12), minmax(0, 1fr));
-  grid-auto-rows: 40px;
+  grid-auto-rows: var(--alto-fila);
   gap: 4px 16px;
 }
 .celda { border-radius: 8px; background: var(--hover); }
 
 .grupo { position: relative; z-index: 1; min-width: 0; }
-.rejilla .grupo { display: flex; flex-direction: column; border-radius: 14px; }
-.grupo-cab { display: flex; align-items: center; gap: 8px; height: 40px; }
+.rejilla .grupo { display: flex; flex-direction: column; border-radius: var(--radio-bloque); }
+.grupo-cab { display: flex; align-items: center; gap: 8px; height: var(--alto-fila); }
 .grupo-cab i { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--c); }
 .grupo-cab h3 {
   flex: 1;
@@ -381,7 +404,7 @@ dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 40px;
+  height: var(--alto-fila);
   margin: 0 -10px;
   padding: 0 10px;
   border-radius: 12px;
@@ -389,8 +412,8 @@ dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
   text-decoration: none;
 }
 .fila:hover { background: var(--hover); }
-.fila .icono { width: 30px; height: 30px; font-size: 10px; }
-.fila .nombre { flex: 1; min-width: 0; overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.fila .icono { width: var(--icono-fila); height: var(--icono-fila); font-size: 10px; }
+.fila .nombre { flex: 1; min-width: 0; overflow: hidden; font-size: var(--texto-fila); text-overflow: ellipsis; white-space: nowrap; }
 .fila .dir { flex: none; color: var(--texto-2); font-size: 12px; }
 
 /* Plegar: el bloque se queda en su título; la flecha aparece al pasar por encima. */
@@ -410,7 +433,7 @@ dialog .opcion-dialogo input { display: inline-block; width: 16px; height: 16px;
 .plegado .grupo-cab .cuenta { display: inline; }
 .bloque:not(:hover):not(.plegado) .plegar:not(:focus-visible) { opacity: 0; }
 .plegar .ico { transition: transform .15s; }
-.fila-vacia { margin: 0; color: var(--texto-2); font-size: 13px; line-height: 40px; }
+.fila-vacia { margin: 0; color: var(--texto-2); font-size: 13px; line-height: var(--alto-fila); }
 .borrar { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%; color: var(--texto-2); cursor: pointer; }
 .borrar .ico { width: 16px; height: 16px; }
 .borrar:hover { color: #e5566f; background: var(--hover); }
@@ -426,7 +449,7 @@ dialog .opcion-dialogo input { display: inline-block; width: 16px; height: 16px;
 .editando .fila, .editando .atajo { cursor: grab; }
 .moviendo { z-index: 5 !important; box-shadow: var(--sombra-fuerte); cursor: grabbing; }
 .moviendo .grupo-cab { cursor: grabbing; }
-.destino { z-index: 0; border-radius: 14px; outline: 2px dashed var(--acento); background: var(--hover); }
+.destino { z-index: 0; border-radius: var(--radio-bloque); outline: 2px dashed var(--acento); background: var(--hover); }
 .asa-ancho {
   position: absolute;
   top: 8px;
@@ -476,11 +499,11 @@ dialog .opcion-dialogo input { display: inline-block; width: 16px; height: 16px;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  border-radius: 16px;
+  border-radius: var(--radio-bloque);
   background: var(--hover);
 }
 .widget-iframe { background: transparent; }
-.widget-cab { display: flex; flex: none; align-items: center; gap: 4px; height: 40px; padding: 0 8px 0 16px; }
+.widget-cab { display: flex; flex: none; align-items: center; gap: 4px; height: var(--alto-fila); padding: 0 8px 0 16px; }
 .widget-cab h3 {
   flex: 1;
   min-width: 0;
@@ -492,7 +515,7 @@ dialog .opcion-dialogo input { display: inline-block; width: 16px; height: 16px;
   white-space: nowrap;
 }
 body:not(.editando) .widget-iframe:not(.plegado) .widget-cab { display: none; }
-.widget-cuerpo { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; border-radius: 0 0 16px 16px; }
+.widget-cuerpo { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; border-radius: 0 0 var(--radio-bloque) var(--radio-bloque); }
 .widget iframe {
   flex: 1;
   width: 100%;
@@ -675,7 +698,7 @@ dialog {
   width: min(420px, calc(100vw - 32px));
   padding: 24px;
   border: 0;
-  border-radius: 20px;
+  border-radius: var(--radio-control);
   background: var(--superficie);
   color: var(--texto);
   box-shadow: var(--sombra-fuerte);
