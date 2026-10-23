@@ -128,7 +128,7 @@ button { font: inherit; color: inherit; }
   cursor: pointer;
 }
 .boton-texto:hover { background: var(--hover); }
-.boton-texto.primario, dialog .primario { border-color: var(--acento); background: var(--acento); color: var(--bg); }
+.boton-texto.primario, dialog .primario { border-color: var(--acento); background: var(--acento); color: var(--sobre-acento, var(--bg)); }
 /* En edición, la fila de botones va debajo del título para no chocar con los de la esquina. */
 .barra-edicion { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
@@ -151,7 +151,7 @@ button { font: inherit; color: inherit; }
   cursor: pointer;
 }
 .icono-boton:hover { background: var(--superficie-2); }
-.icono-boton[aria-pressed="true"] { background: var(--acento); color: var(--bg); }
+.icono-boton[aria-pressed="true"] { background: var(--acento); color: var(--sobre-acento, var(--bg)); }
 /* Los de los paneles marcan lo contrario: apagados cuando el panel está oculto. */
 .boton-panel[aria-pressed="true"] { background: var(--superficie); color: var(--texto); }
 .boton-panel[aria-pressed="false"] { color: var(--texto-2); opacity: .7; }
@@ -174,6 +174,22 @@ button { font: inherit; color: inherit; }
   background: var(--superficie);
   box-shadow: var(--sombra-fuerte);
 }
+.pestanas { display: flex; gap: 4px; margin-bottom: 14px; padding: 3px; border-radius: 12px; background: var(--superficie-2); }
+.pestanas button {
+  flex: 1;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--texto-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pestanas button[aria-selected="true"] { background: var(--superficie); color: var(--texto); box-shadow: var(--sombra); }
+.acento { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; }
+.acento label { flex: 1; }
+.acento input[type="color"] { width: 36px; height: 28px; padding: 0; border: 1px solid var(--borde-fuerte); border-radius: 8px; background: none; cursor: pointer; }
 .panel-tema h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
 .panel-tema .opciones-titulo { margin-top: 18px; }
 .opcion { display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; }

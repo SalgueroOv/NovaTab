@@ -7,7 +7,14 @@ import { editando } from './edicion.js';
 
 export const CLAVE_TEMA = 'tema';
 export const CLAVE_OPCIONES = 'opciones';
-export const OPCIONES = { fondoGrupos: true, sobrio: false, reunion: false, ocultos: { izq: false, der: false } };
+// Ajustes de aspecto: si falta alguno o es inválido, vale el de aquí (la página queda como en la versión 4.2.0).
+export const APARIENCIA = {
+  acento: null, fondo: 'curvas', intensidad: 100, intensidadImagen: 40, densidad: 'comoda',
+  esquinas: 'medio', hora24: true, segundos: false, fecha: true,
+};
+export const IDS_FONDO = ['curvas', 'grafo', 'teselas', 'ondas', 'puntos', 'rayas', 'cuadricula', 'hexagonos', 'anillos', 'montanas', 'liso', 'imagen'];
+
+export const OPCIONES = { fondoGrupos: true, sobrio: false, reunion: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA };
 
 export const TEMAS = [
   { id: 'bosque', nombre: 'Bosque', modo: 'oscuro', muestra: ['#18221d', '#2f4438'] },
@@ -40,9 +47,58 @@ export function ponerTema(id) {
 
 export let opciones = { ...OPCIONES };
 
+const entre = (n, min, max, defecto) => Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : defecto;
+const uno = (v, validos, defecto) => validos.includes(v) ? v : defecto;
+const booleano = (v, defecto) => typeof v === 'boolean' ? v : defecto;
+
+export function normalizarApariencia(a) {
+  const x = a && typeof a === 'object' ? a : {};
+  return {
+    acento: typeof x.acento === 'string' && /^#[0-9a-f]{6}$/i.test(x.acento) ? x.acento.toLowerCase() : APARIENCIA.acento,
+    fondo: uno(x.fondo, IDS_FONDO, APARIENCIA.fondo),
+    intensidad: entre(x.intensidad, 0, 100, APARIENCIA.intensidad),
+    intensidadImagen: entre(x.intensidadImagen, 0, 100, APARIENCIA.intensidadImagen),
+    densidad: uno(x.densidad, ['comoda', 'compacta'], APARIENCIA.densidad),
+    esquinas: uno(x.esquinas, ['recto', 'medio', 'redondo'], APARIENCIA.esquinas),
+    hora24: booleano(x.hora24, APARIENCIA.hora24),
+    segundos: booleano(x.segundos, APARIENCIA.segundos),
+    fecha: booleano(x.fecha, APARIENCIA.fecha),
+  };
+}
+
+// Luminosidad relativa de un color #rrggbb (0 negro, 1 blanco).
+function luminosidad(hex) {
+  const [r, g, b] = [1, 3, 5].map(i => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+// Aplica los ajustes al documento: variables en :root y clases en body.
+export let apariencia = { ...APARIENCIA };
+export function ponerApariencia(a) {
+  apariencia = normalizarApariencia(a);
+  const raiz = document.documentElement.style;
+  if (apariencia.acento) {
+    raiz.setProperty('--acento', apariencia.acento);
+    raiz.setProperty('--sobre-acento', luminosidad(apariencia.acento) > 0.5 ? '#1f1f1f' : '#ffffff');
+    $('#acento-libre').value = apariencia.acento;
+  } else {
+    raiz.removeProperty('--acento');
+    raiz.removeProperty('--sobre-acento');
+  }
+}
+
+export function cambiarApariencia(parcial) {
+  ponerOpciones({ ...opciones, apariencia: { ...opciones.apariencia, ...parcial } });
+  escribir(CLAVE_OPCIONES, opciones);
+}
+
 export function ponerOpciones(o) {
   const nuevas = o && typeof o === 'object' ? o : {};
-  opciones = { ...OPCIONES, ...nuevas, ocultos: { ...OPCIONES.ocultos, ...(nuevas.ocultos || {}) } };
+  opciones = { ...OPCIONES, ...nuevas, ocultos: { ...OPCIONES.ocultos, ...(nuevas.ocultos || {}) }, apariencia: normalizarApariencia(nuevas.apariencia) };
+  ponerApariencia(opciones.apariencia);
   document.body.classList.toggle('grupos-con-fondo', !!opciones.fondoGrupos);
   $('#opt-fondo-grupos').checked = !!opciones.fondoGrupos;
   document.body.classList.toggle('sobrio', !!opciones.sobrio);
@@ -91,6 +147,20 @@ $('#opt-fondo-grupos').addEventListener('change', ev => {
 });
 
 export const panelTema = $('#panel-tema');
+
+// Pestañas Tema, Fondo y Diseño del panel.
+for (const pestana of document.querySelectorAll('#panel-tema [role="tab"]')) {
+  pestana.addEventListener('click', () => {
+    for (const otra of document.querySelectorAll('#panel-tema [role="tab"]')) {
+      const activa = otra === pestana;
+      otra.setAttribute('aria-selected', String(activa));
+      $(`#pestana-${otra.dataset.pestana}`).hidden = !activa;
+    }
+  });
+}
+
+$('#acento-libre').addEventListener('input', ev => cambiarApariencia({ acento: ev.target.value }));
+$('#acento-restaurar').addEventListener('click', () => cambiarApariencia({ acento: null }));
 $('#btn-tema').addEventListener('click', () => {
   panelTema.hidden = !panelTema.hidden;
   $('#btn-tema').setAttribute('aria-expanded', String(!panelTema.hidden));

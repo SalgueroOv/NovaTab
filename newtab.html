@@ -59,14 +59,27 @@
       <button class="icono-boton" type="button" id="btn-editar" title="Editar enlaces" aria-pressed="false"></button>
       <button class="icono-boton" type="button" id="btn-tema" title="Personalizar" aria-expanded="false"></button>
       <div class="panel-tema" id="panel-tema" hidden>
-        <h2>Tema</h2>
+        <div class="pestanas" role="tablist" aria-label="Personalizar">
+          <button type="button" role="tab" data-pestana="tema" aria-selected="true">Tema</button>
+          <button type="button" role="tab" data-pestana="fondo" aria-selected="false">Fondo</button>
+          <button type="button" role="tab" data-pestana="diseno" aria-selected="false">Diseño</button>
+        </div>
+        <div role="tabpanel" id="pestana-tema">
         <div class="muestras" id="muestras"></div>
+        <div class="acento">
+          <label for="acento-libre">Color de acento</label>
+          <input type="color" id="acento-libre" value="#1a73e8">
+          <button class="boton-texto" type="button" id="acento-restaurar">Restaurar</button>
+        </div>
         <h2 class="opciones-titulo">Opciones</h2>
         <label class="opcion"><input type="checkbox" id="opt-fondo-grupos" checked> Fondo de color en los grupos</label>
         <label class="opcion"><input type="checkbox" id="opt-sobrio"> Modo sobrio: iconos y colores en el tono del tema</label>
         <h2 class="opciones-titulo">Copias automáticas</h2>
         <ul class="lista-copias" id="lista-copias"></ul>
         <button class="boton-texto peligro" type="button" id="btn-restablecer">Restablecer todo…</button>
+        </div>
+        <div role="tabpanel" id="pestana-fondo" hidden></div>
+        <div role="tabpanel" id="pestana-diseno" hidden></div>
       </div>
     </div>
   </main>
