@@ -12,6 +12,7 @@ import './ajustes-buscador.js';
 import './comandos.js';
 import './separador.js';
 import './widgets.js';
+import './widgets/reloj-mundial.js';
 import './iconos.js';
 import { hacerCopiaDelDia } from './copias.js';
 import './importar.js';

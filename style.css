@@ -856,6 +856,15 @@ dialog menu button {
 #paleta-lista .p-detalle { flex: none; color: var(--texto-2); font-size: 12px; }
 #paleta-lista .p-vacio { color: var(--texto-2); cursor: default; }
 
+/* Widgets de la fase 7 */
+.reloj-mundial { display: flex; flex-direction: column; gap: 2px; padding: 4px 16px 12px; }
+.reloj-zona { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--alto-fila); }
+.reloj-zona .nombre { font-size: 14px; }
+.reloj-zona .detalle { color: var(--texto-2); font-size: 11px; }
+.reloj-zona .hora { font-size: 20px; font-weight: 300; }
+.lista-zonas { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; max-height: 50vh; overflow-y: auto; }
+.lista-zonas .opcion-dialogo { margin: 0; }
+
 /* ---------- Pantallas estrechas: los grupos se apilan ---------- */
 
 @media (max-width: 1000px) {

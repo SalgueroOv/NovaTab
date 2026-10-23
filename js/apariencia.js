@@ -101,6 +101,7 @@ export function ponerApariencia(a) {
   }
   const clases = document.body.classList;
   clases.toggle('compacta', apariencia.densidad === 'compacta');
+  document.dispatchEvent(new Event('novatab:apariencia')); // los widgets con hora (reloj mundial) se repintan
   for (const e of ['recto', 'medio', 'redondo']) clases.toggle(`esquinas-${e}`, apariencia.esquinas === e);
   for (const d of ['comoda', 'compacta']) $(`#densidad-${d}`).setAttribute('aria-pressed', String(apariencia.densidad === d));
   for (const e of ['recto', 'medio', 'redondo']) $(`#esquinas-${e}`).setAttribute('aria-pressed', String(apariencia.esquinas === e));

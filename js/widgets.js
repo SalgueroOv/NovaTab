@@ -25,6 +25,15 @@ export const WIDGETS = {
 
 export const widget = id => datos.widgets.find(w => w.id === id);
 
+// Los widgets que viven en su propio archivo (js/widgets/) se dan de alta aquí al cargarse:
+// def = { nombre, descripcion, w, h, configurable, alto? }, pintar(w, cuerpo) y configurador(actual).
+export function registrar(tipo, { def, pintar, configurador }) {
+  if (WIDGETS[tipo]) throw new Error(`El widget «${tipo}» ya está registrado`);
+  WIDGETS[tipo] = def;
+  PINTORES[tipo] = pintar;
+  if (configurador) CONFIGURADORES[tipo] = configurador;
+}
+
 // ---------- Pintado ----------
 
 export function pintarWidget(w) {
