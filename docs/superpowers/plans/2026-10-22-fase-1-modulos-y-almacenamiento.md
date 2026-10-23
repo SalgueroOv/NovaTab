@@ -38,9 +38,9 @@
 
 **Interfaces:** produce `iniciarServidor(raiz) → Promise<{ url: string, cerrar(): Promise<void> }>` (sirve la raíz del repositorio en `127.0.0.1` con puerto libre y tipos MIME de `.html .js .mjs .css .json .woff2 .svg`); `crearAbrir(navegador, urlBase)` abre `${urlBase}/newtab.html`.
 
-- [ ] **Paso 1:** escribir `servidor.mjs` y adaptar `util.mjs` y `ejecutar.mjs` (un servidor por ejecución, cerrado en `finally`).
-- [ ] **Paso 2:** `node pruebas/ejecutar.mjs` → las 11 pruebas `✔` sirviendo por HTTP.
-- [ ] **Paso 3:** commit «Pruebas servidas por HTTP local».
+- [x] **Paso 1:** escribir `servidor.mjs` y adaptar `util.mjs` y `ejecutar.mjs` (un servidor por ejecución, cerrado en `finally`).
+- [x] **Paso 2:** `node pruebas/ejecutar.mjs` → las 11 pruebas `✔` sirviendo por HTTP.
+- [x] **Paso 3:** commit «Pruebas servidas por HTTP local».
 
 ### Task 2 · Tarea 2: dividir en módulos ES sin cambiar el comportamiento
 
@@ -55,11 +55,11 @@
 - `main.js`: arranque y `globalThis.novatab = { get datos() {…}, pintar, DATOS_DEFECTO }`.
 - Duplicados eliminados (hallazgo #10): `claveSitio` usa `partes`; `refrescarCampoIcono` usa `leerIcono`; `leerCache`/`escribirCache`/`borrarNota` usan `almacen.js`.
 
-- [ ] **Paso 1:** adaptar las pruebas a `novatab.datos` / `novatab.pintar()` / `novatab.DATOS_DEFECTO`; ejecutarlas → fallan (aún no existe `novatab`).
-- [ ] **Paso 2:** crear los módulos moviendo el código tal cual, sin cambiar lógica salvo los duplicados de #10.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → 11 `✔`; `grep -rn "app.js" newtab.html empaquetar README.md` no devuelve nada.
-- [ ] **Paso 4:** abrir `mockups/b-topografico.html` como archivo una vez y comprobar que pinta los grupos.
-- [ ] **Paso 5:** commit «Dividir el código en módulos ES».
+- [x] **Paso 1:** adaptar las pruebas a `novatab.datos` / `novatab.pintar()` / `novatab.DATOS_DEFECTO`; ejecutarlas → fallan (aún no existe `novatab`).
+- [x] **Paso 2:** crear los módulos moviendo el código tal cual, sin cambiar lógica salvo los duplicados de #10.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → 11 `✔`; `grep -rn "app.js" newtab.html empaquetar README.md` no devuelve nada.
+- [x] **Paso 4:** abrir `mockups/b-topografico.html` como archivo una vez y comprobar que pinta los grupos.
+- [x] **Paso 5:** commit «Dividir el código en módulos ES».
 
 ### Task 3 · Tarea 3: simulador de chrome.storage y almacenamiento robusto
 
@@ -69,10 +69,10 @@
 - `chrome-falso.js` define `chrome.storage.sync` y `chrome.storage.local` (`get`, `set`, `remove`, `getBytesInUse`) y `chrome.storage.onChanged`, con errores cuyo mensaje contiene `QUOTA_BYTES_PER_ITEM` o `MAX_WRITE_OPERATIONS_PER_MINUTE` como los reales, y `globalThis.__chromeFalso = { remoto(area, clave, valor), escrituras(area) }` para simular otra pestaña y contar escrituras.
 - `almacen.js`: `leer` prefiere la copia de `local` si existe (solo existe como respaldo de una escritura en sync que falló) y si no, `sync`; `escribir` intenta sync; con `QUOTA_BYTES_PER_ITEM` guarda en local, avisa una vez y no reintenta; con `MAX_WRITE_OPERATIONS_PER_MINUTE` guarda en local y reintenta en sync a los 60 s; cuando sync acepta, borra la copia local.
 
-- [ ] **Paso 1:** prueba `almacen`: (a) un valor de 9 KB acaba en local y aparece el aviso una vez; (b) con `escriturasPorMinuto: 2`, la tercera escritura queda en local, `leer` devuelve el valor nuevo y, tras adelantar el reintento, el valor está en sync y no en local.
-- [ ] **Paso 2:** ejecutarla → falla.
-- [ ] **Paso 3:** implementar en `almacen.js`.
-- [ ] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Almacenamiento: respaldo local y reintento ante el límite de escrituras».
+- [x] **Paso 1:** prueba `almacen`: (a) un valor de 9 KB acaba en local y aparece el aviso una vez; (b) con `escriturasPorMinuto: 2`, la tercera escritura queda en local, `leer` devuelve el valor nuevo y, tras adelantar el reintento, el valor está en sync y no en local.
+- [x] **Paso 2:** ejecutarla → falla.
+- [x] **Paso 3:** implementar en `almacen.js`.
+- [x] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Almacenamiento: respaldo local y reintento ante el límite de escrituras».
 
 ### Task 4 · Tarea 4: formato v4 por grupos y migración con respaldo
 
@@ -80,10 +80,10 @@
 
 **Interfaces:** `cargarDatos() → Promise<datos con enlaces dentro de cada grupo>` (lee v4, o v3/v2/v1 y migra); `guardarDatos(datos) → Promise<void>` escribe `datos` sin enlaces y solo las claves `grupo:<id>` cuyo contenido cambió desde la última escritura, y borra las de grupos eliminados.
 
-- [ ] **Paso 1:** prueba `migracion`: (a) con datos v3 en sync, al abrir se guardan `respaldo-v3` en local, `datos` v4 sin enlaces y un `grupo:<id>` por grupo, y la página muestra los mismos grupos, enlaces, posiciones, widgets y notas; (b) mover un grupo escribe `datos` y ninguna clave `grupo:`; editar un enlace escribe solo su `grupo:<id>` y no `datos`; (c) 200 enlaces repartidos en 4 grupos se guardan y recargan iguales; (d) si la migración falla por cuota, `datos` sigue en v3 y la siguiente apertura reintenta; (e) importar una exportación v3 deja el formato v4.
-- [ ] **Paso 2:** ejecutarla → falla.
-- [ ] **Paso 3:** implementar.
-- [ ] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Formato v4: un grupo por clave, con migración y respaldo».
+- [x] **Paso 1:** prueba `migracion`: (a) con datos v3 en sync, al abrir se guardan `respaldo-v3` en local, `datos` v4 sin enlaces y un `grupo:<id>` por grupo, y la página muestra los mismos grupos, enlaces, posiciones, widgets y notas; (b) mover un grupo escribe `datos` y ninguna clave `grupo:`; editar un enlace escribe solo su `grupo:<id>` y no `datos`; (c) 200 enlaces repartidos en 4 grupos se guardan y recargan iguales; (d) si la migración falla por cuota, `datos` sigue en v3 y la siguiente apertura reintenta; (e) importar una exportación v3 deja el formato v4.
+- [x] **Paso 2:** ejecutarla → falla.
+- [x] **Paso 3:** implementar.
+- [x] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Formato v4: un grupo por clave, con migración y respaldo».
 
 ### Task 5 · Tarea 5: cambios de otra pestaña sin perder tu edición
 
@@ -91,22 +91,22 @@
 
 **Interfaces:** `ocupado() → boolean` en `edicion.js`: hay un diálogo abierto, un arrastre o un título en edición. Mientras está ocupado, los cambios recibidos se acumulan; al dejar de estarlo se recargan de almacenamiento (`cargarDatos`) y se repinta. Los cambios propios se reconocen comparando con lo último escrito y se ignoran.
 
-- [ ] **Paso 1:** prueba `conflictos`: (a) sin editar, un cambio remoto en `grupo:g-beta` se ve al momento; (b) con el diálogo de un enlace de Alfa abierto, llega un cambio remoto que renombra un enlace de Beta; al guardar el diálogo, están los dos cambios; (c) con el diálogo de Alfa abierto, otra pestaña borra el grupo Gamma; al guardar, Gamma no reaparece y no hay errores; (d) los cambios propios no provocan un repintado extra (el iframe de Spotify conserva su marca).
-- [ ] **Paso 2:** ejecutarla → falla.
-- [ ] **Paso 3:** implementar.
-- [ ] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Los cambios de otra pestaña esperan a que termines de editar».
+- [x] **Paso 1:** prueba `conflictos`: (a) sin editar, un cambio remoto en `grupo:g-beta` se ve al momento; (b) con el diálogo de un enlace de Alfa abierto, llega un cambio remoto que renombra un enlace de Beta; al guardar el diálogo, están los dos cambios; (c) con el diálogo de Alfa abierto, otra pestaña borra el grupo Gamma; al guardar, Gamma no reaparece y no hay errores; (d) los cambios propios no provocan un repintado extra (el iframe de Spotify conserva su marca).
+- [x] **Paso 2:** ejecutarla → falla.
+- [x] **Paso 3:** implementar.
+- [x] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Los cambios de otra pestaña esperan a que termines de editar».
 
 ### Task 6 · Tarea 6: notas cada 2 segundos
 
 **Archivos:** modificar `js/widgets.js`; ampliar `pruebas/widgets.prueba.mjs`.
 
-- [ ] **Paso 1:** prueba: escribir en una nota 10 veces seguidas en 1,5 s produce 0 escrituras a los 1,5 s y 1 escritura a los 2,5 s; ocultar la página (`visibilitychange`) con texto pendiente lo guarda al momento.
-- [ ] **Paso 2:** ejecutarla → falla.
-- [ ] **Paso 3:** espera de 2 000 ms y guardado en `visibilitychange` cuando `document.visibilityState === 'hidden'`.
-- [ ] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Notas: guardado 2 s después de dejar de escribir».
+- [x] **Paso 1:** prueba: escribir en una nota 10 veces seguidas en 1,5 s produce 0 escrituras a los 1,5 s y 1 escritura a los 2,5 s; ocultar la página (`visibilitychange`) con texto pendiente lo guarda al momento.
+- [x] **Paso 2:** ejecutarla → falla.
+- [x] **Paso 3:** espera de 2 000 ms y guardado en `visibilitychange` cuando `document.visibilityState === 'hidden'`.
+- [x] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Notas: guardado 2 s después de dejar de escribir».
 
 ### Task 7 · Tarea 7: cierre de la fase
 
-- [ ] **Paso 1:** `version` 4.0.0; `README.md` (estructura con `js/`) y `empaquetar/LEEME.txt` sin cambios de uso.
-- [ ] **Paso 2:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar.ps1` → `dist/novatab-4.0.0.zip` con la carpeta `js/` y sin IPs de redes reales.
-- [ ] **Paso 3:** marcar la fase 1 en la hoja de ruta y commit «Fase 1 terminada: versión 4.0.0».
+- [x] **Paso 1:** `version` 4.0.0; `README.md` (estructura con `js/`) y `empaquetar/LEEME.txt` sin cambios de uso.
+- [x] **Paso 2:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar.ps1` → `dist/novatab-4.0.0.zip` con la carpeta `js/` y sin IPs de redes reales.
+- [x] **Paso 3:** marcar la fase 1 en la hoja de ruta y commit «Fase 1 terminada: versión 4.0.0».

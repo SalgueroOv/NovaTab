@@ -33,10 +33,10 @@
 
 **Archivos:** modificar `manifest.json` (name, default_title, description), `README.md`, `empaquetar/LEEME.txt`, `empaquetar/empaquetar.ps1` (carpeta `dist/novatab`, zip `novatab-<versión>.zip`), `docs/superpowers/plans/2026-10-21-hoja-de-ruta-mejoras.md` (título).
 
-- [ ] **Paso 1:** sustituir «Mis servicios» por «NovaTab» en esos archivos; descripción del manifest: «Página de nueva pestaña para tus servicios de casa o del trabajo, con buscador y widgets.»
-- [ ] **Paso 2:** comprobar: `grep -rn "Mis servicios\|mis-servicios" --exclude-dir=.git --exclude-dir=dist .` no devuelve nada.
-- [ ] **Paso 3:** `powershell -ExecutionPolicy Bypass -File empaquetar\empaquetar.ps1` → `Listo: …\dist\novatab-3.2.0.zip`, y su `manifest.json` lleva la misma `key` que `empaquetar/clave-publica.txt`.
-- [ ] **Paso 4:** commit «Renombrar la extensión a NovaTab».
+- [x] **Paso 1:** sustituir «Mis servicios» por «NovaTab» en esos archivos; descripción del manifest: «Página de nueva pestaña para tus servicios de casa o del trabajo, con buscador y widgets.»
+- [x] **Paso 2:** comprobar: `grep -rn "Mis servicios\|mis-servicios" --exclude-dir=.git --exclude-dir=dist .` no devuelve nada.
+- [x] **Paso 3:** `powershell -ExecutionPolicy Bypass -File empaquetar\empaquetar.ps1` → `Listo: …\dist\novatab-3.2.0.zip`, y su `manifest.json` lleva la misma `key` que `empaquetar/clave-publica.txt`.
+- [x] **Paso 4:** commit «Renombrar la extensión a NovaTab».
 
 ### Task 2 · Tarea 2: infraestructura de pruebas y pruebas existentes
 
@@ -48,8 +48,8 @@
 - Cada `*.prueba.mjs` exporta `default { nombre, red?: boolean, ejecutar: async (abrir) => void }` y lanza `Error` con un mensaje claro si algo no se cumple.
 - `pruebas/ejecutar.mjs` acepta `--sin-red` y un filtro opcional por nombre; imprime `✔`/`✘` por prueba y sale con código 1 si alguna falla o deja errores en la consola de la página.
 
-- [ ] **Paso 1:** escribir `cdp.mjs`, `util.mjs`, `datos-prueba.mjs` y `ejecutar.mjs`.
-- [ ] **Paso 2:** escribir las pruebas, cada una con estas comprobaciones:
+- [x] **Paso 1:** escribir `cdp.mjs`, `util.mjs`, `datos-prueba.mjs` y `ejecutar.mjs`.
+- [x] **Paso 2:** escribir las pruebas, cada una con estas comprobaciones:
   - `rejilla`: arrastrar «Beta» 6 columnas a la izquierda y 7 filas abajo deja `pos` `{x:1, y:≥8}`; el asa del ancho reduce `w` de 6 a 4; un widget de notas arrastrado del panel derecho al izquierdo queda con `panel: 'izq'`.
   - `plegar`: plegar «Alfa» sube «Gamma» de la fila 7 a la 3 y desplegar la devuelve a la 7.
   - `reunion`: con el ojo activo no hay ningún `.grupo` llamado «Gamma» ni «Ocio», escribir un enlace de «Ocio» en el buscador no lo sugiere, y tras recargar el modo sigue activo.
@@ -57,8 +57,8 @@
   - `opciones`: el tema «papel», el modo sobrio y ocultar un panel se guardan y siguen tras recargar; no se pueden ocultar los dos paneles.
   - `widgets`: una nota escrita se lee de `localStorage` como `nota:<id>`; el iframe de Spotify es el mismo nodo tras repintar; «Más usadas» con `topSites` simulado excluye los dominios que ya están en grupos.
   - `iconos` (`red: true`): buscar «proxmox» en Apps devuelve `proxmox` y guardarlo deja `icono: {set:'apps', nombre:'proxmox', formato:'svg'}`.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`, código 0.
-- [ ] **Paso 4:** commit «Pruebas automáticas en Chrome sin ventana».
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`, código 0.
+- [x] **Paso 4:** commit «Pruebas automáticas en Chrome sin ventana».
 
 ### Task 3 · Tarea 3: solo enlaces http y https
 
@@ -66,11 +66,11 @@
 
 **Interfaces:** produce `urlSegura(url: string) → boolean` en `app.js` (true solo si `new URL(url).protocol` es `http:` o `https:`).
 
-- [ ] **Paso 1:** prueba `seguridad`: datos con un enlace `javascript:alert(1)` y otro `data:text/html,x` en «Alfa» → tras cargar, «Alfa» tiene solo sus enlaces http y `localStorage.datos` no contiene `javascript:` ni `data:`; en el diálogo de enlace, guardar `javascript:alert(1)` no cierra el diálogo y no cambia los datos.
-- [ ] **Paso 2:** ejecutarla → falla.
-- [ ] **Paso 3:** implementar `urlSegura`; `normalizar` descarta los enlaces que no la cumplen; el campo URL lleva `pattern="https?://.+"` y el mensaje «Solo direcciones http:// o https://».
-- [ ] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`.
-- [ ] **Paso 5:** commit «Solo se aceptan enlaces http y https».
+- [x] **Paso 1:** prueba `seguridad`: datos con un enlace `javascript:alert(1)` y otro `data:text/html,x` en «Alfa» → tras cargar, «Alfa» tiene solo sus enlaces http y `localStorage.datos` no contiene `javascript:` ni `data:`; en el diálogo de enlace, guardar `javascript:alert(1)` no cierra el diálogo y no cambia los datos.
+- [x] **Paso 2:** ejecutarla → falla.
+- [x] **Paso 3:** implementar `urlSegura`; `normalizar` descarta los enlaces que no la cumplen; el campo URL lleva `pattern="https?://.+"` y el mensaje «Solo direcciones http:// o https://».
+- [x] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`.
+- [x] **Paso 5:** commit «Solo se aceptan enlaces http y https».
 
 ### Task 4 · Tarea 4: «Restablecer todo» en Opciones
 
@@ -78,20 +78,20 @@
 
 **Interfaces:** produce `restablecerTodo() → Promise<void>` en `app.js`: datos por defecto, borra todas las claves `nota:*` (sync, local y `localStorage`) y repinta.
 
-- [ ] **Paso 1:** prueba `restablecer`: con una nota guardada, abrir Opciones → «Restablecer todo…»; el botón de confirmar está desactivado hasta escribir exactamente `BORRAR`; al confirmar, los grupos son los de `DATOS_DEFECTO` y no queda ninguna clave `nota:` en `localStorage`.
-- [ ] **Paso 2:** ejecutarla → falla.
-- [ ] **Paso 3:** implementar el botón, el diálogo y `restablecerTodo`.
-- [ ] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`.
-- [ ] **Paso 5:** commit «Restablecer todo en Opciones, con confirmación escrita».
+- [x] **Paso 1:** prueba `restablecer`: con una nota guardada, abrir Opciones → «Restablecer todo…»; el botón de confirmar está desactivado hasta escribir exactamente `BORRAR`; al confirmar, los grupos son los de `DATOS_DEFECTO` y no queda ninguna clave `nota:` en `localStorage`.
+- [x] **Paso 2:** ejecutarla → falla.
+- [x] **Paso 3:** implementar el botón, el diálogo y `restablecerTodo`.
+- [x] **Paso 4:** `node pruebas/ejecutar.mjs` → todas `✔`.
+- [x] **Paso 5:** commit «Restablecer todo en Opciones, con confirmación escrita».
 
 ### Task 5 · Tarea 5: revisión de código y de seguridad
 
-- [ ] **Paso 1:** ejecutar `/code-review` y `/security-review` sobre la extensión.
-- [ ] **Paso 2:** por cada hallazgo confirmado: una prueba que lo reproduce (falla), la corrección y la prueba en verde. Los hallazgos dudosos se consultan con el usuario antes de tocar nada.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit por corrección.
+- [x] **Paso 1:** ejecutar `/code-review` y `/security-review` sobre la extensión.
+- [x] **Paso 2:** por cada hallazgo confirmado: una prueba que lo reproduce (falla), la corrección y la prueba en verde. Los hallazgos dudosos se consultan con el usuario antes de tocar nada.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit por corrección.
 
 ### Task 6 · Tarea 6: cierre de la fase
 
-- [ ] **Paso 1:** `version` 3.3.0 en `manifest.json`.
-- [ ] **Paso 2:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar.ps1` → `dist/novatab-3.3.0.zip` sin IPs de redes reales.
-- [ ] **Paso 3:** marcar la fase 0 en la hoja de ruta, commit «Fase 0 terminada» y `git push`.
+- [x] **Paso 1:** `version` 3.3.0 en `manifest.json`.
+- [x] **Paso 2:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar.ps1` → `dist/novatab-3.3.0.zip` sin IPs de redes reales.
+- [x] **Paso 3:** marcar la fase 0 en la hoja de ruta, commit «Fase 0 terminada» y `git push`.
