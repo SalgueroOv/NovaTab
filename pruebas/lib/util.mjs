@@ -35,7 +35,7 @@ export function igual(real, esperado, mensaje) {
 export function crearAbrir(navegador, urlBase) {
   const URL_PAGINA = `${urlBase}/newtab.html`;
   // guardados: entradas extra de localStorage (o del simulador, «chrome.sync/clave») antes de cargar.
-  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', sugerenciasGoogle = null, permisoSugerencias = 'concedido', rss = null, permisoRss = 'concedido', chrome = null, guardados = {} } = {}) {
+  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', sugerenciasGoogle = null, permisoSugerencias = 'concedido', rss = null, permisoRss = 'concedido', servicios = null, permisoServicios = 'concedido', chrome = null, guardados = {} } = {}) {
     const p = await navegador.newPage({ width: ancho, height: alto });
     const errores = [];
     await p.send('Runtime.enable');
@@ -111,6 +111,41 @@ ${CHROME_FALSO}`,
               return new Promise((_, rechazar) => opciones.signal?.addEventListener('abort', () => rechazar(new DOMException('abortado', 'AbortError'))));
             }
             return Promise.resolve(new Response(v, { status: 200, headers: { 'content-type': 'application/xml' } }));
+          };
+          window.chrome = Object.assign(window.chrome || {}, {
+            permissions: {
+              contains: (_p, cb) => setTimeout(() => cb(permiso === 'concedido'), 0),
+              request: (_p, cb) => setTimeout(() => { window.__permisos++; if (permiso === 'pendiente') permiso = 'concedido'; cb(permiso === 'concedido'); }, 0),
+            },
+          });
+        })()`,
+      });
+    }
+    if (servicios) {
+      // fetch simulado a los orígenes vigilados ({ origen: 'vivo' | 'cae' | 'cert' | 'cuelga' | 'lento' }) y permisos.
+      await p.send('Page.addScriptToEvaluateOnNewDocument', {
+        source: `(() => {
+          let permiso = ${JSON.stringify(permisoServicios)};
+          const modos = ${JSON.stringify(servicios)};
+          window.__sondeos = [];
+          window.__permisos = 0;
+          let vuelo = 0;
+          window.__maxVuelo = 0;
+          const original = window.fetch.bind(window);
+          window.fetch = (url, opciones = {}) => {
+            const origen = new URL(String(url)).origin;
+            if (!(origen in modos)) return original(url, opciones);
+            window.__sondeos.push(origen);
+            const modo = modos[origen];
+            if (modo === 'cae') return Promise.reject(new TypeError('Failed to fetch'));
+            if (modo === 'cert') return origen.startsWith('https:') ? Promise.reject(new TypeError('net::ERR_CERT_AUTHORITY_INVALID')) : Promise.resolve(new Response('', { status: 200 }));
+            if (modo === 'cuelga') return new Promise((_, rechazar) => opciones.signal?.addEventListener('abort', () => rechazar(new DOMException('abortado', 'AbortError'))));
+            if (modo === 'lento') {
+              vuelo++;
+              window.__maxVuelo = Math.max(window.__maxVuelo, vuelo);
+              return new Promise(r => setTimeout(() => { vuelo--; r(new Response('', { status: 200 })); }, 100));
+            }
+            return Promise.resolve(new Response('', { status: 200 }));
           };
           window.chrome = Object.assign(window.chrome || {}, {
             permissions: {

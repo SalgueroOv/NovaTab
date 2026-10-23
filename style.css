@@ -892,6 +892,21 @@ dialog menu button {
 .rss-item a:hover { color: var(--acento); }
 .rss-item .fecha { color: var(--texto-2); font-size: 11px; }
 
+.servicios { display: flex; flex-direction: column; gap: 6px; min-height: 0; padding: 4px 16px 12px; overflow-y: auto; }
+.servicios-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.servicios-resumen { color: var(--texto-2); font-size: 12px; }
+.servicios-lista { margin: 0; padding: 0; list-style: none; }
+.servicio { display: flex; align-items: center; gap: 10px; min-height: var(--alto-fila); }
+.servicio .nombre { flex: 1; min-width: 0; overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.servicio .dir { flex: none; color: var(--texto-2); font-size: 12px; }
+.led { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--borde-fuerte); }
+.led[data-estado="vivo"] { background: #4caf7d; box-shadow: 0 0 6px #4caf7d88; }
+.led[data-estado="caido"] { background: #e5566f; }
+.led[data-estado="desconocido"] { background: #e0a030; }
+.led[data-estado="comprobando"] { animation: parpadeo 1s ease-in-out infinite; }
+@keyframes parpadeo { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .led[data-estado="comprobando"] { animation: none; } }
+
 /* ---------- Pantallas estrechas: los grupos se apilan ---------- */
 
 @media (max-width: 1000px) {
