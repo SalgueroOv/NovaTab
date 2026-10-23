@@ -97,10 +97,10 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 **Archivos:** `js/apariencia.js`, `style.css` (variables), `newtab.html` (panel de la paleta con pestañas Tema / Fondo / Diseño).
 
-- [ ] Color de acento libre (además de los 4 temas, que quedan como puntos de partida).
-- [ ] Fondo: curvas, grafo, teselas (de los mockups), liso o imagen propia (redimensionada a 1920 px de ancho en WebP y guardada en `storage.local`, nunca en sync). Intensidad del dibujo del 0 al 100 %.
-- [ ] Diseño: densidad compacta / cómoda, radio de las esquinas, reloj 12/24 h, con o sin segundos y con o sin fecha.
-- [ ] Todo en `opciones.apariencia`, aplicado con variables CSS en `:root`.
+- [x] Color de acento libre (además de los 4 temas, que quedan como puntos de partida).
+- [x] Fondo: curvas, grafo, teselas (de los mockups), liso o imagen propia (redimensionada a 1920 px de ancho en WebP y guardada en `storage.local`, nunca en sync). Intensidad del dibujo del 0 al 100 %.
+- [x] Diseño: densidad compacta / cómoda, radio de las esquinas, reloj 12/24 h, con o sin segundos y con o sin fecha.
+- [x] Todo en `opciones.apariencia`, aplicado con variables CSS en `:root`.
 
 **Hecho cuando:** cada ajuste se aplica al momento, sobrevive a la recarga y una imagen de 8 MB se guarda reducida sin errores de cuota.
 
