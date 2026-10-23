@@ -916,7 +916,7 @@ dialog menu button {
 
 /* Selector de perfiles */
 .selector-perfil { position: relative; min-width: 0; }
-#btn-perfil::after { content: " ▾"; }
+#btn-perfil::after { content: " ▾" / ""; }
 #btn-perfil { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menu-perfiles {
   position: absolute;

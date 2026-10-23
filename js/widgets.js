@@ -556,7 +556,7 @@ export async function nuevoWidget() {
   colocarSinPosicion(datos);
   if (WIDGETS[tipo].alto) w.pos.h = WIDGETS[tipo].alto(config);
   await guardarYPintar(w);
-  document.querySelector(`.rejilla .widget[data-id="${w.id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  document.querySelector(`.rejilla .widget[data-id="${w.id}"]`)?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 
 export async function accionDeWidget(accion, id) {

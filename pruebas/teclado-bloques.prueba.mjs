@@ -124,5 +124,32 @@ export default {
     await pg.tecla('ArrowRight');
     await pg.esperar(300);
     igual(JSON.stringify(await pg.datos()), antes, 'ningún bloque se movió');
+
+    // (h) Tras repintar el foco vuelve de inmediato: una segunda flecha seguida (repetición de tecla) no se pierde.
+    pg = await abrir({ datos: DATOS });
+    await pg.esperar(400);
+    await pg.clic('#btn-editar');
+    await enfocar(pg, 'g-alfa');
+    igual(await pg.ev(`(() => { ${cabDe('g-alfa')}.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true })); return document.activeElement.closest('.bloque')?.dataset.id ?? null; })()`), 'g-alfa', 'el foco ya está en la cabecera justo después de repintar');
+    await pg.esperar(300);
+
+    // (i) Ctrl+Z con el foco en la cabecera no lo pierde.
+    await pg.tecla('z', 'ctrl');
+    await pg.esperar(500);
+    igual((await pos(pg, 'g-alfa')).x, 1, 'Ctrl+Z deshace el paso');
+    igual(await foco(pg), 'g-alfa', 'y el foco sigue en la cabecera');
+
+    // (j) Con la ventana estrecha (rejilla apilada) el teclado no cambia posiciones ni tamaños a ciegas.
+    pg = await abrir({ ancho: 800, alto: 800, datos: DATOS });
+    await pg.esperar(400);
+    await pg.clic('#btn-editar');
+    await enfocar(pg, 'g-alfa');
+    await pg.tecla('ArrowRight', 'shift');
+    await pg.tecla('ArrowRight');
+    await pg.esperar(300);
+    igual(await pos(pg, 'g-alfa'), { x: 1, y: 1, w: 6, panel: 'der' }, 'a 800 px nada cambia');
+
+    // (k) La flecha del botón de perfil es decoración: no entra en su nombre accesible.
+    afirmar((await pg.ev(`getComputedStyle(document.getElementById('btn-perfil'), '::after').content`)).includes('/ ""'), 'la flecha del selector de perfiles tiene texto alternativo vacío');
   },
 };

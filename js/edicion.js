@@ -91,9 +91,11 @@ export const reemplazarEstado = foto => enCola(async () => {
 
 // Deshace o rehace un paso. Va en la cola: dos atajos seguidos se aplican uno detrás de otro.
 const pasoDeHistorial = sentido => enCola(async () => {
+  const conFoco = cabeceraConFoco();
   const foto = historial[sentido](await tomarFoto());
   ocultarAvisoAccion();
   if (foto) await aplicarDentro(foto);
+  if (conFoco) enfocarCabecera(conFoco);
 });
 export const deshacerUltimo = () => pasoDeHistorial('deshacer');
 export const rehacerUltimo = () => pasoDeHistorial('rehacer');
@@ -156,6 +158,11 @@ function alTerminar() {
 }
 document.addEventListener('close', alTerminar, true); // «close» no sube: se escucha en la captura
 document.addEventListener('focusout', ev => { if (ev.target.matches?.('[data-titulo]')) alTerminar(); });
+
+// El repintado crea elementos nuevos: devuelve el foco a la cabecera (de un grupo o widget) del bloque con ese id.
+export const enfocarCabecera = id => document.querySelector(`.bloque[data-id="${CSS.escape(id)}"] .grupo-cab, .bloque[data-id="${CSS.escape(id)}"] .widget-cab`)?.focus();
+// El id del bloque cuya cabecera tiene el foco ahora, o null.
+export const cabeceraConFoco = () => document.activeElement?.matches?.('.grupo-cab, .widget-cab') ? document.activeElement.closest('.bloque')?.dataset.id ?? null : null;
 
 export async function guardarYPintar(fijo) {
   resolver(fijo);
