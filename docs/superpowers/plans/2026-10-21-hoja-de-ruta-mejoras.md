@@ -145,9 +145,9 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 ### Fase 9: pulido y accesibilidad
 
-- [ ] Auditoría con Impeccable o Hallmark (`audit`) y corrección de lo que señalen.
-- [ ] Lighthouse y axe en Chrome sin ventana: 0 errores de contraste y de nombres accesibles.
-- [ ] Mover y redimensionar bloques con el teclado (flechas, con Mayús para el tamaño).
-- [ ] Opcional: interfaz en inglés (`_locales/`) si se reparte fuera del grupo de amigos.
+- [x] Auditoría de diseño y accesibilidad (axe-core en los diez temas y cada estado) y corrección de lo que señaló.
+- [x] Lighthouse y axe en Chrome sin ventana: 0 errores de contraste y de nombres accesibles.
+- [x] Mover y redimensionar bloques con el teclado (flechas, con Mayús para el tamaño).
+- [ ] Opcional: interfaz en inglés (`_locales/`) si se reparte fuera del grupo de amigos. (Descartado por decisión del usuario: no se hace.)
 
 **Hecho cuando:** los informes de Lighthouse y axe están limpios y toda la edición se puede hacer sin ratón.

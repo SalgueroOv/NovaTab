@@ -9,6 +9,7 @@ Sustituye la pestaña nueva de Chrome por una página con:
 - Cada grupo de la red local se puede ver como lista, iconos o compacta (Editar grupo), y el ancho del panel izquierdo se cambia arrastrando la franja entre los paneles.
 - Perfiles (Trabajo, Casa, Demo…): cada uno con sus grupos, widgets y aspecto; se cambia desde el selector junto al título de la red local o con Ctrl+K. El ojo (modo reunión) pasa al perfil Demo, que no enseña los grupos privados.
 - Atajos de teclado: Ctrl+K (paleta de comandos), Alt+1 a Alt+9 (tus primeros enlaces locales) y «!y gatos», «!gh», «!w», «!m» en el buscador (editables en Personalizar > Buscador).
+- En modo edición, los grupos y widgets se mueven con el teclado: foco en su cabecera, flechas para mover, Mayús + flechas para el tamaño y Alt + izquierda/derecha para cambiar de panel. La página cumple las pruebas de accesibilidad automáticas (axe-core, Lighthouse 100).
 - Diez temas, fondos, color de acento, motor de búsqueda a elegir, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 
 IMPORTANTE al actualizar desde la versión 4: la versión 5 guarda los datos en claves nuevas. Tus datos se migran solos al abrir una pestaña nueva y se guarda una copia de seguridad (con enlaces y notas) en ese equipo. Actualiza todos tus equipos: uno que siga con la versión 4 ya no verá tus datos (empezará con el ejemplo inicial) pero tampoco puede dañar los de la versión 5, que están en otras claves.

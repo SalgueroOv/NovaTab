@@ -35,6 +35,22 @@ node pruebas/ejecutar.mjs --sin-red    # sin las que necesitan Internet
 
 Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pruebas/lib/datos-prueba.mjs`).
 
+### Auditoría de accesibilidad
+
+`herramientas/` (fuera del paquete de la extensión) lleva axe-core y Lighthouse como dependencias de desarrollo:
+
+```bash
+cd herramientas && npm install     # una vez
+node ../pruebas/ejecutar.mjs accesibilidad   # axe-core en los diez temas y cada estado (se salta si falta npm install)
+node lighthouse.mjs                # informe de Lighthouse
+```
+
+Detalles y resultados en `herramientas/LEEME.md`.
+
+## Mover bloques con el teclado
+
+En modo edición, con el foco en la cabecera de un grupo o widget (Tab): flechas = mover una celda; Mayús + flechas = ancho (y alto en widgets); Alt + ←/→ = pasar un widget al otro panel. Cada pulsación se anuncia y se deshace con Ctrl+Z.
+
 ## Estructura
 
 | Archivo | Qué hace |
