@@ -2,7 +2,7 @@
 import { $, $$, crear, direccion, svg } from './util.js';
 import { hayChrome } from './almacen.js';
 import { COLUMNAS, datos, gruposDe } from './datos.js';
-import { REJILLAS, alto, bloque, bloquesDe, panelDe, rejillaActiva, solapan, visible } from './rejilla.js';
+import { REJILLAS, alto, bloque, bloquesDe, iconosPorFila, panelDe, rejillaActiva, solapan, visible } from './rejilla.js';
 import { caja } from './buscador.js';
 import { editando, guardarYPintar } from './edicion.js';
 import { pintarWidget } from './widgets.js';
@@ -142,7 +142,8 @@ export function pintarGrupoLocal(g) {
   cab.append(...botonesGrupo(), botonPlegar(g.plegado));
 
   const numeros = new Map(enlacesDeAtajo().map(({ enlace }, i) => [enlace.id, i + 1]));
-  const lista = crear('div', 'enlaces');
+  const lista = crear('div', `enlaces vista-${g.vista}`);
+  lista.style.setProperty('--columnas-iconos', String(iconosPorFila(g.pos.w)));
   for (const e of g.enlaces) {
     const a = crear('a', 'fila enlace');
     a.href = e.url;

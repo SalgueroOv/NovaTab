@@ -100,5 +100,74 @@ export default {
     igual(grupoEn(await pg.datos(), 'Nuevo').vista, 'lista', 'grupo creado a mano');
     const importados = await pg.ev(`import('/js/importar.js').then(m => m.gruposDeCarpetas([{ id: 'c', nombre: 'Casa', enlaces: [{ nombre: 'a', url: 'http://192.168.9.9/' }] }], new Set(['c']), new Set()).grupos.map(g => g.vista))`);
     igual(importados, ['lista'], 'grupos de Importar marcadores');
+
+    // ---- Dibujo de las vistas ----
+    const grupoDe = nombre => `[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === '${nombre}')`;
+    const desborda = (pg, nombre) => pg.ev(`(() => { const g = ${grupoDe(nombre)}; return g.scrollHeight > g.clientHeight + 1 || [...g.querySelectorAll('.fila')].some(f => f.scrollWidth > f.clientWidth + 1); })()`);
+
+    // (g) Con 7 enlaces ninguna vista desborda su recuadro, ni con la densidad compacta.
+    for (const [vista, densidad] of [['lista', 'comoda'], ['compacta', 'comoda'], ['iconos', 'comoda'], ['lista', 'compacta'], ['compacta', 'compacta'], ['iconos', 'compacta']]) {
+      pg = await abrir({ datos: conGrupos({ n: 7, vista }), guardados: { opciones: { apariencia: { densidad } } } });
+      await pg.esperar(400);
+      igual(await desborda(pg, 'Grande'), false, `la vista ${vista} (densidad ${densidad}) cabe en su recuadro`);
+    }
+
+    // (h) Columnas: compacta 2; iconos 3 con w6 y 6 con w12; sin IP.
+    const lefts = pg => pg.ev(`[...${grupoDe('Grande')}.querySelectorAll('.fila')].map(f => Math.round(f.getBoundingClientRect().left))`);
+    pg = await abrir({ datos: conGrupos({ n: 7, vista: 'compacta' }) });
+    await pg.esperar(400);
+    let xs = await lefts(pg);
+    afirmar(xs[0] !== xs[1] && xs[2] === xs[0], 'compacta: dos columnas');
+    igual(await pg.ev(`getComputedStyle(${grupoDe('Grande')}.querySelector('.dir')).display`), 'none', 'compacta sin IP');
+    pg = await abrir({ datos: conGrupos({ n: 7, vista: 'iconos', w: 6 }) });
+    await pg.esperar(400);
+    xs = await lefts(pg);
+    afirmar(new Set(xs.slice(0, 3)).size === 3 && xs[3] === xs[0], 'iconos con w6: tres columnas');
+    igual(await pg.ev(`getComputedStyle(${grupoDe('Grande')}.querySelector('.dir')).display`), 'none', 'iconos sin IP');
+    pg = await abrir({ datos: conGrupos({ n: 7, vista: 'iconos', w: 12 }) });
+    await pg.esperar(400);
+    xs = await lefts(pg);
+    afirmar(new Set(xs.slice(0, 6)).size === 6 && xs[6] === xs[0], 'iconos con w12: seis columnas');
+
+    // (i) Un nombre larguísimo no desborda.
+    for (const vista of ['iconos', 'compacta']) {
+      const largo = conGrupos({ n: 4, vista });
+      largo.grupos[0].enlaces[0].nombre = 'N'.repeat(120);
+      pg = await abrir({ datos: largo });
+      await pg.esperar(400);
+      igual(await desborda(pg, 'Grande'), false, `un nombre de 120 caracteres no desborda en ${vista}`);
+    }
+
+    // (j) title con la dirección completa, y la cifra de Alt+número en las tres vistas.
+    for (const vista of ['lista', 'compacta', 'iconos']) {
+      pg = await abrir({ datos: conGrupos({ n: 4, vista }) });
+      await pg.esperar(400);
+      igual(await pg.ev(`${grupoDe('Grande')}.querySelector('.fila').title`), 'http://192.168.1.10/', `title en ${vista}`);
+      igual(await pg.ev(`${grupoDe('Grande')}.querySelector('.atajo-num')?.textContent`), '1', `cifra de Alt+1 en ${vista}`);
+    }
+
+    // (k) En modo edición, borrar y arrastrar enlaces funcionan en iconos y compacta.
+    for (const vista of ['iconos', 'compacta']) {
+      pg = await abrir({ datos: conGrupos({ n: 5, vista, filaDebajo: 12 }) });
+      await pg.esperar(400);
+      await pg.ev(`window.confirm = () => true`);
+      await pg.clic('#btn-editar');
+      await pg.ev(`${grupoDe('Grande')}.querySelector('.fila .borrar').click()`);
+      await pg.esperar(400);
+      igual(grupoEn(await pg.datos(), 'Grande').enlaces.length, 4, `borrar un enlace en ${vista}`);
+      // Arrastrar el primer enlace de Grande a Debajo (eventos de arrastre sintéticos).
+      await pg.ev(`(() => {
+        const origen = ${grupoDe('Grande')}.querySelector('.fila');
+        const destino = ${grupoDe('Debajo')}.querySelector('.fila');
+        const dt = new DataTransfer();
+        origen.dispatchEvent(new DragEvent('dragstart', { bubbles: true, dataTransfer: dt }));
+        const r = destino.getBoundingClientRect();
+        destino.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, clientX: r.right - 2, clientY: r.bottom - 2, dataTransfer: dt }));
+        origen.dispatchEvent(new DragEvent('dragend', { bubbles: true, dataTransfer: dt }));
+      })()`);
+      await pg.esperar(500);
+      const dd = await pg.datos();
+      igual([grupoEn(dd, 'Grande').enlaces.length, grupoEn(dd, 'Debajo').enlaces.length], [3, 3], `arrastrar un enlace de grupo en ${vista}`);
+    }
   },
 };

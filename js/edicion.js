@@ -467,7 +467,9 @@ pagina.addEventListener('dragover', ev => {
   const sobre = ev.target.closest('.enlace');
   if (sobre && sobre !== arrastre.el) {
     const r = sobre.getBoundingClientRect();
-    const antes = arrastre.horizontal ? ev.clientX < r.left + r.width / 2 : ev.clientY < r.top + r.height / 2;
+    // En las vistas de iconos y compacta los enlaces van en filas de varias columnas: se compara por la horizontal.
+    const enRejilla = lista.classList.contains('vista-iconos') || lista.classList.contains('vista-compacta');
+    const antes = arrastre.horizontal || enRejilla ? ev.clientX < r.left + r.width / 2 : ev.clientY < r.top + r.height / 2;
     lista.insertBefore(arrastre.el, antes ? sobre : sobre.nextSibling);
   } else if (!sobre && arrastre.el.parentNode !== lista) {
     lista.insertBefore(arrastre.el, lista.querySelector('.anadir'));
