@@ -37,7 +37,7 @@
       <header class="derecha-cab">
         <h1 id="t-local" class="titulo-editable" data-titulo="local" spellcheck="false">Red local</h1>
         <div class="selector-perfil">
-          <button class="boton-texto" type="button" id="btn-perfil" aria-haspopup="menu" aria-expanded="false" aria-label="Perfil"></button>
+          <button class="boton-texto" type="button" id="btn-perfil" aria-haspopup="menu" aria-expanded="false"></button>
           <div class="menu-perfiles" id="menu-perfiles" role="menu" aria-label="Perfiles" hidden></div>
         </div>
         <span class="etiqueta-zona mono" id="resumen-local"></span>
@@ -52,6 +52,7 @@
         </div>
       </header>
       <p class="ayuda solo-edicion">Arrastra un grupo o widget por su título para colocarlo; el borde derecho cambia su ancho y la esquina de un widget, su tamaño. Clic en un enlace para editarlo y en el título de un panel para renombrarlo.</p>
+      <h2 class="solo-lectores">Tus servicios</h2>
       <div class="rejilla" id="rejilla" data-panel="der" style="--columnas: 12"></div>
       <p class="vacio" id="vacio-local" hidden>No hay grupos locales. Pulsa el lápiz y «Añadir grupo».</p>
     </section>
@@ -224,7 +225,7 @@
 
   <dialog id="paleta" aria-label="Paleta de comandos">
     <input id="paleta-texto" type="text" placeholder="Escribe un comando o un enlace…" aria-label="Comando" autocomplete="off" spellcheck="false">
-    <ul id="paleta-lista" role="listbox"></ul>
+    <ul id="paleta-lista" role="listbox" aria-label="Resultados" tabindex="0"></ul>
   </dialog>
 
   <dialog id="dlg-marcadores">

@@ -20,6 +20,8 @@
   color-scheme: light;
   --texto: #1f1f1f;
   --texto-2: #5f6368;
+  --peligro: #c0213c;
+  --peligro-fondo: #c0213c;
   --superficie: #ffffff;
   --superficie-2: #f1f3f4;
   --hover: rgba(0, 0, 0, .05);
@@ -41,7 +43,9 @@ body.esquinas-redondo { --radio-bloque: 24px; --radio-widget: 24px; --radio-menu
 [data-modo="oscuro"] {
   color-scheme: dark;
   --texto: #e8eaed;
-  --texto-2: #9aa0a6;
+  --texto-2: #b0b6bc;
+  --peligro: #ff8da0;
+  --peligro-fondo: #c0213c;
   --superficie: #2a2d33;
   --superficie-2: #363a41;
   --hover: rgba(255, 255, 255, .06);
@@ -252,11 +256,11 @@ button { font: inherit; color: inherit; }
   font: inherit;
   font-size: 13px;
 }
-.lista-atajos input[aria-invalid="true"] { border-color: #e5566f; }
+.lista-atajos input[aria-invalid="true"] { border-color: var(--peligro); }
 .lista-atajos { margin: 0 0 10px; padding: 0; list-style: none; }
 .lista-atajos li { display: grid; grid-template-columns: 64px 1fr 28px; gap: 6px; margin-bottom: 8px; }
 .lista-atajos li [data-campo="url"] { grid-column: 1 / 3; }
-.lista-atajos .ayuda-fila { grid-column: 1 / -1; margin: 0; color: #e5566f; font-size: 12px; }
+.lista-atajos .ayuda-fila { grid-column: 1 / -1; margin: 0; color: var(--peligro); font-size: 12px; }
 .lista-atajos .borrar-atajo { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--texto-2); cursor: pointer; }
 .lista-atajos .borrar-atajo:hover { background: var(--hover); color: var(--texto); }
 .acciones-atajos { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -286,8 +290,8 @@ button { font: inherit; color: inherit; }
 .lista-copias .vacio-copias { color: var(--texto-2); }
 .opcion + .opcion { margin-top: 10px; }
 #btn-restablecer { width: 100%; margin-top: 18px; }
-.boton-texto.peligro { border-color: #e5566f; color: #e5566f; }
-dialog .primario.peligro { border-color: #e5566f; background: #e5566f; color: #ffffff; }
+.boton-texto.peligro { border-color: var(--peligro); color: var(--peligro); }
+dialog .primario.peligro { border-color: var(--peligro-fondo); background: var(--peligro-fondo); color: #ffffff; }
 dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
 .dlg-aviso { margin: -8px 0 16px; color: var(--texto-2); font-size: 13px; }
 .opcion input { width: 16px; height: 16px; margin: 0; accent-color: var(--acento); }
@@ -910,6 +914,7 @@ dialog menu button {
 
 /* Selector de perfiles */
 .selector-perfil { position: relative; min-width: 0; }
+#btn-perfil::after { content: " ▾"; }
 #btn-perfil { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menu-perfiles {
   position: absolute;
@@ -934,6 +939,9 @@ dialog menu button {
 .menu-perfiles [aria-checked="true"] { font-weight: 600; }
 .menu-perfiles [aria-checked="true"]::before { content: "✓ "; color: var(--acento); }
 .menu-perfiles .separador { margin: 4px 0; }
+
+/* Texto solo para lectores de pantalla (títulos que dan estructura sin cambiar el aspecto). */
+.solo-lectores { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ---------- Pantallas estrechas: los grupos se apilan ---------- */
 

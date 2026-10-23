@@ -28,7 +28,7 @@ function pintar() {
   boton.hidden = !perfilesListos();
   const lista = perfilesDeLaLista();
   const act = actual();
-  boton.replaceChildren(crear('span', 'nombre-perfil', act?.nombre ?? ''), ' ▾');
+  boton.replaceChildren(crear('span', 'nombre-perfil', act?.nombre ?? ''));
   boton.title = `Perfil: ${act?.nombre ?? ''}`;
   const filas = lista.map(p => {
     const b = crear('button', null, p.nombre);

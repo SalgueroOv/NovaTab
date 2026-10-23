@@ -36,14 +36,14 @@ export default {
     await pg.esperar(800);
 
     // (a) El botón muestra el perfil activo; el menú lista los dos; elegir el otro cambia la página.
-    igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), 'Principal ▾', 'botón con el perfil activo');
+    igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), 'Principal', 'botón con el perfil activo');
     await abrirMenu(pg);
     igual(await pg.ev(`document.getElementById('btn-perfil').getAttribute('aria-expanded')`), 'true', 'aria-expanded');
     igual(await items(pg), [['Principal', 'true'], ['Casa', 'false']], 'menú con los dos perfiles');
     await pg.ev(`[...document.querySelectorAll('#menu-perfiles [role="menuitemradio"]')][1].click()`);
     await pg.esperar(600);
     igual(await grupos(pg), ['GrupoCasa'], 'la página muestra los grupos del otro perfil');
-    igual(await pg.ev(`[document.documentElement.dataset.tema, document.getElementById('btn-perfil').textContent.trim()]`), ['noche', 'Casa ▾'], 'su tema y el botón');
+    igual(await pg.ev(`[document.documentElement.dataset.tema, document.getElementById('btn-perfil').textContent.trim()]`), ['noche', 'Casa'], 'su tema y el botón');
     afirmar(await pg.ev(`document.getElementById('menu-perfiles').hidden`), 'el menú se cierra al elegir');
 
     // (b) Nuevo perfil, con y sin duplicar; con 8 avisa.
@@ -52,7 +52,7 @@ export default {
     await pg.esperar(300);
     afirmar(await pg.ev(`document.getElementById('dlg-perfil').open`), 'se abre el diálogo de nuevo perfil');
     await dialogo(pg, 'Vacío', false);
-    igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), 'Vacío ▾', 'se cambia al perfil nuevo');
+    igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), 'Vacío', 'se cambia al perfil nuevo');
     afirmar(!(await grupos(pg)).includes('GrupoCasa'), 'el perfil sin duplicar nace con el ejemplo inicial');
     await abrirMenu(pg);
     await pg.ev(`[...document.querySelectorAll('#menu-perfiles [role="menuitemradio"]')][1].click()`);
@@ -77,7 +77,7 @@ export default {
     await pg.esperar(300);
     igual(await pg.ev(`document.querySelector('#dlg-perfil input[name="nombre"]').value`), 'Principal', 'el diálogo parte del nombre actual');
     await dialogo(pg, '<b>Trabajo</b> & más');
-    igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), '<b>Trabajo</b> & más ▾', 'el nombre sale como texto');
+    igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), '<b>Trabajo</b> & más', 'el nombre sale como texto');
     igual(await pg.ev(`document.querySelectorAll('#btn-perfil b, #menu-perfiles b').length`), 0, 'sin HTML interpretado');
     await pg.ev(`window.confirm = () => true`);
     await abrirMenu(pg);
@@ -140,7 +140,7 @@ export default {
     await pg.esperar(400);
     afirmar(await pg.ev(`document.getElementById('dlg-grupo').open`), 'el diálogo abierto sigue abierto');
     await pg.ev(`document.getElementById('dlg-grupo').close()`);
-    igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), 'Renombrado fuera ▾', 'el botón se actualiza');
+    igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), 'Renombrado fuera', 'el botón se actualiza');
     await abrirMenu(pg);
     igual((await items(pg)).map(x => x[0]), ['Renombrado fuera', 'Casa', 'Nuevo fuera'], 'y el menú');
 

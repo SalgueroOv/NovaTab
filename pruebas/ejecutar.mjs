@@ -43,7 +43,13 @@ try {
       return pagina;
     };
     try {
-      await prueba.ejecutar(abrir);
+      const resultado = await prueba.ejecutar(abrir);
+      // Una prueba puede devolver «saltada: motivo» (por ejemplo, si faltan herramientas que no son obligatorias).
+      if (typeof resultado === 'string' && resultado.startsWith('saltada')) {
+        saltadas++;
+        console.log(`- ${prueba.nombre} (${resultado})`);
+        continue;
+      }
       const errores = abiertas.flatMap(a => a.errores);
       if (errores.length) throw new Error(`errores en la consola de la página: ${errores.join(' | ')}`);
       pasadas++;
