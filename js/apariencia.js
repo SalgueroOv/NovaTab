@@ -180,7 +180,7 @@ export function guardarOpciones() {
   guardadoPendiente = false;
   fusionarEco();
   // Lo común (el buscador) va en «opciones»; el resto, con el tema, en el aspecto del perfil activo.
-  const { buscador, ...resto } = opciones;
+  const { buscador, tema, ...resto } = opciones; // «tema» viene del aspecto leído: manda el tema actual
   const comunes = { buscador };
   const aspecto = { tema: temaActual, ...resto };
   recordar(CLAVE_OPCIONES, comunes);
