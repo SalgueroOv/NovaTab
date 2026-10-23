@@ -134,5 +134,29 @@ export default {
     await pg.tecla('z', 'ctrl');
     await pg.esperar(300);
     igual(JSON.stringify(await pg.datos()), tras, 'Ctrl+Z tras restablecer no hace nada');
+
+    // (i) Aviso «Grupo borrado · Deshacer»: solo al borrar un grupo, con botón y 8 s de vida.
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(300);
+    await pg.ev(confirmarTodo);
+    await pg.clic('#btn-editar');
+    await pg.ev(`document.querySelector('#rejilla .grupo .enlace .borrar').click()`);
+    await pg.esperar(300);
+    afirmar(await pg.ev(`document.getElementById('aviso-accion').hidden`), 'borrar un enlace no muestra el aviso');
+    const antesAlfa = grupo(await pg.datos(), 'Alfa');
+    await pg.ev(botonDeGrupo('Alfa', 'borrar-grupo'));
+    await pg.esperar(300);
+    igual(await pg.ev(`document.getElementById('aviso-accion').hidden`), false, 'aviso visible');
+    igual(await pg.ev(`document.querySelector('#aviso-accion span').textContent`), 'Grupo borrado', 'texto del aviso');
+    igual(await pg.ev(`document.querySelector('#aviso-accion button').textContent`), 'Deshacer', 'botón del aviso');
+    await pg.clic('#aviso-accion button');
+    await pg.esperar(400);
+    igual(grupo(await pg.datos(), 'Alfa')?.enlaces.length, antesAlfa ? antesAlfa.enlaces.length : -1, 'Alfa recuperado con el botón');
+    afirmar(await pg.ev(`document.getElementById('aviso-accion').hidden`), 'el aviso se oculta tras pulsar');
+    await pg.ev(botonDeGrupo('Beta', 'borrar-grupo'));
+    await pg.esperar(7000);
+    igual(await pg.ev(`document.getElementById('aviso-accion').hidden`), false, 'aviso aún visible a los 7 s');
+    await pg.esperar(1500);
+    igual(await pg.ev(`document.getElementById('aviso-accion').hidden`), true, 'aviso oculto a los 8,5 s');
   },
 };

@@ -702,6 +702,18 @@ dialog menu button {
   transform: translateX(-50%);
 }
 
+.aviso-accion { display: flex; align-items: center; gap: 14px; }
+.aviso-accion button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* ---------- Pantallas estrechas: los grupos se apilan ---------- */
 
 @media (max-width: 1000px) {

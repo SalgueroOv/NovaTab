@@ -1,5 +1,5 @@
 // Modo edición: diálogos, altas y bajas, importar/exportar, restablecer y arrastrar.
-import { $, $$, avisar, crear, limitar, nuevoId, urlSegura } from './util.js';
+import { $, $$, avisar, avisarConAccion, crear, limitar, nuevoId, urlSegura } from './util.js';
 import { borrar, cargarDatos, claves, escribir, guardarDatos } from './almacen.js';
 import { ALTO_MAXIMO, ALTO_MINIMO, ANCHO_MINIMO, CLAVE, COLUMNAS, datos, fusionar, grupo, gruposDe, normalizar, ponerDatos } from './datos.js';
 import { REJILLAS, alto, bloque, colocarSinPosicion, panelDe, rejillaActiva, resolver } from './rejilla.js';
@@ -230,6 +230,7 @@ export async function borrarGrupo(gid) {
   if (!confirm(`¿Borrar el grupo "${g.nombre}"${n ? ` y sus ${n} enlaces` : ''}?`)) return;
   datos.grupos.splice(datos.grupos.indexOf(g), 1);
   await guardarYPintar();
+  avisarConAccion('Grupo borrado', 'Deshacer', deshacerUltimo);
 }
 
 document.querySelector('.pagina').addEventListener('click', ev => {
