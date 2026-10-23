@@ -35,3 +35,11 @@ Instala `axe-core` y `lighthouse` con versiones exactas (ver `package.json`).
 - La lista de resultados de la paleta tiene nombre y es alcanzable con el teclado.
 - Un título oculto («Tus servicios») evita saltar de `h1` a `h3`.
 - Al cambiar de tema hay transiciones de color de 0,3 s: la prueba espera a que acaben antes de medir el contraste.
+
+## Pulido (pruebas/pulido.prueba.mjs)
+
+- Con «reducir movimiento» del sistema no queda ninguna transición ni animación, ni desplazamiento suave.
+- Las filas de opciones del panel miden al menos 24 px de alto.
+- Foco visible en el campo del buscador (anillo en su caja), en las notas y en los accesos directos.
+- Sin desplazamiento horizontal a 400, 800 y 1440 px, y los diálogos, el panel y el menú caben en 400×700.
+- El separador de paneles (8 px) queda fuera de la medida de 24 px: es un asa de arrastre con equivalente de teclado.

@@ -284,7 +284,7 @@ button { font: inherit; color: inherit; }
 .acento input[type="color"] { width: 36px; height: 28px; padding: 0; border: 1px solid var(--borde-fuerte); border-radius: 8px; background: none; cursor: pointer; }
 .panel-tema h2 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
 .panel-tema .opciones-titulo { margin-top: 18px; }
-.opcion { display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; }
+.opcion { display: flex; align-items: center; gap: 10px; min-height: 24px; font-size: 13px; cursor: pointer; }
 .lista-copias { margin: 0 0 12px; padding: 0; list-style: none; font-size: 13px; }
 .lista-copias li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; }
 .lista-copias .vacio-copias { color: var(--texto-2); }
@@ -332,6 +332,7 @@ dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
   box-shadow: var(--sombra);
 }
 .buscador:hover .caja, .buscador:focus-within .caja { box-shadow: var(--sombra-fuerte); }
+.buscador:focus-within .caja { outline: 2px solid var(--acento); outline-offset: 2px; }
 .fila-input { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 8px 0 18px; }
 #ico-buscar { display: flex; color: var(--texto-2); }
 .fila-input input {
@@ -422,7 +423,7 @@ dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
   text-decoration: none;
   transition: background-color .15s;
 }
-.atajo:hover, .atajo:focus-visible { background: var(--hover); outline: none; }
+.atajo:hover, .atajo:focus-visible { background: var(--hover); }
 .atajo .nombre { max-width: 100%; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .atajo.anadir { border: 0; background: transparent; cursor: pointer; }
 .atajo.anadir .icono { border: 1px dashed var(--borde-fuerte); color: var(--texto-2); font-size: 22px; }
@@ -690,6 +691,7 @@ body:not(.editando) .widget-iframe:not(.plegado) .widget-cab { display: none; }
   color: var(--texto);
   font: 14px/1.55 "Public Sans", system-ui, sans-serif;
 }
+.notas-texto:focus-visible { outline: 2px solid var(--acento); outline-offset: -2px; border-radius: 6px; }
 .notas-texto::placeholder { color: var(--texto-2); }
 
 /* Campo y selector de iconos */
@@ -957,5 +959,5 @@ dialog menu button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; }
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
