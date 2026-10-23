@@ -73,5 +73,13 @@ export default {
     await pg.esperar(400);
     igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla .grupo .fila .atajo-num')).opacity`), '0.7', 'cifra visible con el ratón encima');
     afirmar(await pg.ev(`!!document.querySelector('#rejilla .grupo .fila .atajo-num[aria-hidden="true"]')`), 'la cifra es decorativa para lectores de pantalla');
+
+    // (g) Con la red local oculta, Alt+número no abre enlaces que no se ven.
+    pg = await abrir({ guardados: { opciones: { ocultos: { izq: false, der: true } } } });
+    await pg.esperar(300);
+    await pg.ev(intercepta);
+    igual(await pg.ev(`${modulo}.then(m => m.enlacesDeAtajo().length)`), 0, 'ningún enlace con la red local oculta');
+    igual(await pulsar(pg, 1), false, 'Alt+1 no cancela la tecla');
+    igual(await pg.ev(`window.__ir`), [], 'Alt+1 no abre nada');
   },
 };

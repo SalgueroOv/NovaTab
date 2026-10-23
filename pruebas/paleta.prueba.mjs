@@ -131,5 +131,21 @@ export default {
     igual((await titulos(pg))[0], 'Abrir: <img src=x onerror="window.__xss=1"> & <b>x</b>', 'texto literal');
     igual(await pg.ev(`window.__xss ?? null`), null, 'no se ejecuta nada');
     igual(await pg.ev(`document.querySelectorAll('#paleta-lista img, #paleta-lista b').length`), 0, 'ningún elemento HTML dentro de la lista');
+
+    // (i) Revisión final: en modo reunión «Nuevo enlace…» no ofrece grupos privados.
+    pg = await abrir({ guardados: { opciones: { reunion: true } } });
+    await pg.esperar(300);
+    await abrirPaleta(pg);
+    await escribirYEnter(pg, 'nuevo enlace');
+    const grupos = await titulos(pg);
+    afirmar(grupos.includes('Grupo: Alfa') && !grupos.includes('Grupo: Gamma') && !grupos.includes('Grupo: Ocio'), `solo grupos visibles (hay ${grupos})`);
+
+    // (j) Si las opciones cambian desde fuera con la paleta abierta, se cierra.
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(300);
+    await abrirPaleta(pg);
+    await pg.ev(`__chromeFalso.remoto('sync', 'opciones', { reunion: true })`);
+    await pg.esperar(300);
+    afirmar(!(await pg.ev(`document.getElementById('paleta').open`)), 'la paleta se cierra si cambian las opciones');
   },
 };

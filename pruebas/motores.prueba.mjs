@@ -215,5 +215,56 @@ export default {
     await pg.esperar(900);
     f = await filas(pg);
     afirmar(!f.some(x => x[1] === 'Sugerencia' && x[0].startsWith('gas')), 'la respuesta tardía de «ga» no se pinta');
+
+    // ---- Revisión final ----
+    // (p) Borrar un atajo no cierra el panel.
+    pg = await abrir();
+    await pg.esperar(300);
+    await abrirPestana();
+    await pg.clic('#lista-atajos li:nth-child(2) [data-accion="borrar"]');
+    await pg.esperar(100);
+    afirmar(!(await pg.ev(`document.getElementById('panel-tema').hidden`)), 'el panel sigue abierto tras borrar un atajo');
+
+    // (q) %s no puede estar en el host, y la dirección tiene un largo máximo.
+    const validos = await pg.ev(`${modulo}.then(m => ['https://bank.com%s', 'https://%s.example.com/', 'https://x.com/?q=%s', 'https://x.com/' + 'a'.repeat(300) + '?q=%s'].map(u => !!m.atajoValido({ clave: 'a', nombre: 'a', url: u })))`);
+    igual(validos, [false, false, true, false], 'direcciones con %s en el host o demasiado largas');
+    igual(await pg.ev(`document.querySelector('#lista-atajos [data-campo="url"]').maxLength`), 300, 'el campo de dirección limita el largo');
+
+    // (r) Más de 20 atajos: del 21 en adelante se marca el error y no se pierden en silencio.
+    pg = await abrir();
+    await pg.esperar(300);
+    await abrirPestana();
+    for (let i = 1; i <= 16; i++) {
+      await pg.clic('#atajo-nuevo');
+      await escribirCampo('#lista-atajos li:last-child [data-campo="clave"]', `k${i}`);
+      await escribirCampo('#lista-atajos li:last-child [data-campo="nombre"]', `K${i}`);
+      await escribirCampo('#lista-atajos li:last-child [data-campo="url"]', `https://k${i}.example.com/?q=%s`);
+    }
+    await pg.esperar(450);
+    igual((await guardado()).atajos.length, 20, 'veinte atajos guardados');
+    afirmar(!(await pg.ev(`document.querySelector('#lista-atajos li:last-child [data-campo="clave"]').getAttribute('aria-invalid')`) === 'true'), 'el atajo número 20 es válido');
+    await pg.clic('#atajo-nuevo');
+    await escribirCampo('#lista-atajos li:last-child [data-campo="clave"]', 'k17');
+    await escribirCampo('#lista-atajos li:last-child [data-campo="nombre"]', 'K17');
+    await escribirCampo('#lista-atajos li:last-child [data-campo="url"]', 'https://k17.example.com/?q=%s');
+    await pg.esperar(450);
+    igual(await pg.ev(`document.querySelector('#lista-atajos li:last-child [data-campo="clave"]').getAttribute('aria-invalid')`), 'true', 'el atajo 21 se marca como inválido');
+    afirmar((await pg.ev(`document.querySelector('#lista-atajos li:last-child .ayuda-fila').textContent`)).includes('20'), 'el texto dice el máximo');
+
+    // (s) Un cambio de opciones de otra pestaña no pisa una edición pendiente de guardar.
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(300);
+    await abrirPestana();
+    await escribirCampo('#lista-atajos li:nth-child(1) [data-campo="clave"]', 'zz');
+    await pg.ev(`__chromeFalso.remoto('sync', 'opciones', { buscador: { motor: 'bing' } })`);
+    await pg.esperar(700);
+    igual((await pg.ev(`JSON.parse(localStorage.getItem('chrome.sync/opciones')).buscador.atajos[0].clave`)), 'zz', 'mi edición pendiente se guarda');
+
+    // (t) Sin permiso de sugerencias, la casilla no sale marcada aunque el ajuste esté guardado.
+    pg = await abrir({ chrome: {}, sugerenciasGoogle: 'normal', permisoSugerencias: 'denegado', guardados: activas });
+    await pg.esperar(400);
+    await abrirPestana();
+    await pg.esperar(200);
+    igual(await pg.ev(`document.getElementById('opt-sugerencias').checked`), false, 'casilla desmarcada sin permiso');
   },
 };

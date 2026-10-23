@@ -1,7 +1,7 @@
 // La pestaña «Buscador» del panel de personalizar: motor y atajos con «!».
 import { $, avisar, crear } from './util.js';
 import { opciones, cambiarBuscador } from './apariencia.js';
-import { ATAJOS, MOTORES, ORIGEN_SUGERENCIAS, atajoValido } from './motores.js';
+import { ATAJOS, MAX_ATAJOS, MAX_URL, MOTORES, ORIGEN_SUGERENCIAS, atajoValido } from './motores.js';
 
 const lista = $('#lista-atajos');
 
@@ -32,18 +32,23 @@ function fila(a) {
   borrar.dataset.accion = 'borrar';
   borrar.title = 'Borrar atajo';
   borrar.setAttribute('aria-label', 'Borrar atajo');
-  borrar.addEventListener('click', () => {
+  borrar.addEventListener('click', ev => {
+    ev.stopPropagation(); // la fila sale del DOM: sin esto, el clic parecería venir de fuera del panel y lo cerraría
     li.remove();
     guardarFilas();
   });
-  li.append(campo('clave', a.clave, 'clave', 10), campo('nombre', a.nombre, 'Nombre', 30), borrar, campo('url', a.url, 'https://…?q=%s'));
+  li.append(campo('clave', a.clave, 'clave', 10), campo('nombre', a.nombre, 'Nombre', 30), borrar, campo('url', a.url, 'https://…?q=%s', MAX_URL));
   return li;
 }
 
 // Pinta el motor y los atajos guardados (los borradores sin terminar se pierden al volver a pintar).
 function pintar() {
   $('#motor-buscador').value = opciones.buscador.motor;
-  $('#opt-sugerencias').checked = opciones.buscador.sugerencias;
+  // La casilla solo sale marcada si además sigue concedido el permiso (se puede retirar en chrome://extensions).
+  $('#opt-sugerencias').checked = false;
+  if (opciones.buscador.sugerencias && typeof chrome !== 'undefined' && chrome.permissions) {
+    chrome.permissions.contains({ origins: [ORIGEN_SUGERENCIAS] }, ok => { $('#opt-sugerencias').checked = !!ok && opciones.buscador.sugerencias; });
+  }
   lista.replaceChildren(...opciones.buscador.atajos.map(fila));
 }
 
@@ -58,6 +63,7 @@ function guardarFilas(diferir = false) {
     let error = '';
     if (!a) error = 'Clave de 1 a 10 letras o números, un nombre, y una dirección http o https con un solo %s';
     else if (vistas.has(a.clave)) error = 'Esa clave ya la usa otro atajo';
+    else if (validas.length >= MAX_ATAJOS) error = `Máximo ${MAX_ATAJOS} atajos`;
     else {
       vistas.add(a.clave);
       validas.push(a);

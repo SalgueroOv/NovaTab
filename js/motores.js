@@ -22,18 +22,22 @@ export const ORIGEN_SUGERENCIAS = 'https://suggestqueries.google.com/*';
 export const URL_SUGERENCIAS = 'https://suggestqueries.google.com/complete/search?client=firefox&q=';
 
 export const BUSCADOR = { motor: 'google', atajos: ATAJOS, sugerencias: false };
-const MAX_ATAJOS = 20;
+export const MAX_ATAJOS = 20;
+export const MAX_URL = 300;
 
 const cuenta = (texto, parte) => texto.split(parte).length - 1;
 
-// Un atajo bien formado, o null: clave de 1 a 10 caracteres a-z0-9, nombre y dirección http(s) con un solo «%s».
+// Un atajo bien formado, o null: clave de 1 a 10 caracteres a-z0-9, nombre y dirección http(s) de hasta 300 caracteres
+// con un solo «%s» (que no esté en el sitio).
 export function atajoValido(a) {
   if (!a || typeof a !== 'object') return null;
   const clave = typeof a.clave === 'string' ? a.clave.toLowerCase() : '';
   const nombre = typeof a.nombre === 'string' ? a.nombre.trim().slice(0, 30) : '';
   const url = typeof a.url === 'string' ? a.url.trim() : '';
   if (!/^[a-z0-9]{1,10}$/.test(clave) || !nombre) return null;
-  if (cuenta(url, '%s') !== 1 || !urlSegura(url.replace('%s', 'x'))) return null;
+  if (url.length > MAX_URL || cuenta(url, '%s') !== 1 || !urlSegura(url.replace('%s', 'x'))) return null;
+  // El texto buscado solo puede ir después del sitio: «https://banco.com%s» dejaría cambiar el dominio.
+  if (new URL(url.replace('%s', 'x')).host !== new URL(url.replace('%s', 'y')).host) return null;
   return { clave, nombre, url };
 }
 

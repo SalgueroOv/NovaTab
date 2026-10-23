@@ -115,6 +115,9 @@ export function ponerApariencia(a) {
 }
 
 // Guarda las opciones; lo recuerda antes para reconocer su eco como propio (ver almacen.recordar).
+// Hay un cambio aplicado que aún no se guardó (controles que se arrastran): un eco ajeno no debe pisarlo.
+export const hayGuardadoPendiente = () => guardadoPendiente;
+
 export function guardarOpciones() {
   clearTimeout(temporizadorGuardado);
   guardadoPendiente = false;

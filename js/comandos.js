@@ -4,7 +4,8 @@ import { enlacesDeAtajo, ir } from './atajos.js';
 import { arrastre, editando, nuevoEnlace, nuevoGrupo, ponerEdicion } from './edicion.js';
 import { datos } from './datos.js';
 import { visible } from './rejilla.js';
-import { TEMAS, muestras, opciones } from './apariencia.js';
+import { CLAVE_OPCIONES, TEMAS, muestras, opciones } from './apariencia.js';
+import { alCambiar } from './almacen.js';
 import { sinTildes } from './iconos.js';
 import { nuevoWidget } from './widgets.js';
 
@@ -37,7 +38,7 @@ export function comandos() {
     {
       id: 'enlace',
       titulo: 'Nuevo enlace…',
-      siguiente: () => datos.grupos.map(g => ({ id: `en:${g.id}`, titulo: `Grupo: ${g.nombre}`, ejecutar: () => { ponerEdicion(true); nuevoEnlace(g.id); } })),
+      siguiente: () => datos.grupos.filter(visible).map(g => ({ id: `en:${g.id}`, titulo: `Grupo: ${g.nombre}`, ejecutar: () => { ponerEdicion(true); nuevoEnlace(g.id); } })),
     },
     { id: 'widget', titulo: 'Nuevo widget', ejecutar: () => { ponerEdicion(true); nuevoWidget(); } },
     ...[['izq', 'izquierdo'], ['der', 'derecho']].map(([panel, nombre]) => ({
@@ -132,6 +133,8 @@ entrada.addEventListener('keydown', ev => {
     if (visibles[marcado]) ejecutarComando(visibles[marcado], ev.ctrlKey || ev.metaKey);
   }
 });
+// Si las opciones cambian desde otra pestaña (por ejemplo el modo reunión), la lista ya no vale: se cierra.
+alCambiar(cambios => { if (paleta.open && CLAVE_OPCIONES in cambios) cerrarPaleta(); });
 // Clic fuera de la paleta (en el fondo oscuro): cierra.
 paleta.addEventListener('click', ev => { if (ev.target === paleta) cerrarPaleta(); });
 paleta.addEventListener('cancel', () => { if (focoAnterior?.isConnected) setTimeout(() => focoAnterior.focus()); });
