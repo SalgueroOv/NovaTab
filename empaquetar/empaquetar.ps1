@@ -26,7 +26,7 @@ foreach ($archivo in 'newtab.html', 'style.css', 'background.js', 'datos-defecto
     Copy-Item (Join-Path $raiz $archivo) $carpeta
 }
 New-Item -ItemType Directory -Force (Join-Path $carpeta 'js') | Out-Null
-Copy-Item (Join-Path $raiz 'js\*.js') (Join-Path $carpeta 'js')
+Copy-Item (Join-Path $raiz 'js\*') (Join-Path $carpeta 'js') -Recurse
 Copy-Item (Join-Path $raiz 'fuentes\*') (Join-Path $carpeta 'fuentes')
 Copy-Item (Join-Path $aqui 'LEEME.txt') $carpeta
 
