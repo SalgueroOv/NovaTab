@@ -25,12 +25,12 @@ let deFuera = false; // llegó algo de otra pestaña mientras se editaba
 let cola = Promise.resolve();
 const enCola = tarea => (cola = cola.catch(() => {}).then(tarea));
 
-const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!document.activeElement?.matches('[data-titulo]');
+export const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!document.activeElement?.matches('[data-titulo]');
 
 // Deshacer y rehacer: cada foto es { datos, notas } (notas por id de widget). La foto del estado anterior
 // se empuja dentro de guardar(), por donde pasa todo cambio de datos.
 const historial = crearHistorial(20);
-const limpiarHistorial = () => { historial.limpiar(); ocultarAvisoAccion(); };
+export const limpiarHistorial = () => { historial.limpiar(); ocultarAvisoAccion(); };
 let notasUltimas = {}; // las notas tal como estaban en la última carga o guardado, y lo escrito desde entonces
 let tareasUltimas = {}; // lo mismo con las listas de tareas
 

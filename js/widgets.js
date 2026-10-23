@@ -279,6 +279,9 @@ export function borrarNota(id) {
   borrar([claveNota(id)]).catch(() => { /* la nota huérfana se limpiará al restablecer */ });
 }
 
+// Al cambiar de perfil (u otra cosa que lo pida) también se guarda lo pendiente.
+document.addEventListener('novatab:volcar', () => [...notasSinGuardar.values()].forEach(guardarNota => guardarNota()));
+
 // Al salir de la pestaña (cambiar a otra, cerrarla, minimizar) no se esperan los 2 s.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') [...notasSinGuardar.values()].forEach(guardarNota => guardarNota());

@@ -133,6 +133,8 @@ alCambiar(cambios => {
   }
 });
 
+document.addEventListener('novatab:volcar', () => [...pendientes.keys()].forEach(volcar));
+
 // Al salir de la pestaña no se esperan los 400 ms.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') [...pendientes.keys()].forEach(volcar);

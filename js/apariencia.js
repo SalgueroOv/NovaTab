@@ -216,6 +216,7 @@ export function cambiarBuscador(parcial, diferir = false) {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && guardadoPendiente) guardarOpciones();
 });
+document.addEventListener('novatab:volcar', () => { if (guardadoPendiente) guardarOpciones(); });
 
 export function ponerOpciones(o) {
   const nuevas = o && typeof o === 'object' ? o : {};

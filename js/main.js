@@ -21,6 +21,7 @@ import './widgets/servicios.js';
 import './iconos.js';
 import { hacerCopiaDelDia } from './copias.js';
 import './importar.js';
+import './perfiles-ops.js';
 
 // Cambios hechos en otra pestaña u otro equipo sincronizado.
 alCambiar(cambios => {

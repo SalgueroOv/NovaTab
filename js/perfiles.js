@@ -124,6 +124,49 @@ export async function migrar() {
   }
 }
 
+// ---------- Operaciones sobre el registro ----------
+
+export function nombreValido(nombre) {
+  const n = String(nombre ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_NOMBRE);
+  if (!n) throw new Error('Nombre no válido');
+  return n;
+}
+
+// Si ya hay un perfil con ese nombre se añade « (2)», « (3)»…
+export function nombreUnico(nombre, ignorar = null) {
+  const base = nombreValido(nombre);
+  const usados = new Set(perfilesDeLaLista().filter(p => p.id !== ignorar).map(p => p.nombre));
+  let candidato = base;
+  for (let i = 2; usados.has(candidato); i++) candidato = `${base.slice(0, MAX_NOMBRE - ` (${i})`.length)} (${i})`;
+  return candidato;
+}
+
+export const idDePerfilNuevo = () => `p${Math.random().toString(36).slice(2, 10)}`;
+
+export async function anadirPerfil(perfil) {
+  if (perfilesDeLaLista().length >= MAX_PERFILES) throw new Error(`Máximo ${MAX_PERFILES} perfiles`);
+  await guardarRegistro({ version: 5, lista: [...perfilesDeLaLista(), perfil] });
+}
+
+export async function renombrarPerfil(id, nombre) {
+  const n = nombreUnico(nombre, id);
+  await guardarRegistro({ version: 5, lista: perfilesDeLaLista().map(p => (p.id === id ? { ...p, nombre: n } : p)) });
+}
+
+export async function quitarPerfil(id) {
+  const lista = perfilesDeLaLista().filter(p => p.id !== id);
+  if (!lista.length) throw new Error('No se puede borrar el único perfil');
+  await guardarRegistro({ version: 5, lista });
+}
+
+// Un cambio del registro llegado de otro equipo.
+export function recibirRegistro(nuevo) {
+  const r = normalizarRegistro(nuevo);
+  if (!r) return false;
+  registro = r;
+  return true;
+}
+
 // Con la migración fallida: lo antiguo, para mostrarlo sin guardar.
 export async function leerLegado() {
   return { datos: await leer('datos'), aspecto: aspectoDeLegado(await leer('tema'), await leer('opciones')), opciones: await leer('opciones') };
