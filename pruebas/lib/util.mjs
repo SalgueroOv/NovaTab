@@ -29,13 +29,13 @@ export function igual(real, esperado, mensaje) {
 }
 
 // La página se sirve por HTTP desde urlBase (ver servidor.mjs).
-// datos: null deja los datos por defecto de la página. topSites simula chrome.topSites.get. marcadores simula chrome.bookmarks y permisoMarcadores chrome.permissions.
+// datos: null deja los datos por defecto de la página. topSites simula chrome.topSites.get. sugerenciasGoogle simula las sugerencias de Google. marcadores simula chrome.bookmarks y permisoMarcadores chrome.permissions.
 // chrome: { cuotaPorClave, escriturasPorMinuto } simula chrome.storage (ver chrome-falso.js); los datos
 // de prueba se guardan entonces en su almacén de sincronización en lugar de en localStorage.
 export function crearAbrir(navegador, urlBase) {
   const URL_PAGINA = `${urlBase}/newtab.html`;
   // guardados: entradas extra de localStorage (o del simulador, «chrome.sync/clave») antes de cargar.
-  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', chrome = null, guardados = {} } = {}) {
+  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', sugerenciasGoogle = null, permisoSugerencias = 'concedido', chrome = null, guardados = {} } = {}) {
     const p = await navegador.newPage({ width: ancho, height: alto });
     const errores = [];
     await p.send('Runtime.enable');
@@ -62,6 +62,32 @@ ${CHROME_FALSO}`,
             permissions: {
               contains: (_p, cb) => setTimeout(() => cb(permiso === 'concedido'), 0),
               request: (_p, cb) => setTimeout(() => { window.__solicitudes = (window.__solicitudes || 0) + 1; if (permiso === 'pendiente') permiso = 'concedido'; cb(permiso === 'concedido'); }, 0),
+            },
+          });
+        })()`,
+      });
+    }
+    if (sugerenciasGoogle) {
+      // fetch a suggestqueries.google.com simulado ('normal', 'falla' o 'mala') y chrome.permissions para su origen.
+      await p.send('Page.addScriptToEvaluateOnNewDocument', {
+        source: `(() => {
+          let permiso = ${JSON.stringify(permisoSugerencias)};
+          window.__sugerencias = [];
+          const original = window.fetch.bind(window);
+          window.fetch = (url, ...resto) => {
+            if (!String(url).startsWith('https://suggestqueries.google.com/')) return original(url, ...resto);
+            const q = decodeURIComponent(new URL(url).searchParams.get('q'));
+            window.__sugerencias.push(q);
+            const modo = ${JSON.stringify(sugerenciasGoogle)};
+            if (modo === 'falla') return Promise.reject(new TypeError('Failed to fetch'));
+            const cuerpo = modo === 'mala' ? { x: 1 } : [q, [q + 's', q + 'itos']];
+            const espera = q === 'ga' ? 400 : 5;
+            return new Promise(r => setTimeout(() => r(new Response(JSON.stringify(cuerpo))), espera));
+          };
+          window.chrome = Object.assign(window.chrome || {}, {
+            permissions: {
+              contains: (_p, cb) => setTimeout(() => cb(permiso === 'concedido'), 0),
+              request: (_p, cb) => setTimeout(() => { if (permiso === 'pendiente') permiso = 'concedido'; cb(permiso === 'concedido'); }, 0),
             },
           });
         })()`,

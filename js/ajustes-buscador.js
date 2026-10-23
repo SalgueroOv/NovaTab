@@ -1,7 +1,7 @@
 // La pestaña «Buscador» del panel de personalizar: motor y atajos con «!».
-import { $, crear } from './util.js';
+import { $, avisar, crear } from './util.js';
 import { opciones, cambiarBuscador } from './apariencia.js';
-import { ATAJOS, MOTORES, atajoValido } from './motores.js';
+import { ATAJOS, MOTORES, ORIGEN_SUGERENCIAS, atajoValido } from './motores.js';
 
 const lista = $('#lista-atajos');
 
@@ -43,6 +43,7 @@ function fila(a) {
 // Pinta el motor y los atajos guardados (los borradores sin terminar se pierden al volver a pintar).
 function pintar() {
   $('#motor-buscador').value = opciones.buscador.motor;
+  $('#opt-sugerencias').checked = opciones.buscador.sugerencias;
   lista.replaceChildren(...opciones.buscador.atajos.map(fila));
 }
 
@@ -79,6 +80,28 @@ $('#atajo-nuevo').addEventListener('click', () => {
 $('#atajos-restaurar').addEventListener('click', () => {
   cambiarBuscador({ atajos: ATAJOS });
   pintar();
+});
+
+// El permiso se pide dentro del cambio de la casilla (un gesto del usuario), sin nada asíncrono antes.
+$('#opt-sugerencias').addEventListener('change', ev => {
+  const casilla = ev.target;
+  if (!casilla.checked) {
+    cambiarBuscador({ sugerencias: false });
+    return;
+  }
+  if (typeof chrome === 'undefined' || !chrome.permissions) {
+    casilla.checked = false;
+    avisar('Disponible al usarlo como extensión de Chrome');
+    return;
+  }
+  chrome.permissions.request({ origins: [ORIGEN_SUGERENCIAS] }, concedido => {
+    if (concedido) {
+      cambiarBuscador({ sugerencias: true });
+    } else {
+      casilla.checked = false;
+      avisar('Sin permiso para pedir sugerencias a Google');
+    }
+  });
 });
 
 // Se pinta al abrir la pestaña.

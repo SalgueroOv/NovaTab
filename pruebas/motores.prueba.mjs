@@ -1,4 +1,6 @@
-import { afirmar, igual } from './lib/util.mjs';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { afirmar, igual, RAIZ } from './lib/util.mjs';
 
 const modulo = `import('/js/motores.js')`;
 const ATAJOS = [
@@ -135,5 +137,83 @@ export default {
     await pg.esperar(450);
     const tras = await guardado();
     igual([tras.motor, tras.atajos.map(a => a.clave)], ['bing', ['y', 'gh', 'w', 'm']], 'restaurar conserva el motor');
+
+    // ---- Sugerencias de Google ----
+    const aviso = () => pg.ev(`[...document.querySelectorAll('#aviso, #aviso-accion')].filter(a => !a.hidden).map(a => a.textContent).join('')`);
+    const marcarSugerencias = async () => {
+      await pg.clic('#btn-tema');
+      await pg.ev(`document.querySelector('#panel-tema [data-pestana="buscador"]').click()`);
+      await pg.ev(`document.getElementById('opt-sugerencias').click()`);
+      await pg.esperar(450);
+    };
+    const escribirRapido = texto => pg.ev(`(() => { const b = document.getElementById('buscar'); b.focus(); b.value = ${JSON.stringify(texto)}; b.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+    const activas = { 'chrome.sync/opciones': { buscador: { sugerencias: true } } };
+
+    // (j) El permiso es opcional y de host.
+    const manifest = JSON.parse(readFileSync(join(RAIZ, 'manifest.json'), 'utf8'));
+    afirmar(manifest.optional_host_permissions?.includes('https://suggestqueries.google.com/*'), 'permiso de host opcional');
+    afirmar(!(manifest.host_permissions || []).includes('https://suggestqueries.google.com/*'), 'no es un host_permissions fijo');
+
+    // (k) Marcar la casilla pide el permiso: concedido se guarda; denegado se desmarca y avisa.
+    pg = await abrir({ chrome: {}, sugerenciasGoogle: 'normal', permisoSugerencias: 'pendiente' });
+    await pg.esperar(300);
+    await marcarSugerencias();
+    igual(await pg.ev(`JSON.parse(localStorage.getItem('chrome.sync/opciones')).buscador.sugerencias`), true, 'sugerencias activadas con permiso');
+    pg = await abrir({ chrome: {}, sugerenciasGoogle: 'normal', permisoSugerencias: 'denegado' });
+    await pg.esperar(300);
+    await marcarSugerencias();
+    igual(await pg.ev(`document.getElementById('opt-sugerencias').checked`), false, 'casilla desmarcada si se deniega');
+    igual(await aviso(), 'Sin permiso para pedir sugerencias a Google', 'aviso de permiso denegado');
+    afirmar(!(await pg.ev(`JSON.parse(localStorage.getItem('chrome.sync/opciones') || '{}').buscador?.sugerencias`)), 'nada guardado');
+
+    // (l) Con la casilla y el permiso, aparecen filas «Sugerencia»; sin ellos, ninguna llamada.
+    pg = await abrir({ chrome: {}, sugerenciasGoogle: 'normal', permisoSugerencias: 'concedido', guardados: activas });
+    await pg.esperar(400);
+    await escribirRapido('gat');
+    await pg.esperar(450);
+    f = await filas(pg);
+    igual(f.slice(0, 2), [['gats', 'Sugerencia', 'https://www.google.com/search?q=gats'], ['gatitos', 'Sugerencia', 'https://www.google.com/search?q=gatitos']], 'filas de sugerencia primero');
+    igual(f[2][1], 'Google', 'la fila del motor viene detrás de las sugerencias');
+    pg = await abrir({ chrome: {}, sugerenciasGoogle: 'normal', permisoSugerencias: 'concedido' });
+    await pg.esperar(300);
+    await escribirRapido('gat');
+    await pg.esperar(450);
+    igual(await pg.ev(`window.__sugerencias.length`), 0, 'sin la casilla no hay llamadas');
+    pg = await abrir({ chrome: {}, sugerenciasGoogle: 'normal', permisoSugerencias: 'denegado', guardados: activas });
+    await pg.esperar(400);
+    await escribirRapido('gat');
+    await pg.esperar(450);
+    igual(await pg.ev(`window.__sugerencias.length`), 0, 'sin permiso no hay llamadas');
+
+    // (m) Un fallo o una respuesta rara no rompen el desplegable.
+    for (const modo of ['falla', 'mala']) {
+      pg = await abrir({ chrome: {}, sugerenciasGoogle: modo, permisoSugerencias: 'concedido', guardados: activas });
+      await pg.esperar(400);
+      await escribirRapido('gat');
+      await pg.esperar(500);
+      f = await filas(pg);
+      afirmar(f.length > 0 && f.every(x => x[1] !== 'Sugerencia'), `con ${modo} solo salen las filas normales`);
+    }
+
+    // (n) «ga» y enseguida «gato»: una sola llamada, la de gato.
+    pg = await abrir({ chrome: {}, sugerenciasGoogle: 'normal', permisoSugerencias: 'concedido', guardados: activas });
+    await pg.esperar(400);
+    await escribirRapido('ga');
+    await pg.esperar(50);
+    await escribirRapido('gato');
+    await pg.esperar(700);
+    igual(await pg.ev(`window.__sugerencias`), ['gato'], 'solo se pide la última consulta');
+    f = await filas(pg);
+    igual(f.filter(x => x[1] === 'Sugerencia').map(x => x[0]), ['gatos', 'gatoitos'], 'filas de la última consulta');
+
+    // (o) Respuesta tardía de una consulta anterior: se descarta.
+    pg = await abrir({ chrome: {}, sugerenciasGoogle: 'normal', permisoSugerencias: 'concedido', guardados: activas });
+    await pg.esperar(400);
+    await escribirRapido('ga');
+    await pg.esperar(250); // la llamada de «ga» ya salió y tarda 400 ms
+    await escribirRapido('gato');
+    await pg.esperar(900);
+    f = await filas(pg);
+    afirmar(!f.some(x => x[1] === 'Sugerencia' && x[0].startsWith('gas')), 'la respuesta tardía de «ga» no se pinta');
   },
 };

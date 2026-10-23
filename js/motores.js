@@ -17,6 +17,10 @@ export const ATAJOS = [
   { clave: 'm', nombre: 'Maps', url: 'https://www.google.com/maps/search/%s' },
 ];
 
+// Sugerencias de Google: el permiso del sitio es opcional (se pide al activarlas).
+export const ORIGEN_SUGERENCIAS = 'https://suggestqueries.google.com/*';
+export const URL_SUGERENCIAS = 'https://suggestqueries.google.com/complete/search?client=firefox&q=';
+
 export const BUSCADOR = { motor: 'google', atajos: ATAJOS, sugerencias: false };
 const MAX_ATAJOS = 20;
 
