@@ -138,5 +138,35 @@ export default {
     await pg.ev(`document.querySelector('.widget-servicios [data-accion-widget="borrar"]').click()`);
     await pg.esperar(300);
     igual(await pg.ev(`document.querySelectorAll('.widget-servicios').length`), 0, 'borrado');
+
+    // ---- Revisión final ----
+    // (i) Un repintado durante el sondeo no deja el widget en «Comprobando…».
+    pg = await abrir({ chrome: {}, datos: datosCon(), servicios: todos('lento') });
+    await pg.esperar(50);
+    await pg.ev(`novatab.pintar()`);
+    await pg.esperar(900);
+    igual((await leds(pg)).every(x => x[1] === 'vivo'), true, 'tras el sondeo todos los LEDs están resueltos');
+    afirmar(/responden/.test(await resumen(pg)), 'el resumen está al día');
+
+    // (j) Orígenes nuevos (por configurar más grupos) se comprueban sin esperar 60 s.
+    pg = await abrir({ chrome: {}, datos: datosCon({}, { grupos: ['g-alfa'] }), servicios: todos('vivo') });
+    await pg.esperar(800);
+    igual((await leds(pg)).length, 4, 'solo Alfa al principio');
+    await pg.ev(`novatab.datos.widgets[0].config.grupos = null; novatab.pintar()`);
+    await pg.esperar(2200);
+    igual((await leds(pg)).filter(x => x[1] === 'vivo').length, 9, 'los orígenes nuevos se comprueban enseguida');
+
+    // (k) El configurador no enseña los grupos privados en modo reunión.
+    pg = await abrir({ chrome: {}, datos: datosCon(), servicios: todos('vivo'), guardados: { 'chrome.sync/opciones': { reunion: true } } });
+    await pg.esperar(600);
+    await pg.clic('#btn-editar');
+    await pg.ev(`document.querySelector('.widget-servicios [data-accion-widget="configurar"]').click()`);
+    await pg.esperar(300);
+    igual(await pg.ev(`[...document.querySelectorAll('#dlg-widget input[type="checkbox"]')].map(c => c.value)`), ['g-alfa', 'g-beta'], 'solo los grupos visibles');
+
+    // (l) Los LEDs dicen su estado a los lectores de pantalla.
+    pg = await abrir({ chrome: {}, datos: datosCon(), servicios: todos('vivo') });
+    await pg.esperar(800);
+    igual(await pg.ev(`(() => { const l = document.querySelector('.widget-servicios .led'); return [l.getAttribute('role'), l.getAttribute('aria-label')]; })()`), ['img', 'Responde'], 'role y aria-label del LED');
   },
 };

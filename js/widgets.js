@@ -42,7 +42,7 @@ export function pintarWidget(w) {
   const src = srcDe(w);
   // Un reproductor o calendario ya cargado, o una nota, se conservan al repintar: rehacerlos cortaría
   // la música o quitaría el foco a quien está escribiendo.
-  const conservar = src || (w.tipo === 'notas' ? claveNota(w.id) : w.tipo === 'tareas' ? `tareas:${w.id}` : null);
+  const conservar = src || (w.tipo === 'notas' ? claveNota(w.id) : w.tipo === 'tareas' ? `tareas:${w.id}` : w.tipo === 'rss' ? `rss:${w.id}:${w.config.url}:${w.config.cantidad}` : null);
   const previo = document.querySelector(`.rejilla .widget[data-id="${w.id}"]`);
   const sec = conservar && previo?.dataset.conservar === conservar ? previo : crear('section', `bloque widget widget-${w.tipo}`);
   sec.style.gridColumn = `${w.pos.x} / span ${w.pos.w}`;

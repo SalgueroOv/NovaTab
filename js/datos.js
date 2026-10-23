@@ -40,7 +40,7 @@ export function posValida(p, hDefecto, panel = 'der') {
 export function normalizar(d) {
   if (!d || !Array.isArray(d.grupos)) throw new Error('formato no válido');
   const grupos = d.grupos.map(g => ({
-    id: g.id || nuevoId(),
+    id: g.id ? String(g.id) : nuevoId(),
     nombre: String(g.nombre || 'Sin nombre'),
     zona: g.zona === 'online' ? 'online' : 'local',
     color: /^#[0-9a-f]{3,8}$/i.test(g.color) ? g.color : '#8a8c92',
@@ -65,12 +65,18 @@ export function normalizar(d) {
     const t = String(d.titulos?.[k] ?? '').trim();
     if (t) titulos[k] = t.slice(0, 60);
   }
-  const widgets = (Array.isArray(d.widgets) ? d.widgets : [])
+  const todosLosWidgets = Array.isArray(d.widgets) ? d.widgets : [];
+  // Los widgets de un tipo que esta versión no conoce (de una más nueva, en otro equipo) no se pintan, pero se
+  // conservan al guardar: si no, un equipo con una versión vieja los borraría en todos los demás.
+  const ajenos = [...(Array.isArray(d.ajenos) ? d.ajenos : []), ...todosLosWidgets.filter(w => w && typeof w.tipo === 'string' && !WIDGETS[w.tipo])]
+    .filter(w => w && typeof w.tipo === 'string' && !WIDGETS[w.tipo] && JSON.stringify(w).length <= 2000)
+    .slice(0, 10);
+  const widgets = todosLosWidgets
     .filter(w => WIDGETS[w?.tipo])
     .map(w => {
       const panel = w.panel === 'izq' ? 'izq' : 'der';
       return {
-        id: w.id || nuevoId(),
+        id: w.id ? String(w.id) : nuevoId(),
         tipo: w.tipo,
         panel,
         pos: posValida(w.pos, WIDGETS[w.tipo].h, panel),
@@ -78,7 +84,7 @@ export function normalizar(d) {
         plegado: !!w.plegado,
       };
     });
-  const res = { version: VERSION, titulos, grupos, widgets };
+  const res = { version: VERSION, titulos, grupos, widgets, ...(ajenos.length ? { ajenos } : {}) };
   colocarSinPosicion(res);
   return res;
 }

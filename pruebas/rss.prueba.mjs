@@ -139,5 +139,16 @@ export default {
     await pg.clic('#confirmar-restablecer');
     await pg.esperar(600);
     igual(await pg.ev(`localStorage.getItem('chrome.local/rss:otro')`), null, '«Restablecer todo» borra las cachés rss:*');
+
+    // ---- Revisión final ----
+    // (h) El permiso cubre http y https (las redirecciones habituales) y el widget no se repinta de cero.
+    igual(await pg.ev(`${modulo}.then(m => [m.patronDe('http://blog.example.com/feed'), m.patronDe('https://blog.example.com/x?y=1')])`), ['*://blog.example.com/*', '*://blog.example.com/*'], 'patrón de permiso para los dos esquemas');
+    pg = await abrir(feedsEn({ [URL_FEED]: rssXml(5) }));
+    await pg.esperar(600);
+    await pg.ev(`document.querySelector('.widget-rss').dataset.marca = 'original'`);
+    await pg.clic('#btn-editar');
+    await pg.clic('#btn-editar');
+    igual(await pg.ev(`document.querySelector('.widget-rss')?.dataset.marca`), 'original', 'el widget RSS se conserva al repintar');
+    igual(await pg.ev(`window.__rss.length`), 1, 'y no vuelve a pedir el feed');
   },
 };

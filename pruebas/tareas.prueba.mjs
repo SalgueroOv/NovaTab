@@ -138,5 +138,67 @@ export default {
     await anadir(pg, 'Una más');
     igual((await textos(pg)).length, 40, 'siguen siendo 40');
     igual(await pg.ev(`[...document.querySelectorAll('#aviso, #aviso-accion')].filter(a => !a.hidden).map(a => a.textContent).join('')`), 'Máximo 40 tareas', 'aviso del máximo');
+
+    // ---- Revisión final ----
+    // (i) Un cambio remoto igual a lo último que escribí aquí se aplica (no es un eco).
+    pg = await abrir({ chrome: {}, datos: CON_TAREAS });
+    await pg.esperar(500);
+    await anadir(pg, 'Mia');
+    await pg.esperar(700);
+    const L1 = await pg.ev(enSync);
+    await pg.ev(`__chromeFalso.remoto('sync', 'tareas:w-tareas', [{ id: 'r1', texto: 'Otra pestaña', hecha: false }])`);
+    await pg.esperar(300);
+    igual(await textos(pg), ['Otra pestaña'], 'se aplica el cambio remoto');
+    await pg.ev(`__chromeFalso.remoto('sync', 'tareas:w-tareas', ${JSON.stringify(L1)})`);
+    await pg.esperar(300);
+    igual(await textos(pg), ['Mia'], 'una lista remota igual a mi última escritura también se aplica');
+
+    // (j) Un cambio remoto llegado mientras se escribe se suma a la tarea nueva (no se pierde ni se revierte).
+    pg = await abrir({ chrome: {}, datos: CON_TAREAS, guardados: { 'chrome.sync/tareas:w-tareas': [{ id: 'v1', texto: 'Vieja', hecha: false }] } });
+    await pg.esperar(500);
+    await pg.ev(`(() => { const i = document.querySelector('.widget-tareas .tareas-nueva'); i.focus(); })()`);
+    await pg.escribir('Nueva');
+    await pg.ev(`__chromeFalso.remoto('sync', 'tareas:w-tareas', [{ id: 'r1', texto: 'Remota', hecha: false }])`);
+    await pg.esperar(300);
+    await pg.tecla('Enter');
+    await pg.esperar(700);
+    igual(await textos(pg), ['Remota', 'Nueva'], 'la tarea nueva se suma a lo remoto');
+    igual((await pg.ev(enSync)).map(t => t.texto), ['Remota', 'Nueva'], 'y lo guardado es lo mismo que se ve');
+
+    // (k) Con texto multibyte la lista no pasa de 7 KB y avisa «Lista llena».
+    pg = await abrir({ chrome: {}, datos: CON_TAREAS });
+    await pg.esperar(500);
+    const cjk = 'あ'.repeat(120);
+    for (let i = 0; i < 25; i++) await anadir(pg, `${cjk}`);
+    await pg.esperar(700);
+    const guardada = await pg.ev(enSync);
+    afirmar(new TextEncoder().encode(JSON.stringify(guardada)).length <= 7000, 'lo guardado cabe en 7000 bytes');
+    afirmar(guardada.length < 25 && guardada.length >= 10, `se cortó antes de las 25 (hay ${guardada.length})`);
+    igual(await pg.ev(`[...document.querySelectorAll('#aviso, #aviso-accion')].filter(a => !a.hidden).map(a => a.textContent).join('')`), 'Lista llena', 'aviso de lista llena');
+    const gran = await pg.ev(`${modulo}.then(m => m.normalizarTareas(Array.from({ length: 40 }, (_, i) => ({ id: 'i' + i, texto: ${JSON.stringify(cjk)} }))).length)`);
+    afirmar(gran < 40, 'normalizarTareas también corta por tamaño');
+
+    // (l) Ids repetidos se corrigen; ids de widget numéricos se leen como texto.
+    const ids = await pg.ev(`${modulo}.then(m => m.normalizarTareas([{ id: 'a', texto: 'x' }, { id: 'a', texto: 'y' }]).map(t => t.id))`);
+    igual(new Set(ids).size, 2, 'ids de tarea únicos');
+    pg = await abrir({ datos: { ...structuredClone(CON_TAREAS), widgets: [{ ...WIDGET, id: 5 }] } });
+    await pg.esperar(400);
+    igual(await pg.ev(`novatab.datos.widgets[0].id`), '5', 'el id numérico de un widget pasa a texto');
+
+    // (m) Un guardado pendiente no escribe la clave de un widget que ya no existe (deshacer tras añadirlo).
+    pg = await abrir({ chrome: {}, datos: conWidgets([]) });
+    await pg.esperar(400);
+    await pg.clic('#btn-editar');
+    await pg.clic('#btn-nuevo-widget');
+    await pg.esperar(200);
+    await pg.ev(`[...document.querySelectorAll('#dlg-widget .tipo-widget')].find(b => b.textContent.startsWith('Tareas')).click()`);
+    await pg.esperar(500);
+    await pg.clic('#btn-editar');
+    await anadir(pg, 'Efímera');
+    await pg.ev(`document.activeElement.blur()`);
+    await pg.tecla('z', 'ctrl');
+    await pg.esperar(900);
+    igual(await pg.ev(`novatab.datos.widgets.length`), 0, 'el widget se deshizo');
+    igual(await pg.ev(clavesSync), [], 'sin claves tareas:* huérfanas');
   },
 };

@@ -317,7 +317,7 @@ $('#archivo').addEventListener('change', async ev => {
     if (!confirm('¿Reemplazar todos los enlaces por los del archivo?')) return;
     await borrarNotas(idsDeNotas(nuevos));
     await escribirNotas(leido.notas);
-    await borrarTareas(idsDeTareas(nuevos));
+    await borrarTareas(); // las listas de ahora se vacían: las que no vengan en el archivo quedan sin tareas
     await escribirTareas(Object.fromEntries(Object.entries(leido.tareas || {}).filter(([id]) => idsDeTareas(nuevos).has(id))));
     ponerDatos(nuevos);
     await guardarYPintar();

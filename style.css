@@ -882,6 +882,7 @@ dialog menu button {
 .tarea:hover .borrar-tarea, .borrar-tarea:focus-visible { opacity: 1; }
 .borrar-tarea:hover { background: var(--hover); color: #e5566f; }
 .borrar-hechas { align-self: flex-start; }
+@media (hover: none) { .borrar-tarea { opacity: 1; } }
 
 .rss { display: flex; flex-direction: column; gap: 6px; min-height: 0; padding: 4px 16px 12px; overflow-y: auto; }
 .rss-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

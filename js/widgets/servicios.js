@@ -81,6 +81,8 @@ const pedirPermiso = patrones => new Promise(resolver => chrome.permissions.requ
 const estados = new Map(); // id del widget → { t, porOrigen }
 const comprobando = new Set();
 const widgetDe = new WeakMap(); // .servicios → su widget
+// Hay sitios vigilados que aún no se han comprobado (se añadió un grupo o un enlace).
+const faltanOrigenes = (w, st) => origenesVigilados(w.config).some(o => !(o.origen in st.porOrigen));
 
 function pintarEstado(raiz) {
   const w = widgetDe.get(raiz);
@@ -98,6 +100,8 @@ function pintarEstado(raiz) {
       const led = crear('span', 'led');
       led.dataset.estado = estado;
       led.title = TEXTO[estado];
+      led.setAttribute('role', 'img');
+      led.setAttribute('aria-label', TEXTO[estado]);
       li.append(led, crear('span', 'nombre', e.nombre), crear('span', 'dir mono', direccion(e.url)));
       lista.append(li);
     }
@@ -123,7 +127,8 @@ async function comprobar(raiz) {
     estados.set(w.id, { t: Date.now(), porOrigen });
   } finally {
     comprobando.delete(w.id);
-    if (raiz.isConnected) pintarEstado(raiz);
+    // Si hubo un repintado durante el sondeo, el widget de la página es otro: se actualizan todos los de este id.
+    for (const r of document.querySelectorAll(`.servicios[data-id="${CSS.escape(w.id)}"]`)) if (widgetDe.has(r)) pintarEstado(r);
   }
 }
 
@@ -148,7 +153,7 @@ async function iniciar(raiz) {
   }
   raiz.dataset.ok = '1'; // a partir de aquí el temporizador de abajo lo comprueba
   const st = estados.get(w.id);
-  if (!w.plegado && (!st || Date.now() - st.t >= cada())) comprobar(raiz);
+  if (!w.plegado && (!st || Date.now() - st.t >= cada() || faltanOrigenes(w, st))) comprobar(raiz);
 }
 
 function pintar(w, cuerpo) {
@@ -170,13 +175,13 @@ setInterval(() => {
   for (const raiz of document.querySelectorAll('.servicios[data-ok="1"]')) {
     if (raiz.closest('.widget')?.classList.contains('plegado')) continue;
     const st = estados.get(raiz.dataset.id);
-    if (!st || Date.now() - st.t >= cada()) comprobar(raiz);
+    if (!st || Date.now() - st.t >= cada() || faltanOrigenes(widgetDe.get(raiz), st)) comprobar(raiz);
   }
 }, 1000);
 
 function configurador(actual) {
   return (cuerpo, ctx) => {
-    const locales = datos.grupos.filter(g => g.zona === 'local');
+    const locales = datos.grupos.filter(g => g.zona === 'local' && visible(g)); // en modo reunión, sin los privados
     const elegidos = Array.isArray(actual.grupos) ? new Set(actual.grupos) : null;
     const lista = crear('div', 'lista-zonas');
     for (const g of locales) {

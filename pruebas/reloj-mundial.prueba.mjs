@@ -88,5 +88,14 @@ export default {
     await pg.esperar(300);
     igual(await pg.ev(`novatab.datos.widgets.length`), 0, 'borrado de los datos');
     igual(await pg.ev(`document.querySelectorAll('.widget-relojMundial').length`), 0, 'borrado de la página');
+
+    // (g) El día no depende del formato de toLocaleDateString: Honolulu y Auckland siguen bien.
+    pg = await abrir();
+    await pg.esperar(300);
+    await pg.p.send('Emulation.setTimezoneOverride', { timezoneId: 'UTC' });
+    const dias = await pg.ev(`${modulo}.then(m => ['Pacific/Auckland', 'Pacific/Honolulu', 'Europe/Madrid'].map(z => m.formatoZona(z, new Date('2026-06-15T11:00:00Z'), true).dia))`);
+    igual(dias, ['hoy', 'hoy', 'hoy'], '11:00 UTC: el mismo día en esas zonas');
+    const dias2 = await pg.ev(`${modulo}.then(m => ['Pacific/Auckland', 'Pacific/Honolulu'].map(z => m.formatoZona(z, new Date('2026-06-15T23:30:00Z'), true).dia))`);
+    igual(dias2, ['mañana', 'hoy'], 'a las 23:30 UTC Auckland ya está en el día siguiente');
   },
 };

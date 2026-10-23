@@ -59,8 +59,9 @@ export function zonasValidas(v) {
 
 // La fecha de un instante en una zona, como número de día (para comparar con la del equipo).
 const diaEn = (ahora, zona) => {
-  const [a, m, d] = ahora.toLocaleDateString('en-CA', zona ? { timeZone: zona } : undefined).split('-').map(Number);
-  return Date.UTC(a, m - 1, d) / 86400000;
+  const partes = Object.fromEntries(new Intl.DateTimeFormat('en-US', { ...(zona ? { timeZone: zona } : {}), year: 'numeric', month: 'numeric', day: 'numeric' })
+    .formatToParts(ahora).map(p => [p.type, Number(p.value)]));
+  return Date.UTC(partes.year, partes.month - 1, partes.day) / 86400000;
 };
 
 export function formatoZona(id, ahora, hora24) {

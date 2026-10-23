@@ -4,13 +4,19 @@ import { borrar, escribirLocal, hayChrome, leerLocal } from '../almacen.js';
 import { campo, registrar, vacioWidget } from '../widgets.js';
 
 const MAX_ELEMENTOS = 50;
+// localhost o una IPv4 de red privada.
+const esLocal = url => {
+  const { hostname } = new URL(url);
+  return hostname === 'localhost' || /^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(hostname);
+};
 const CACHE_MS = 30 * 60 * 1000;
 const claveCache = id => `rss:${id}`;
 const cantidadDe = c => Math.min(10, Math.max(5, Math.round(Number(c?.cantidad)) || 5));
 // Las pruebas acortan la espera con window.__esperaRss.
 const espera = () => globalThis.__esperaRss ?? 8000;
 
-const patronDe = url => { const u = new URL(url); return `${u.protocol}//${u.hostname}/*`; };
+// Cubre http y https: un feed en http casi siempre redirige a https (o a www.), y sin permiso para el destino falla.
+export const patronDe = url => `*://${new URL(url).hostname}/*`;
 const hayPermisos = () => typeof chrome !== 'undefined' && !!chrome.permissions;
 const tienePermiso = url => new Promise(resolver => {
   if (!hayPermisos()) resolver(true);
@@ -74,6 +80,7 @@ export async function cargarFeed(url, { id, forzar = false } = {}) {
   try {
     const r = await fetch(url, { cache: 'no-store', credentials: 'omit', signal: ac.signal });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (r.redirected && esLocal(r.url) && !esLocal(url)) throw new Error('redirige a la red local'); // no se lee una respuesta de la red local que vino de un feed de fuera
     const feed = leerFeed(await r.text());
     if (!feed) throw new Error('no es un feed');
     const nuevo = { t: Date.now(), url, titulo: feed.titulo, items: feed.items };
@@ -122,7 +129,7 @@ async function cargar(w, raiz, forzar) {
   try {
     feed = await cargarFeed(url, { id: w.id, forzar });
   } catch {
-    if (raiz.isConnected) raiz.replaceChildren(crear('p', 'widget-nota rss-estado', 'No se pudo leer el feed.'), recargar);
+    if (raiz.isConnected) raiz.replaceChildren(crear('p', 'widget-nota rss-estado', 'No se pudo leer el feed (puede que redirija a otro sitio sin permiso).'), recargar);
     return;
   }
   if (!raiz.isConnected) return;
