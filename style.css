@@ -55,6 +55,12 @@ body.esquinas-redondo { --radio-bloque: 24px; --radio-widget: 24px; --radio-menu
 [data-tema="noche"]   { --bg: #111316; --l: #1c2026; --l2: #29303a; --panel: rgba(27, 30, 35, .88); }
 [data-tema="papel"]   { --bg: #f5f0e6; --l: #e7decb; --l2: #d8c9ab; --panel: rgba(255, 253, 248, .84); }
 [data-tema="glaciar"] { --bg: #eaf2f6; --l: #d5e4ed; --l2: #b9d1e1; --panel: rgba(255, 255, 255, .82); }
+[data-tema="medianoche"] { --bg: #14171c; --l: #222932; --l2: #2c3743; --panel: rgba(30, 35, 43, .86); }
+[data-tema="grafito"] { --bg: #1b1b1d; --l: #28282b; --l2: #343438; --panel: rgba(37, 37, 40, .86); }
+[data-tema="carbon"] { --bg: #18181b; --l: #222226; --l2: #2e2e33; --panel: rgba(35, 35, 39, .9); }
+[data-tema="niebla"] { --bg: #eef1f5; --l: #dde3ea; --l2: #cdd6e0; --panel: rgba(255, 255, 255, .8); }
+[data-tema="menta"] { --bg: #eef6f2; --l: #d8eadf; --l2: #c4dfcf; --panel: rgba(255, 255, 255, .8); }
+[data-tema="rosa"] { --bg: #fbf1f2; --l: #f0dde0; --l2: #e4c8ce; --panel: rgba(255, 253, 253, .84); }
 
 /* ---------- Base ---------- */
 
@@ -206,6 +212,8 @@ button { font: inherit; color: inherit; }
   top: 48px;
   right: 0;
   width: 300px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
   padding: 16px;
   border-radius: var(--radio-menu);
   background: var(--superficie);

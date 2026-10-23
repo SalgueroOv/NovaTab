@@ -48,7 +48,7 @@ Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pru
 | `js/fondos.js`, `js/imagen-fondo.js` | Diez dibujos de fondo y la imagen de fondo propia (reducida y guardada solo en el equipo) |
 | `js/importar.js` | Importar marcadores de Chrome como grupos (permiso `bookmarks` opcional, pedido al pulsar) |
 | `js/historial.js`, `js/copias.js` | Pila de deshacer (20 pasos) y copia automática diaria (7 últimas, en Opciones) |
-| `js/buscador.js`, `js/apariencia.js` | Buscador y editor de apariencia: tema, acento, fondo, densidad, esquinas, reloj y paneles |
+| `js/buscador.js`, `js/apariencia.js` | Buscador y editor de apariencia: diez temas, acento, fondo, densidad, esquinas, reloj y paneles |
 | `js/widgets.js`, `js/iconos.js` | Widgets y selector de iconos (Dashboard Icons y Lucide vía jsDelivr) |
 | `datos-defecto.js` | Datos de ejemplo de la primera vez |
 | `empaquetar/` | Script del `.zip` para repartir y su `LEEME.txt` |

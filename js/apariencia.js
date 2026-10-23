@@ -21,8 +21,14 @@ export const OPCIONES = { fondoGrupos: true, sobrio: false, reunion: false, ocul
 export const TEMAS = [
   { id: 'bosque', nombre: 'Bosque', modo: 'oscuro', muestra: ['#18221d', '#2f4438'] },
   { id: 'noche', nombre: 'Noche', modo: 'oscuro', muestra: ['#111316', '#29303a'] },
+  { id: 'medianoche', nombre: 'Medianoche', modo: 'oscuro', muestra: ['#14171c', '#3e5a75'] },
+  { id: 'grafito', nombre: 'Grafito', modo: 'oscuro', muestra: ['#1b1b1d', '#55555b'] },
+  { id: 'carbon', nombre: 'Carbón', modo: 'oscuro', muestra: ['#18181b', '#4a4a52'] },
   { id: 'papel', nombre: 'Papel', modo: 'claro', muestra: ['#f5f0e6', '#d8c9ab'] },
   { id: 'glaciar', nombre: 'Glaciar', modo: 'claro', muestra: ['#eaf2f6', '#b9d1e1'] },
+  { id: 'niebla', nombre: 'Niebla', modo: 'claro', muestra: ['#eef1f5', '#a6bdd6'] },
+  { id: 'menta', nombre: 'Menta', modo: 'claro', muestra: ['#eef6f2', '#94c7aa'] },
+  { id: 'rosa', nombre: 'Rosa', modo: 'claro', muestra: ['#fbf1f2', '#e4a9b4'] },
 ];
 
 export const muestras = TEMAS.map(t => {
@@ -261,7 +267,8 @@ const muestrasFondo = Object.entries(FONDOS).concat([['liso', { nombre: 'Liso' }
   b.dataset.fondo = id;
   b.addEventListener('click', () => {
     peticionImagen++; // elegir un fondo cancela una imagen que aún se esté reduciendo
-    if (id === 'imagen' && !imagenFondo) $('#archivo-fondo').click();
+    // «Imagen propia»: sin imagen, o si ya está elegida, abre el selector de archivos (así se cambia la imagen).
+    if (id === 'imagen' && (!imagenFondo || apariencia.fondo === 'imagen')) $('#archivo-fondo').click();
     else cambiarApariencia({ fondo: id });
   });
   return b;
@@ -273,7 +280,6 @@ $('#intensidad').addEventListener('input', ev => {
   cambiarApariencia(usaImagen() ? { intensidadImagen: valor } : { intensidad: valor }, true);
 });
 
-$('#elegir-imagen').addEventListener('click', () => $('#archivo-fondo').click());
 $('#archivo-fondo').addEventListener('change', async ev => {
   const archivo = ev.target.files[0];
   ev.target.value = '';

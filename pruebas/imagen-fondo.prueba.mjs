@@ -136,5 +136,23 @@ export default {
     const alta = JSON.parse(await pg.ev(enLocal));
     const alto = await pg.ev(`new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalHeight); i.src = ${JSON.stringify(alta)}; })`);
     afirmar(alto <= 4096, `la altura de la imagen guardada es como mucho 4096 (es ${alto})`);
+
+    // (k) No hay botón aparte para elegir imagen: «Imagen propia» abre el selector, también para cambiarla.
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(300);
+    igual(await pg.ev(`document.getElementById('elegir-imagen')`), null, 'no existe el botón Elegir imagen');
+    await pg.ev(`localStorage.setItem('chrome.local/fondo-imagen', JSON.stringify('data:image/webp;base64,AAAA'))`);
+    await pg.recargar();
+    await pg.esperar(500);
+    await pg.clic('#btn-tema');
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
+    await pg.ev(`window.__selectores = 0; document.getElementById('archivo-fondo').click = () => { window.__selectores++; }`);
+    await pg.ev(`document.querySelector('[data-fondo="hexagonos"]').click()`);
+    await pg.ev(`document.querySelector('[data-fondo="imagen"]').click()`);
+    await pg.esperar(200);
+    igual(await pg.ev(`window.__selectores`), 0, 'con imagen guardada y otro fondo activo, «Imagen propia» solo la selecciona');
+    igual((await pg.ev(opciones)).apariencia.fondo, 'imagen', 'fondo imagen elegido');
+    await pg.ev(`document.querySelector('[data-fondo="imagen"]').click()`);
+    igual(await pg.ev(`window.__selectores`), 1, 'con la imagen ya elegida, «Imagen propia» abre el selector de archivos');
   },
 };
