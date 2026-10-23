@@ -66,7 +66,7 @@ En modo edición, con el foco en la cabecera de un grupo o widget (Tab): flechas
 | `js/perfiles.js`, `js/perfiles-ops.js`, `js/selector-perfiles.js` | Perfiles: registro y migración, crear/duplicar/borrar/cambiar, y el selector de la cabecera (con el ojo del modo reunión, que pasa al perfil Demo) |
 | `js/widgets/*.js` | Los widgets nuevos, uno por archivo, registrados con `registrar()` de `js/widgets.js`: reloj mundial, cuenta atrás, tareas (sus datos en `tareas-datos.js`), RSS y estado de servicios |
 | `js/separador.js` | Franja arrastrable entre los paneles (el izquierdo del 25 al 50 %, doble clic para restaurar) |
-| `js/comandos.js`, `js/atajos.js` | Paleta de comandos (Ctrl+K) y Alt+1…Alt+9 para los nueve primeros enlaces locales |
+| `js/comandos.js`, `js/atajos.js` | Paleta de comandos (Ctrl+K) y Alt+1…Alt+9 para los nueve primeros enlaces locales, Alt+P y Alt+Mayús+P para cambiar de perfil |
 | `js/importar.js` | Importar marcadores de Chrome como grupos (permiso `bookmarks` opcional, pedido al pulsar) |
 | `js/historial.js`, `js/copias.js` | Pila de deshacer (20 pasos) y copia automática diaria (7 últimas, en Opciones) |
 | `js/buscador.js`, `js/apariencia.js` | Buscador y editor de apariencia: diez temas, acento, fondo, densidad, esquinas, reloj y paneles |

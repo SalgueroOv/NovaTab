@@ -21,6 +21,18 @@ document.addEventListener('keydown', ev => {
   ir(destino.enlace.url);
 });
 
+// Alt+P pasa al perfil siguiente y Alt+Mayús+P al anterior (en círculo).
+document.addEventListener('keydown', ev => {
+  if (!ev.altKey || ev.ctrlKey || ev.metaKey || ev.key.toLowerCase() !== 'p') return;
+  if ($('dialog[open]') || arrastre || enCampoDeTexto(ev.target)) return;
+  const lista = perfilesDeLaLista();
+  if (lista.length < 2) return;
+  ev.preventDefault();
+  const i = lista.findIndex(p => p.id === perfilActivo());
+  const destino = lista[(i + (ev.shiftKey ? -1 : 1) + lista.length) % lista.length];
+  cambiarPerfil(destino.id).catch(err => avisar(err.message));
+});
+
 // ---------- Paleta de comandos (Ctrl+K) ----------
 
 // Los comandos de ahora mismo. Con «siguiente», al ejecutarlo la paleta pide un segundo paso.
