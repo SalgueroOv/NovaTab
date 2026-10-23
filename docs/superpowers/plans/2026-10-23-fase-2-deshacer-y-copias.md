@@ -1,6 +1,6 @@
 # Fase 2: deshacer, rehacer y copias automáticas — plan de implementación
 
-> **Para agentes:** SUB-SKILL REQUERIDA: superpowers:executing-plans (ejecución nativa, como en las fases 0 y 1). Los pasos usan casillas (`- [ ]`).
+> **Para agentes:** SUB-SKILL REQUERIDA: superpowers:executing-plans (ejecución nativa, como en las fases 0 y 1). Los pasos usan casillas (`- [x]`).
 
 **Objetivo:** que un borrado o un cambio por error se pueda deshacer (y rehacer) con Ctrl+Z / Ctrl+Y, y que cada día quede una copia automática recuperable desde Opciones.
 
@@ -48,7 +48,7 @@
 - Atajos en `document` `keydown`: Ctrl o Cmd+Z deshace; Ctrl o Cmd+Y y Ctrl o Cmd+Mayús+Z rehacen. No actúan si el foco está en `input`, `textarea`, `select` o un elemento editable, ni con `ocupado()` verdadero. Llaman a `ev.preventDefault()` solo cuando actúan.
 - `cambioDeFuera()`/`recargar()` y `restablecerTodo()` llaman a `limpiar()`.
 
-- [ ] **Paso 1:** escribir `historial.prueba.mjs` (abre con `abrir({ chrome: {} })`, `window.confirm = () => true`) con estas comprobaciones y ejecutarla → falla:
+- [x] **Paso 1:** escribir `historial.prueba.mjs` (abre con `abrir({ chrome: {} })`, `window.confirm = () => true`) con estas comprobaciones y ejecutarla → falla:
   - (a) borrar el grupo «Servidores» con sus enlaces, `pg.tecla('z', 'ctrl')` → el grupo vuelve con los mismos enlaces y la misma `pos`; `pg.tecla('y', 'ctrl')` → vuelve a no estar; Ctrl+Mayús+Z también rehace.
   - (b) mover un grupo con el teclado de la prueba de rejilla y plegar otro: dos Ctrl+Z los deshacen en orden inverso.
   - (c) con un textarea de nota enfocado, Ctrl+Z no cambia `novatab.datos`.
@@ -57,9 +57,9 @@
   - (f) tras deshacer, un cambio nuevo hace que Ctrl+Y no haga nada.
   - (g) simular un cambio de otra pestaña (`chrome.storage.sync.set` desde la página con el simulador de `chrome-falso.js`, como en `conflictos.prueba.mjs`), esperar a que se recargue → Ctrl+Z no cambia nada.
   - (h) «Restablecer todo» seguido de Ctrl+Z no cambia nada.
-- [ ] **Paso 2:** implementar `historial.js` y los cambios de `edicion.js` descritos arriba.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`.
-- [ ] **Paso 4:** commit «Deshacer y rehacer con Ctrl+Z y Ctrl+Y».
+- [x] **Paso 2:** implementar `historial.js` y los cambios de `edicion.js` descritos arriba.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`.
+- [x] **Paso 4:** commit «Deshacer y rehacer con Ctrl+Z y Ctrl+Y».
 
 ### Task 2 · Tarea 2: aviso «Grupo borrado · Deshacer»
 
@@ -69,9 +69,9 @@
 - `util.js` exporta `avisarConAccion(texto, etiqueta, accion, ms = 8000)`: muestra el aviso con el botón `etiqueta`; al pulsarlo llama a `accion()` y lo oculta; se oculta solo a los `ms`; otro aviso lo sustituye.
 - `borrarGrupo(gid)` llama tras guardar a `avisarConAccion('Grupo borrado', 'Deshacer', deshacer)`, donde `deshacer` es la misma función que usa Ctrl+Z (exportada desde `edicion.js` como `deshacerUltimo()`).
 
-- [ ] **Paso 1:** ampliar la prueba: (a) tras borrar un grupo, `#aviso-accion` visible con el texto «Grupo borrado» y un botón «Deshacer»; pulsarlo recupera el grupo con sus enlaces y posición y oculta el aviso; (b) borrar un enlace suelto no muestra el aviso; (c) sin pulsar nada, el aviso sigue visible a los 7 s y oculto a los 8,5 s. Ejecutar → falla.
-- [ ] **Paso 2:** implementar.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Aviso con botón Deshacer al borrar un grupo».
+- [x] **Paso 1:** ampliar la prueba: (a) tras borrar un grupo, `#aviso-accion` visible con el texto «Grupo borrado» y un botón «Deshacer»; pulsarlo recupera el grupo con sus enlaces y posición y oculta el aviso; (b) borrar un enlace suelto no muestra el aviso; (c) sin pulsar nada, el aviso sigue visible a los 7 s y oculto a los 8,5 s. Ejecutar → falla.
+- [x] **Paso 2:** implementar.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Aviso con botón Deshacer al borrar un grupo».
 
 ### Task 3 · Tarea 3: copia diaria y recuperación desde Opciones
 
@@ -85,17 +85,17 @@
 - `main.js` llama a `hacerCopiaDelDia()` al final del arranque, solo si ya había datos guardados y sin esperar su resultado (un fallo se ignora).
 - La lista de Opciones muestra «Hoy» o la fecha en español (por ejemplo «21 oct») y un botón «Recuperar» por copia; si no hay copias, el texto «Aún no hay copias».
 
-- [ ] **Paso 1:** escribir `copias.prueba.mjs` y ejecutarla → falla. Las claves se siembran con `guardados` de `abrir` (fuera de la extensión todo va a `localStorage` con la clave tal cual):
+- [x] **Paso 1:** escribir `copias.prueba.mjs` y ejecutarla → falla. Las claves se siembran con `guardados` de `abrir` (fuera de la extensión todo va a `localStorage` con la clave tal cual):
   - (a) al abrir con datos y sin copias, existe `copia:<hoy>` (fecha local `AAAA-MM-DD`) con los grupos y las notas; recargar la página no crea otra ni la reescribe.
   - (b) con 8 copias antiguas sembradas, tras abrir quedan 7 en total y la más antigua desapareció.
   - (c) con una copia sembrada de hace dos días con un solo grupo «Antiguo» y otra corrupta (`{ "basura": 1 }`), la lista muestra «Hoy» y la de hace dos días, sin la corrupta; «Recuperar» deja `novatab.datos.grupos` con solo «Antiguo»; Ctrl+Z devuelve el estado de antes.
   - (d) recuperar una copia sin los widgets de notas actuales no deja claves `nota:*` huérfanas.
-- [ ] **Paso 2:** implementar.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Copia automática diaria y recuperación desde Opciones».
+- [x] **Paso 2:** implementar.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; commit «Copia automática diaria y recuperación desde Opciones».
 
 ### Task 4 · Tarea 4: cierre de la fase
 
-- [ ] **Paso 1:** `version` 4.1.0 en `manifest.json`; `README.md` (estructura con `historial.js` y `copias.js`, y los atajos Ctrl+Z, Ctrl+Y); `empaquetar/LEEME.txt` solo si cita los atajos.
-- [ ] **Paso 2:** comprobar a mano una vez en la extensión real: borrar un grupo, Deshacer, abrir Opciones y ver «Hoy» en copias.
-- [ ] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar\empaquetar.ps1` → `dist/novatab-4.1.0.zip` con `js/historial.js` y `js/copias.js` y sin IPs de redes reales.
-- [ ] **Paso 4:** marcar la fase 2 en la hoja de ruta y commit «Fase 2 terminada: versión 4.1.0».
+- [x] **Paso 1:** `version` 4.1.0 en `manifest.json`; `README.md` (estructura con `historial.js` y `copias.js`, y los atajos Ctrl+Z, Ctrl+Y); `empaquetar/LEEME.txt` solo si cita los atajos.
+- [x] **Paso 2:** comprobar a mano una vez en la extensión real: borrar un grupo, Deshacer, abrir Opciones y ver «Hoy» en copias.
+- [x] **Paso 3:** `node pruebas/ejecutar.mjs` → todas `✔`; `empaquetar\empaquetar.ps1` → `dist/novatab-4.1.0.zip` con `js/historial.js` y `js/copias.js` y sin IPs de redes reales.
+- [x] **Paso 4:** marcar la fase 2 en la hoja de ruta y commit «Fase 2 terminada: versión 4.1.0».

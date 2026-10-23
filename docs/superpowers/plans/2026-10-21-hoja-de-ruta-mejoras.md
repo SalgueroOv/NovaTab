@@ -78,8 +78,8 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 **Archivos:** `js/historial.js` (nuevo), `js/almacen.js`, `newtab.html` (aviso con botón).
 
-- [ ] Pila en memoria de los últimos 20 estados; Ctrl+Z y un aviso "Grupo borrado · Deshacer" durante 8 segundos tras cada borrado.
-- [ ] Copia automática diaria en `storage.local` (últimas 7) y lista en Opciones para recuperar una.
+- [x] Pila en memoria de los últimos 20 estados; Ctrl+Z y un aviso "Grupo borrado · Deshacer" durante 8 segundos tras cada borrado.
+- [x] Copia automática diaria en `storage.local` (últimas 7) y lista en Opciones para recuperar una.
 
 **Hecho cuando:** borrar un grupo y pulsar Deshacer lo recupera con sus enlaces y su posición; recuperar una copia de hace dos días deja los datos idénticos a entonces.
 

@@ -44,7 +44,8 @@ Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pru
 | `js/main.js` | Arranque: carga los datos y escucha los cambios de otras pestañas |
 | `js/datos.js`, `js/almacen.js` | Modelo de datos y todo el acceso a `chrome.storage` |
 | `js/rejilla.js`, `js/pintado.js` | Cuadrícula (posiciones y colisiones) y pintado de grupos |
-| `js/edicion.js` | Modo edición: diálogos, importar/exportar, restablecer y arrastrar |
+| `js/edicion.js` | Modo edición: diálogos, importar/exportar, restablecer, arrastrar y deshacer/rehacer (Ctrl+Z, Ctrl+Y) |
+| `js/historial.js`, `js/copias.js` | Pila de deshacer (20 pasos) y copia automática diaria (7 últimas, en Opciones) |
 | `js/buscador.js`, `js/apariencia.js` | Buscador y tema, opciones, paneles, fondo y reloj |
 | `js/widgets.js`, `js/iconos.js` | Widgets y selector de iconos (Dashboard Icons y Lucide vía jsDelivr) |
 | `datos-defecto.js` | Datos de ejemplo de la primera vez |
