@@ -908,6 +908,33 @@ dialog menu button {
 @keyframes parpadeo { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .led[data-estado="comprobando"] { animation: none; } }
 
+/* Selector de perfiles */
+.selector-perfil { position: relative; min-width: 0; }
+#btn-perfil { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-perfiles {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  min-width: 200px;
+  max-width: min(300px, calc(100vw - 32px));
+  max-height: 60vh;
+  padding: 6px;
+  overflow-y: auto;
+  border-radius: var(--radio-menu);
+  background: var(--superficie);
+  box-shadow: var(--sombra-fuerte);
+}
+.menu-perfiles[hidden] { display: none; }
+.menu-perfiles button { padding: 8px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--texto); font: inherit; font-size: 13px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-perfiles button:hover, .menu-perfiles button:focus-visible { background: var(--superficie-2); }
+.menu-perfiles [aria-checked="true"] { font-weight: 600; }
+.menu-perfiles [aria-checked="true"]::before { content: "✓ "; color: var(--acento); }
+.menu-perfiles .separador { margin: 4px 0; }
+
 /* ---------- Pantallas estrechas: los grupos se apilan ---------- */
 
 @media (max-width: 1000px) {

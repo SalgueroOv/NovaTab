@@ -22,6 +22,7 @@ import './iconos.js';
 import { hacerCopiaDelDia } from './copias.js';
 import './importar.js';
 import './perfiles-ops.js';
+import './selector-perfiles.js';
 
 // Cambios hechos en otra pestaña u otro equipo sincronizado.
 alCambiar(cambios => {
@@ -98,6 +99,7 @@ let recarga;
     }
   }
   if (guardados) hacerCopiaDelDia().catch(() => { /* la copia diaria es un extra */ });
+  document.dispatchEvent(new Event('novatab:perfil')); // el selector de perfiles muestra el perfil cargado
 })();
 
 // Para las pruebas automáticas: el estado actual y la forma de repintar, solo lectura.

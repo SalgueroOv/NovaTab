@@ -36,6 +36,10 @@
     <section class="derecha" aria-labelledby="t-local">
       <header class="derecha-cab">
         <h1 id="t-local" class="titulo-editable" data-titulo="local" spellcheck="false">Red local</h1>
+        <div class="selector-perfil">
+          <button class="boton-texto" type="button" id="btn-perfil" aria-haspopup="menu" aria-expanded="false" aria-label="Perfil"></button>
+          <div class="menu-perfiles" id="menu-perfiles" role="menu" aria-label="Perfiles" hidden></div>
+        </div>
         <span class="etiqueta-zona mono" id="resumen-local"></span>
         <div class="barra-edicion solo-edicion">
           <button class="boton-texto" type="button" data-nuevo-grupo="local">Añadir grupo</button>
@@ -202,6 +206,18 @@
       <menu>
         <button type="button" id="icono-quitar">Sin icono</button>
         <button type="button" value="cancelar" data-cerrar>Cancelar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-perfil">
+    <form method="dialog">
+      <h2>Perfil</h2>
+      <label>Nombre <input name="nombre" maxlength="30" required autocomplete="off"></label>
+      <label class="opcion opcion-dialogo" data-solo-nuevo><input type="checkbox" name="duplicar"> Duplicar el perfil actual</label>
+      <menu>
+        <button type="button" value="cancelar" data-cerrar>Cancelar</button>
+        <button value="ok" class="primario">Guardar</button>
       </menu>
     </form>
   </dialog>

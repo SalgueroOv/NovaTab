@@ -8,6 +8,8 @@ import { CLAVE_OPCIONES, TEMAS, muestras, opciones } from './apariencia.js';
 import { alCambiar } from './almacen.js';
 import { sinTildes } from './iconos.js';
 import { nuevoWidget } from './widgets.js';
+import { perfilActivo, perfilesDeLaLista } from './perfiles.js';
+import { cambiarPerfil } from './perfiles-ops.js';
 
 document.addEventListener('keydown', ev => {
   if (!ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey) return;
@@ -34,6 +36,11 @@ export function comandos() {
     ...enlaces,
     { id: 'reunion', titulo: `Modo reunión: ${opciones.reunion ? 'desactivar' : 'activar'}`, ejecutar: () => $('#btn-reunion').click() },
     ...TEMAS.map(t => ({ id: `tema:${t.id}`, titulo: `Tema: ${t.nombre}`, ejecutar: () => muestras.find(m => m.dataset.tema === t.id).click() })),
+    ...perfilesDeLaLista().map(p => ({
+      id: `perfil:${p.id}`,
+      titulo: `Perfil: ${p.nombre}${p.id === perfilActivo() ? ' (actual)' : ''}`,
+      ejecutar: () => { if (p.id !== perfilActivo()) cambiarPerfil(p.id).catch(err => avisar(err.message)); },
+    })),
     { id: 'grupo', titulo: 'Nuevo grupo', ejecutar: () => { ponerEdicion(true); nuevoGrupo('local'); } },
     {
       id: 'enlace',
