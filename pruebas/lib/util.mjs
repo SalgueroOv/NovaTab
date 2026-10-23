@@ -61,7 +61,7 @@ ${CHROME_FALSO}`,
             bookmarks: { getTree: cb => setTimeout(() => cb(${JSON.stringify(marcadores)}), 5) },
             permissions: {
               contains: (_p, cb) => setTimeout(() => cb(permiso === 'concedido'), 0),
-              request: (_p, cb) => setTimeout(() => { if (permiso === 'pendiente') permiso = 'concedido'; cb(permiso === 'concedido'); }, 0),
+              request: (_p, cb) => setTimeout(() => { window.__solicitudes = (window.__solicitudes || 0) + 1; if (permiso === 'pendiente') permiso = 'concedido'; cb(permiso === 'concedido'); }, 0),
             },
           });
         })()`,

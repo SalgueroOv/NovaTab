@@ -1,11 +1,13 @@
 // Importar los marcadores de Chrome como grupos.
 import { $, avisar, avisarConAccion, crear, nuevoId, partes, dominio, urlSegura } from './util.js';
+import { clavesSoloLocal } from './almacen.js';
 import { datos } from './datos.js';
 import { colocarSinPosicion } from './rejilla.js';
 import { claveSitio } from './widgets.js';
 import { deshacerUltimo, guardarYPintar } from './edicion.js';
 
 const RAICES = ['Barra de marcadores', 'Otros marcadores', 'Marcadores móviles'];
+const NOMBRE_DE_TIPO = { 'bookmarks-bar': RAICES[0], other: RAICES[1], mobile: RAICES[2] };
 const MAX_NOMBRE = 40;
 
 // Localhost o una IPv4 de red privada: 10/8, 172.16/12, 192.168/16.
@@ -18,8 +20,9 @@ export function esLocal(url) {
   return a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
 }
 
-// Aplana el árbol de getTree() en carpetas con sus enlaces propios (solo http y https). Las raíces
-// son, por posición, la barra, «Otros marcadores» y los móviles; una carpeta sin enlaces no aparece.
+// Aplana el árbol de getTree() en carpetas con sus enlaces propios (solo http y https). Las raíces se
+// nombran por su «folderType» (puede haber una barra local y otra de la cuenta; la gestionada se salta);
+// si Chrome no lo da, por posición: barra, «Otros marcadores» y móviles. Una carpeta sin enlaces no aparece.
 export function carpetasDeArbol(arbol) {
   const carpetas = [];
   const recorrer = (nodo, nombre, esRaiz) => {
@@ -31,7 +34,11 @@ export function carpetasDeArbol(arbol) {
       if (!hijo.url) recorrer(hijo, esRaiz ? hijo.title : `${nombre} / ${hijo.title}`, false);
     }
   };
-  (arbol[0]?.children || []).slice(0, RAICES.length).forEach((raiz, i) => recorrer(raiz, RAICES[i], true));
+  (arbol?.[0]?.children || []).forEach((raiz, i) => {
+    if (raiz.folderType === 'managed') return;
+    const nombre = NOMBRE_DE_TIPO[raiz.folderType] ?? (raiz.folderType ? raiz.title : RAICES[i]);
+    if (nombre) recorrer(raiz, nombre, true);
+  });
   return carpetas;
 }
 
@@ -53,11 +60,11 @@ export function gruposDeCarpetas(carpetas, elegidas, guardados) {
       enlaces.push({ id: nuevoId(), nombre: e.nombre.trim() || dominio(e.url), url: e.url });
     }
     if (!enlaces.length) continue;
-    const locales = carpeta.enlaces.filter(e => esLocal(e.url)).length;
+    const locales = enlaces.filter(e => esLocal(e.url)).length;
     grupos.push({
       id: nuevoId(),
       nombre: carpeta.nombre.trim().slice(0, MAX_NOMBRE) || 'Sin nombre',
-      zona: locales * 2 > carpeta.enlaces.length ? 'local' : 'online',
+      zona: locales * 2 > enlaces.length ? 'local' : 'online',
       color: '#8a8c92',
       privado: false,
       pos: null,
@@ -72,7 +79,10 @@ export function gruposDeCarpetas(carpetas, elegidas, guardados) {
 let carpetasOfrecidas = [];
 
 const pedirPermiso = () => new Promise(resolver => chrome.permissions.request({ permissions: ['bookmarks'] }, resolver));
-const leerArbol = () => new Promise(resolver => chrome.bookmarks.getTree(resolver));
+const leerArbol = () => new Promise((resolver, rechazar) => chrome.bookmarks.getTree(arbol => {
+  if (chrome.runtime?.lastError || !arbol) rechazar(new Error('sin árbol'));
+  else resolver(arbol);
+}));
 
 const elegidas = () => new Set([...document.querySelectorAll('#lista-marcadores input:checked')].map(i => i.value));
 const actualizarBoton = () => { $('#importar-marcadores-ok').disabled = !elegidas().size; };
@@ -91,6 +101,7 @@ function abrirDialogo(carpetas) {
     return li;
   }));
   actualizarBoton();
+  $('#dlg-marcadores').returnValue = '';
   $('#dlg-marcadores').showModal();
 }
 
@@ -104,26 +115,38 @@ async function importar() {
   datos.grupos.push(...grupos);
   colocarSinPosicion(datos);
   await guardarYPintar();
+  const grande = grupos.some(g => clavesSoloLocal.has(`grupo:${g.id}`))
+    ? '. Algún grupo es demasiado grande para sincronizar y solo estará en este equipo'
+    : '';
   const repetidos = omitidos ? ` (${omitidos} ${omitidos === 1 ? 'repetido omitido' : 'repetidos omitidos'})` : '';
-  avisarConAccion(`${grupos.length} ${grupos.length === 1 ? 'grupo importado' : 'grupos importados'}${repetidos}`, 'Deshacer', deshacerUltimo);
+  avisarConAccion(`${grupos.length} ${grupos.length === 1 ? 'grupo importado' : 'grupos importados'}${repetidos}${grande}`, 'Deshacer', deshacerUltimo);
 }
 
 // El permiso se pide dentro del clic: sin nada asíncrono antes, o Chrome lo rechaza.
+let cargando = false;
 $('#btn-importar-marcadores').addEventListener('click', async () => {
   if (typeof chrome === 'undefined' || !chrome.permissions) {
     avisar('Disponible al usarlo como extensión de Chrome');
     return;
   }
-  if (!(await pedirPermiso())) {
-    avisar('Sin permiso para leer tus marcadores');
-    return;
+  if (cargando) return; // un segundo clic mientras Chrome pregunta no vuelve a pedir nada
+  cargando = true;
+  try {
+    if (!(await pedirPermiso())) {
+      avisar('Sin permiso para leer tus marcadores');
+      return;
+    }
+    const carpetas = carpetasDeArbol(await leerArbol());
+    if (!carpetas.length) {
+      avisar('No hay marcadores http o https que importar');
+      return;
+    }
+    abrirDialogo(carpetas);
+  } catch {
+    avisar('No se pudieron leer los marcadores');
+  } finally {
+    cargando = false;
   }
-  const carpetas = carpetasDeArbol(await leerArbol());
-  if (!carpetas.length) {
-    avisar('No hay marcadores http o https que importar');
-    return;
-  }
-  abrirDialogo(carpetas);
 });
 
 $('#dlg-marcadores').addEventListener('close', ev => {

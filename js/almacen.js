@@ -54,6 +54,8 @@ export async function leer(clave) {
 }
 
 const ESPERA_REINTENTO = 60 * 1000;
+// Claves que no caben en sync y viven solo en este equipo.
+export const clavesSoloLocal = new Set();
 const pendientes = new Set();
 let reintento = null;
 let avisadoCuota = false;
@@ -68,6 +70,7 @@ export async function escribir(clave, valor) {
   try {
     await chrome.storage.sync.set({ [clave]: valor });
     pendientes.delete(clave);
+    clavesSoloLocal.delete(clave);
     await chrome.storage.local.remove(clave);
   } catch (err) {
     await chrome.storage.local.set({ [clave]: valor });
@@ -77,6 +80,7 @@ export async function escribir(clave, valor) {
       return;
     }
     // Demasiado grande para sincronizar: la copia de sync ya no vale para los demás equipos.
+    clavesSoloLocal.add(clave);
     await chrome.storage.sync.remove(clave).catch(() => {});
     if (!avisadoCuota) {
       avisadoCuota = true;

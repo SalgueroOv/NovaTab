@@ -132,5 +132,57 @@ export default {
     const manifest = JSON.parse(readFileSync(join(RAIZ, 'manifest.json'), 'utf8'));
     afirmar(manifest.optional_permissions?.includes('bookmarks'), 'bookmarks en optional_permissions');
     afirmar(!manifest.permissions.includes('bookmarks'), 'bookmarks no en permissions');
+
+    // ---- Revisión final ----
+    // (g) La zona se calcula con los enlaces que se importan, no con los que ya estaban.
+    r = await pg.ev(`${modulo}.then(m => m.gruposDeCarpetas([{ id: 'z', nombre: 'Mixta', enlaces: [
+      { nombre: 'a', url: 'http://192.168.1.2/' }, { nombre: 'b', url: 'http://192.168.1.3/' },
+      { nombre: 'c', url: 'http://192.168.1.4/' }, { nombre: 'd', url: 'https://publica.example.com/' }] }],
+      new Set(['z']), new Set(['192.168.1.2:80', '192.168.1.3:80', '192.168.1.4:80'])).grupos.map(g => [g.nombre, g.zona]))`);
+    igual(r, [['Mixta', 'online']], 'zona según los enlaces que se importan');
+
+    // (h) Raíces por folderType: varias barras (local y de la cuenta), sin la carpeta gestionada.
+    const raiz = (id, folderType, title, links) => ({ id, folderType, title, children: links.map((u, i) => ({ id: `${id}-${i}`, title: `L${id}${i}`, url: u })) });
+    const arbolTipos = [{ id: '0', title: '', children: [
+      raiz('1', 'bookmarks-bar', 'Barra', ['https://a.example.com/']),
+      raiz('2', 'other', 'Otros', ['https://b.example.com/']),
+      raiz('3', 'mobile', 'Móviles', []),
+      raiz('4', 'bookmarks-bar', 'Barra de la cuenta', ['https://c.example.com/']),
+      raiz('5', 'managed', 'Gestionados', ['https://d.example.com/']),
+    ] }];
+    r = await pg.ev(`${modulo}.then(m => m.carpetasDeArbol(${JSON.stringify(arbolTipos)}).map(c => c.nombre))`);
+    igual(r, ['Barra de marcadores', 'Otros marcadores', 'Barra de marcadores'], 'raíces por folderType');
+
+    // (i) Una carpeta que no cabe en sync se importa y el aviso dice que solo estará en este equipo.
+    const grande = [{ id: '0', children: [{ id: '1', title: 'Barra', children: [{ id: '10', title: 'Enorme',
+      children: Array.from({ length: 200 }, (_, i) => ({ id: `g${i}`, title: `Servicio ${i}`, url: `https://servicio-${i}.example.com/ruta/larga/para/ocupar/espacio/${i}` })) }] }] }];
+    p2 = await abrir({ datos: BASE, chrome: {}, marcadores: grande });
+    await p2.esperar(300);
+    await p2.clic('#btn-editar');
+    await p2.clic('#btn-importar-marcadores');
+    await p2.esperar(300);
+    await p2.ev(marcar('Enorme'));
+    await p2.clic('#importar-marcadores-ok');
+    await p2.esperar(600);
+    afirmar((await aviso(p2)).includes('solo estará en este equipo'), `el aviso menciona que no se sincroniza (era: ${await aviso(p2)})`);
+    igual((await p2.datos()).grupos.find(g => g.nombre === 'Enorme')?.enlaces.length, 200, 'los 200 enlaces importados');
+
+    // (j) Si getTree falla, se avisa en lugar de quedarse callado.
+    p2 = await abrir({ datos: BASE, chrome: {}, marcadores: ARBOL_PRUEBA });
+    await p2.esperar(300);
+    await p2.ev(`chrome.bookmarks.getTree = cb => setTimeout(() => cb(undefined), 5)`);
+    await p2.clic('#btn-editar');
+    await p2.clic('#btn-importar-marcadores');
+    await p2.esperar(300);
+    igual(await aviso(p2), 'No se pudieron leer los marcadores', 'aviso si getTree falla');
+
+    // (k) Dos clics seguidos piden el permiso una sola vez.
+    p2 = await abrir({ datos: BASE, chrome: {}, marcadores: ARBOL_PRUEBA });
+    await p2.esperar(300);
+    await p2.clic('#btn-editar');
+    await p2.ev(`document.getElementById('btn-importar-marcadores').click(); document.getElementById('btn-importar-marcadores').click()`);
+    await p2.esperar(400);
+    igual(await p2.ev(`window.__solicitudes`), 1, 'solicitudes de permiso con dos clics');
+    igual(await filas(p2), ['Barra de marcadores', 'Casa', 'Casa / Domótica', 'Trabajo'], 'una sola lista de carpetas');
   },
 };
