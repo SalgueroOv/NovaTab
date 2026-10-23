@@ -47,6 +47,7 @@ Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pru
 | `js/edicion.js` | Modo edición: diálogos, importar/exportar, restablecer, arrastrar y deshacer/rehacer (Ctrl+Z, Ctrl+Y) |
 | `js/fondos.js`, `js/imagen-fondo.js` | Diez dibujos de fondo y la imagen de fondo propia (reducida y guardada solo en el equipo) |
 | `js/motores.js`, `js/ajustes-buscador.js` | Motores de búsqueda y atajos `!clave`, y su pestaña «Buscador» (con sugerencias de Google opcionales) |
+| `js/perfiles.js`, `js/perfiles-ops.js`, `js/selector-perfiles.js` | Perfiles: registro y migración, crear/duplicar/borrar/cambiar, y el selector de la cabecera (con el ojo del modo reunión, que pasa al perfil Demo) |
 | `js/widgets/*.js` | Los widgets nuevos, uno por archivo, registrados con `registrar()` de `js/widgets.js`: reloj mundial, cuenta atrás, tareas (sus datos en `tareas-datos.js`), RSS y estado de servicios |
 | `js/separador.js` | Franja arrastrable entre los paneles (el izquierdo del 25 al 50 %, doble clic para restaurar) |
 | `js/comandos.js`, `js/atajos.js` | Paleta de comandos (Ctrl+K) y Alt+1…Alt+9 para los nueve primeros enlaces locales |

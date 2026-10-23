@@ -7,8 +7,11 @@ Sustituye la pestaña nueva de Chrome por una página con:
 - Tus webs favoritas como accesos directos.
 - Widgets: tiempo, notas, Google Calendar, Spotify, tus webs más visitadas, reloj mundial, cuenta atrás, tareas, titulares RSS y estado de tus servicios (un LED por servicio). El RSS y el estado de servicios piden permiso para los sitios que consultan; es opcional y solo se pide al añadirlos.
 - Cada grupo de la red local se puede ver como lista, iconos o compacta (Editar grupo), y el ancho del panel izquierdo se cambia arrastrando la franja entre los paneles.
+- Perfiles (Trabajo, Casa, Demo…): cada uno con sus grupos, widgets y aspecto; se cambia desde el selector junto al título de la red local o con Ctrl+K. El ojo (modo reunión) pasa al perfil Demo, que no enseña los grupos privados.
 - Atajos de teclado: Ctrl+K (paleta de comandos), Alt+1 a Alt+9 (tus primeros enlaces locales) y «!y gatos», «!gh», «!w», «!m» en el buscador (editables en Personalizar > Buscador).
 - Diez temas, fondos, color de acento, motor de búsqueda a elegir, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
+
+IMPORTANTE al actualizar desde la versión 4: la versión 5 guarda los datos en claves nuevas (tus datos se migran solos y se guarda una copia de seguridad en el equipo). Actualiza todos tus equipos a la vez: un equipo con la versión 4 no se sincronizará con los de la versión 5.
 
 Todo se guarda en tu cuenta de Chrome y se sincroniza entre tus equipos. Nada se envía a ningún servidor, salvo lo que escribes en el buscador si activas las sugerencias de Google (es opcional y pide permiso).
 

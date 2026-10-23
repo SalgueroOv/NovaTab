@@ -138,8 +138,8 @@ Esfuerzo: S = una sesión corta, M = una sesión, L = varias sesiones.
 
 **Archivos:** `js/perfiles.js` (nuevo), `js/datos.js` (migración v5).
 
-- [ ] Varios perfiles, cada uno con sus grupos, widgets y apariencia; cambio rápido desde la cabecera y desde Ctrl+K.
-- [ ] El modo reunión pasa a ser un perfil "Demo" predefinido; los grupos privados siguen funcionando.
+- [x] Varios perfiles, cada uno con sus grupos, widgets y apariencia; cambio rápido desde la cabecera y desde Ctrl+K.
+- [x] El modo reunión pasa a ser un perfil "Demo" predefinido; los grupos privados siguen funcionando.
 
 **Hecho cuando:** cambiar de perfil y volver deja todo exactamente como estaba y la migración v4→v5 crea un perfil con los datos actuales.
 
