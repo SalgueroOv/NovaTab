@@ -64,6 +64,7 @@ export function ocultarAvisoAccion() {
 
 // Aviso con un botón (por ejemplo «Deshacer»): se oculta al pulsarlo o pasados «ms».
 export function avisarConAccion(texto, etiqueta, accion, ms = 8000) {
+  $('#aviso').hidden = true;
   const el = $('#aviso-accion');
   el.querySelector('span').textContent = texto;
   const boton = el.querySelector('button');
@@ -74,6 +75,7 @@ export function avisarConAccion(texto, etiqueta, accion, ms = 8000) {
   temporizadorAccion = setTimeout(() => { el.hidden = true; }, ms);
 }
 export function avisar(texto) {
+  ocultarAvisoAccion(); // los dos avisos comparten sitio: solo se ve uno
   const el = $('#aviso');
   el.textContent = texto;
   el.hidden = false;

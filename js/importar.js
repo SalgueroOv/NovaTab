@@ -1,6 +1,9 @@
 // Importar los marcadores de Chrome como grupos.
-import { nuevoId, partes, dominio, urlSegura } from './util.js';
+import { $, avisar, avisarConAccion, crear, nuevoId, partes, dominio, urlSegura } from './util.js';
+import { datos } from './datos.js';
+import { colocarSinPosicion } from './rejilla.js';
 import { claveSitio } from './widgets.js';
+import { deshacerUltimo, guardarYPintar } from './edicion.js';
 
 const RAICES = ['Barra de marcadores', 'Otros marcadores', 'Marcadores móviles'];
 const MAX_NOMBRE = 40;
@@ -63,3 +66,66 @@ export function gruposDeCarpetas(carpetas, elegidas, guardados) {
   }
   return { grupos, omitidos };
 }
+
+// ---------- Interfaz ----------
+
+let carpetasOfrecidas = [];
+
+const pedirPermiso = () => new Promise(resolver => chrome.permissions.request({ permissions: ['bookmarks'] }, resolver));
+const leerArbol = () => new Promise(resolver => chrome.bookmarks.getTree(resolver));
+
+const elegidas = () => new Set([...document.querySelectorAll('#lista-marcadores input:checked')].map(i => i.value));
+const actualizarBoton = () => { $('#importar-marcadores-ok').disabled = !elegidas().size; };
+
+function abrirDialogo(carpetas) {
+  carpetasOfrecidas = carpetas;
+  $('#lista-marcadores').replaceChildren(...carpetas.map(c => {
+    const li = crear('li');
+    const etiqueta = crear('label');
+    const casilla = crear('input');
+    casilla.type = 'checkbox';
+    casilla.value = c.id;
+    casilla.addEventListener('change', actualizarBoton);
+    etiqueta.append(casilla, crear('span', 'nombre', c.nombre), crear('span', 'cuenta', `${c.enlaces.length} ${c.enlaces.length === 1 ? 'enlace' : 'enlaces'}`));
+    li.append(etiqueta);
+    return li;
+  }));
+  actualizarBoton();
+  $('#dlg-marcadores').showModal();
+}
+
+async function importar() {
+  const guardados = new Set(datos.grupos.flatMap(g => g.enlaces.map(e => claveSitio(e.url))));
+  const { grupos, omitidos } = gruposDeCarpetas(carpetasOfrecidas, elegidas(), guardados);
+  if (!grupos.length) {
+    avisar('No hay nada nuevo que importar: todos los enlaces ya están en tus grupos');
+    return;
+  }
+  datos.grupos.push(...grupos);
+  colocarSinPosicion(datos);
+  await guardarYPintar();
+  const repetidos = omitidos ? ` (${omitidos} ${omitidos === 1 ? 'repetido omitido' : 'repetidos omitidos'})` : '';
+  avisarConAccion(`${grupos.length} ${grupos.length === 1 ? 'grupo importado' : 'grupos importados'}${repetidos}`, 'Deshacer', deshacerUltimo);
+}
+
+// El permiso se pide dentro del clic: sin nada asíncrono antes, o Chrome lo rechaza.
+$('#btn-importar-marcadores').addEventListener('click', async () => {
+  if (typeof chrome === 'undefined' || !chrome.permissions) {
+    avisar('Disponible al usarlo como extensión de Chrome');
+    return;
+  }
+  if (!(await pedirPermiso())) {
+    avisar('Sin permiso para leer tus marcadores');
+    return;
+  }
+  const carpetas = carpetasDeArbol(await leerArbol());
+  if (!carpetas.length) {
+    avisar('No hay marcadores http o https que importar');
+    return;
+  }
+  abrirDialogo(carpetas);
+});
+
+$('#dlg-marcadores').addEventListener('close', ev => {
+  if (ev.target.returnValue === 'ok') importar();
+});

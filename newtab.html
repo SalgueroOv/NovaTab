@@ -42,6 +42,7 @@
           <button class="boton-texto" type="button" id="btn-nuevo-widget">Añadir widget</button>
           <button class="boton-texto" type="button" id="btn-exportar" title="Descargar copia en JSON">Exportar</button>
           <button class="boton-texto" type="button" id="btn-importar" title="Cargar copia en JSON">Importar</button>
+          <button class="boton-texto" type="button" id="btn-importar-marcadores" title="Crear grupos con tus marcadores de Chrome">Importar marcadores</button>
           <button class="boton-texto primario" type="button" id="btn-listo">Listo</button>
           <input id="archivo" type="file" accept=".json,application/json" hidden>
         </div>
@@ -140,6 +141,18 @@
       <menu>
         <button type="button" id="icono-quitar">Sin icono</button>
         <button type="button" value="cancelar" data-cerrar>Cancelar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-marcadores">
+    <form method="dialog">
+      <h2>Importar marcadores</h2>
+      <p class="dlg-aviso">Cada carpeta marcada se convierte en un grupo. Se omiten los sitios que ya tienes.</p>
+      <ul class="lista-marcadores" id="lista-marcadores"></ul>
+      <menu>
+        <button type="button" value="cancelar" data-cerrar>Cancelar</button>
+        <button value="ok" class="primario" id="importar-marcadores-ok" disabled>Importar</button>
       </menu>
     </form>
   </dialog>

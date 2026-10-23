@@ -5,6 +5,7 @@
   "version": "4.1.0",
   "chrome_url_overrides": { "newtab": "newtab.html" },
   "permissions": ["storage", "favicon", "geolocation", "topSites"],
+  "optional_permissions": ["bookmarks"],
   "action": { "default_title": "NovaTab" },
   "background": { "service_worker": "background.js" }
 }

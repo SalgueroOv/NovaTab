@@ -29,13 +29,13 @@ export function igual(real, esperado, mensaje) {
 }
 
 // La página se sirve por HTTP desde urlBase (ver servidor.mjs).
-// datos: null deja los datos por defecto de la página. topSites simula chrome.topSites.get.
+// datos: null deja los datos por defecto de la página. topSites simula chrome.topSites.get. marcadores simula chrome.bookmarks y permisoMarcadores chrome.permissions.
 // chrome: { cuotaPorClave, escriturasPorMinuto } simula chrome.storage (ver chrome-falso.js); los datos
 // de prueba se guardan entonces en su almacén de sincronización en lugar de en localStorage.
 export function crearAbrir(navegador, urlBase) {
   const URL_PAGINA = `${urlBase}/newtab.html`;
   // guardados: entradas extra de localStorage (o del simulador, «chrome.sync/clave») antes de cargar.
-  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, chrome = null, guardados = {} } = {}) {
+  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', chrome = null, guardados = {} } = {}) {
     const p = await navegador.newPage({ width: ancho, height: alto });
     const errores = [];
     await p.send('Runtime.enable');
@@ -50,6 +50,21 @@ ${CHROME_FALSO}`,
     if (topSites) {
       await p.send('Page.addScriptToEvaluateOnNewDocument', {
         source: `window.chrome = Object.assign(window.chrome || {}, { topSites: { get: cb => setTimeout(() => cb(${JSON.stringify(topSites)}), 5) } });`,
+      });
+    }
+    if (marcadores) {
+      // chrome.bookmarks y chrome.permissions simulados; con 'pendiente' el permiso se concede al pedirlo.
+      await p.send('Page.addScriptToEvaluateOnNewDocument', {
+        source: `(() => {
+          let permiso = ${JSON.stringify(permisoMarcadores)};
+          window.chrome = Object.assign(window.chrome || {}, {
+            bookmarks: { getTree: cb => setTimeout(() => cb(${JSON.stringify(marcadores)}), 5) },
+            permissions: {
+              contains: (_p, cb) => setTimeout(() => cb(permiso === 'concedido'), 0),
+              request: (_p, cb) => setTimeout(() => { if (permiso === 'pendiente') permiso = 'concedido'; cb(permiso === 'concedido'); }, 0),
+            },
+          });
+        })()`,
       });
     }
     await p.goto(URL_PAGINA, { settleMs: 200 });

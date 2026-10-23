@@ -1,5 +1,11 @@
-import { afirmar, igual } from './lib/util.mjs';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { afirmar, igual, RAIZ } from './lib/util.mjs';
 import { ARBOL_PRUEBA } from './lib/marcadores-prueba.mjs';
+import { DATOS_PRUEBA } from './lib/datos-prueba.mjs';
+
+// Sin el grupo «Trabajo» de los datos de prueba, que ya trae mail y docs.
+const BASE = { ...structuredClone(DATOS_PRUEBA), grupos: DATOS_PRUEBA.grupos.slice(0, 2) };
 
 const modulo = `import('/js/importar.js')`;
 
@@ -48,5 +54,83 @@ export default {
       { id: 'b', nombre: 'n'.repeat(80), enlaces: [{ nombre: 'y', url: 'https://b.example.com/' }] },
     ], new Set(['a', 'b']), new Set()).grupos.map(g => g.nombre))`);
     igual(r, ['Sin nombre', 'n'.repeat(40)], 'nombres de grupo');
+
+    // ---- Botón, permiso y diálogo ----
+    const marcar = nombre => `[...document.querySelectorAll('#lista-marcadores li')].find(li => li.querySelector('.nombre').textContent === ${JSON.stringify(nombre)}).querySelector('input').click()`;
+    const filas = pagina => pagina.ev(`[...document.querySelectorAll('#lista-marcadores li')].map(li => li.querySelector('.nombre').textContent)`);
+    const aviso = pagina => pagina.ev(`[document.getElementById('aviso-accion'), document.getElementById('aviso')].filter(a => !a.hidden).map(a => a.textContent).join('')`);
+
+    // (a) El diálogo lista las 4 carpetas, desmarcadas, y «Importar» espera a que marques alguna.
+    let p2 = await abrir({ datos: BASE, chrome: {}, marcadores: ARBOL_PRUEBA, permisoMarcadores: 'pendiente' });
+    await p2.esperar(300);
+    await p2.ev(`window.confirm = () => true`);
+    await p2.clic('#btn-editar');
+    await p2.clic('#btn-importar-marcadores');
+    await p2.esperar(300);
+    afirmar(await p2.ev(`document.getElementById('dlg-marcadores').open`), 'el diálogo se abre al conceder el permiso');
+    igual(await filas(p2), ['Barra de marcadores', 'Casa', 'Casa / Domótica', 'Trabajo'], 'carpetas del diálogo');
+    igual(await p2.ev(`[...document.querySelectorAll('#lista-marcadores input')].some(i => i.checked)`), false, 'todo desmarcado');
+    afirmar(await p2.ev(`document.getElementById('importar-marcadores-ok').disabled`), 'Importar desactivado sin carpetas');
+    await p2.ev(marcar('Casa'));
+    afirmar(!(await p2.ev(`document.getElementById('importar-marcadores-ok').disabled`)), 'Importar se activa al marcar una carpeta');
+
+    // (b) Importar Casa y Trabajo crea sus grupos sin la URL insegura; Ctrl+Z los quita.
+    await p2.ev(marcar('Trabajo'));
+    await p2.clic('#importar-marcadores-ok');
+    await p2.esperar(500);
+    let d = await p2.datos();
+    const casa = d.grupos.find(g => g.nombre === 'Casa');
+    const trabajo = d.grupos.find(g => g.nombre === 'Trabajo');
+    igual([casa.enlaces.length, casa.zona, trabajo.enlaces.length, trabajo.zona], [3, 'local', 3, 'online'], 'grupos importados');
+    afirmar(!JSON.stringify(d).includes('javascript:'), 'ningún enlace javascript:');
+    igual(await aviso(p2), '2 grupos importados (1 repetido omitido)Deshacer', 'aviso tras importar');
+    await p2.ev(`document.activeElement.blur()`);
+    await p2.tecla('z', 'ctrl');
+    await p2.esperar(500);
+    d = await p2.datos();
+    afirmar(!d.grupos.some(g => g.nombre === 'Casa' || g.nombre === 'Trabajo'), 'Ctrl+Z quita lo importado');
+
+    // (c) Importar de nuevo todo lo ya importado no añade nada.
+    await p2.clic('#btn-importar-marcadores');
+    await p2.esperar(300);
+    for (const n of ['Barra de marcadores', 'Casa', 'Casa / Domótica', 'Trabajo']) await p2.ev(marcar(n));
+    await p2.clic('#importar-marcadores-ok');
+    await p2.esperar(500);
+    const tras = (await p2.datos()).grupos.length;
+    await p2.clic('#btn-importar-marcadores');
+    await p2.esperar(300);
+    for (const n of ['Barra de marcadores', 'Casa', 'Casa / Domótica', 'Trabajo']) await p2.ev(marcar(n));
+    await p2.clic('#importar-marcadores-ok');
+    await p2.esperar(500);
+    igual((await p2.datos()).grupos.length, tras, 'la segunda importación no crea grupos');
+    igual(await aviso(p2), 'No hay nada nuevo que importar: todos los enlaces ya están en tus grupos', 'aviso sin novedades');
+
+    // (d) Permiso denegado: no se abre el diálogo y no cambia nada.
+    p2 = await abrir({ datos: BASE, chrome: {}, marcadores: ARBOL_PRUEBA, permisoMarcadores: 'denegado' });
+    await p2.esperar(300);
+    const antes = JSON.stringify(await p2.datos());
+    await p2.clic('#btn-editar');
+    await p2.clic('#btn-importar-marcadores');
+    await p2.esperar(300);
+    igual(await p2.ev(`document.getElementById('dlg-marcadores').open`), false, 'diálogo cerrado sin permiso');
+    igual(JSON.stringify(await p2.datos()), antes, 'datos intactos sin permiso');
+    igual(await aviso(p2), 'Sin permiso para leer tus marcadores', 'aviso de permiso');
+
+    // (e) Cancelar con casillas marcadas no crea nada.
+    p2 = await abrir({ datos: BASE, chrome: {}, marcadores: ARBOL_PRUEBA, permisoMarcadores: 'concedido' });
+    await p2.esperar(300);
+    const antes2 = JSON.stringify(await p2.datos());
+    await p2.clic('#btn-editar');
+    await p2.clic('#btn-importar-marcadores');
+    await p2.esperar(300);
+    await p2.ev(marcar('Casa'));
+    await p2.clic('#dlg-marcadores button[data-cerrar]');
+    await p2.esperar(300);
+    igual(JSON.stringify(await p2.datos()), antes2, 'datos intactos al cancelar');
+
+    // (f) El permiso es opcional: no está entre los obligatorios.
+    const manifest = JSON.parse(readFileSync(join(RAIZ, 'manifest.json'), 'utf8'));
+    afirmar(manifest.optional_permissions?.includes('bookmarks'), 'bookmarks en optional_permissions');
+    afirmar(!manifest.permissions.includes('bookmarks'), 'bookmarks no en permissions');
   },
 };
