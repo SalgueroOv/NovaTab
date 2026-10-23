@@ -3,7 +3,7 @@ import { $, crear, dominio, nuevoId, partes, svg } from './util.js';
 import { alCambiar, borrar, escribir, escribirLocal, leer, leerLocal } from './almacen.js';
 import { datos } from './datos.js';
 import { alto, bloque, colocarSinPosicion } from './rejilla.js';
-import { botonPlegar, icono } from './pintado.js';
+import { botonPlegar, icono, prepararCabecera } from './pintado.js';
 import { guardarYPintar } from './edicion.js';
 
 // Se carga antes que app.js y usa sus funciones (crear, svg, datos, guardarYPintar…) solo al llamarse.
@@ -52,6 +52,7 @@ export function pintarWidget(w) {
   sec.classList.toggle('plegado', !!w.plegado);
   if (sec === previo) {
     previo.querySelector('[data-plegar]').replaceWith(botonPlegar(w.plegado));
+    prepararCabecera(previo.querySelector('.widget-cab'), tituloWidget(w)); // al entrar o salir del modo edición
     return sec;
   }
 
@@ -59,6 +60,7 @@ export function pintarWidget(w) {
   if (conservar) sec.dataset.conservar = conservar;
   if (src) sec.classList.add('widget-iframe');
   const cab = crear('div', 'widget-cab');
+  prepararCabecera(cab, tituloWidget(w));
   cab.append(crear('h3', null, tituloWidget(w)));
   if (WIDGETS[w.tipo].configurable) cab.append(botonWidget('configurar', 'lapiz', 'Configurar widget'));
   cab.append(botonWidget('borrar', 'papelera', 'Borrar widget'), botonPlegar(w.plegado));

@@ -128,6 +128,18 @@ export function botonBorrar() {
   return b;
 }
 
+// En modo edición la cabecera de un bloque se puede enfocar: con las flechas se mueve y con Mayús + flechas se
+// redimensiona (ver teclado-bloques.js).
+export function prepararCabecera(cab, nombre) {
+  if (!editando) {
+    for (const a of ['tabindex', 'role', 'aria-label']) cab.removeAttribute(a);
+    return;
+  }
+  cab.tabIndex = 0;
+  cab.setAttribute('role', 'group');
+  cab.setAttribute('aria-label', `Mover ${nombre}: flechas para mover y Mayús con flechas para cambiar el tamaño`);
+}
+
 export function pintarGrupoLocal(g) {
   const sec = crear('section', 'grupo bloque');
   sec.classList.toggle('plegado', !!g.plegado);
@@ -137,6 +149,7 @@ export function pintarGrupoLocal(g) {
   sec.style.gridRow = `${g.pos.y} / span ${alto(g)}`;
 
   const cab = crear('div', 'grupo-cab');
+  prepararCabecera(cab, g.nombre);
   cab.append(crear('i'), crear('h3', null, g.nombre), crear('span', 'cuenta', String(g.enlaces.length)));
   if (g.privado) cab.append(crear('span', 'privado solo-edicion', 'Privado'));
   cab.append(...botonesGrupo(), botonPlegar(g.plegado));

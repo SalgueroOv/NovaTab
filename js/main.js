@@ -12,6 +12,7 @@ import './buscador.js';
 import './ajustes-buscador.js';
 import './comandos.js';
 import './separador.js';
+import './teclado-bloques.js';
 import './widgets.js';
 import './widgets/reloj-mundial.js';
 import './widgets/cuenta-atras.js';
