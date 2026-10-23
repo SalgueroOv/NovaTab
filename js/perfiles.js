@@ -64,6 +64,19 @@ export function aspectoDeLegado(tema, opciones) {
   return aspecto;
 }
 
+// Los ids de grupos y de widgets de los demás perfiles: lo que hay que respetar al borrar claves «que sobran»
+// (notas, tareas, cachés y enlaces cuyo widget o grupo ya no está en el perfil activo pero sí en otro).
+export async function idsDeOtrosPerfiles() {
+  const grupos = new Set();
+  const widgets = new Set();
+  for (const p of perfilesDeLaLista().filter(x => x.id !== activo)) {
+    const d = await leer(claveDatos(p.id));
+    for (const g of d?.grupos ?? []) grupos.add(String(g.id));
+    for (const w of [...(d?.widgets ?? []), ...(d?.ajenos ?? [])]) widgets.add(String(w.id));
+  }
+  return { grupos, widgets };
+}
+
 const mismo = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 // Crea el registro si no existe: desde los datos de la versión 4 (con copia de seguridad), o desde cero.

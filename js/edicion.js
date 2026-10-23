@@ -9,7 +9,7 @@ import { accionDeWidget, campo, escribirNotas, leerNotas, memoriaNotas, notasGua
 import { leerIcono, refrescarCampoIcono } from './iconos.js';
 import { crearHistorial } from './historial.js';
 import { borrarTareas, escribirTareas, idsDeTareas, leerTareas } from './widgets/tareas-datos.js';
-import { perfilActivo } from './perfiles.js';
+import { idsDeOtrosPerfiles, perfilActivo } from './perfiles.js';
 
 export let editando = false;
 export let arrastre = null;
@@ -58,10 +58,11 @@ async function aplicarDentro(foto, todasLasNotas = false) {
   const estaban = idsDeNotas(datos);
   const estabanTareas = idsDeTareas(datos);
   ponerDatos(normalizar(structuredClone(foto.datos)));
-  await borrarNotas(idsDeNotas(datos));
+  const otros = (await idsDeOtrosPerfiles()).widgets;
+  await borrarNotas(new Set([...idsDeNotas(datos), ...otros]));
   const reaparecen = Object.entries(foto.notas).filter(([id]) => todasLasNotas || !estaban.has(id));
   await escribirNotas(Object.fromEntries(reaparecen));
-  await borrarTareas(idsDeTareas(datos));
+  await borrarTareas(new Set([...idsDeTareas(datos), ...otros]));
   await escribirTareas(Object.fromEntries(Object.entries(foto.tareas || {}).filter(([id]) => todasLasNotas || !estabanTareas.has(id))));
   resolver();
   pintar();
@@ -316,9 +317,10 @@ $('#archivo').addEventListener('change', async ev => {
     const leido = JSON.parse(await archivo.text());
     const nuevos = normalizar(leido);
     if (!confirm('¿Reemplazar todos los enlaces por los del archivo?')) return;
-    await borrarNotas(idsDeNotas(nuevos));
+    const otros = (await idsDeOtrosPerfiles()).widgets;
+    await borrarNotas(new Set([...idsDeNotas(nuevos), ...otros]));
     await escribirNotas(leido.notas);
-    await borrarTareas(); // las listas de ahora se vacían: las que no vengan en el archivo quedan sin tareas
+    await borrarTareas(otros); // las listas de este perfil se vacían: las que no vengan en el archivo quedan sin tareas
     await escribirTareas(Object.fromEntries(Object.entries(leido.tareas || {}).filter(([id]) => idsDeTareas(nuevos).has(id))));
     ponerDatos(nuevos);
     await guardarYPintar();
@@ -341,9 +343,10 @@ export const idsDeNotas = d => new Set(d.widgets.filter(w => w.tipo === 'notas')
 // no se cambia nada y se avisa (antes se cambiaba la memoria y el siguiente guardado lo hacía a medias).
 export async function restablecerTodo() {
   try {
-    await borrarNotas();
-    await borrarTareas();
-    await borrar(await claves('rss:')); // cachés de los feeds
+    const otros = (await idsDeOtrosPerfiles()).widgets;
+    await borrarNotas(otros);
+    await borrarTareas(otros);
+    await borrar((await claves('rss:')).filter(k => !otros.has(k.slice(4)))); // cachés de los feeds de este perfil
   } catch (err) {
     avisar(`No se pudo restablecer: ${err.message}`);
     return;
