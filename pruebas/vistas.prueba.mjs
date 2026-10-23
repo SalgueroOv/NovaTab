@@ -169,5 +169,28 @@ export default {
       const dd = await pg.datos();
       igual([grupoEn(dd, 'Grande').enlaces.length, grupoEn(dd, 'Debajo').enlaces.length], [3, 3], `arrastrar un enlace de grupo en ${vista}`);
     }
+
+    // ---- Revisión final ----
+    // (l) Las celdas de iconos no se solapan: el botón de borrar es de su celda, con y sin edición.
+    for (const edicion of [true, false]) {
+      pg = await abrir({ datos: conGrupos({ n: 6, vista: 'iconos' }) });
+      await pg.esperar(400);
+      if (edicion) await pg.clic('#btn-editar');
+      const dueño = await pg.ev(`(() => {
+        const filas = [...${grupoDe('Grande')}.querySelectorAll('.fila')];
+        const r = filas[0].getBoundingClientRect();
+        const enBorde = document.elementFromPoint(r.right - 2, r.top + r.height / 2)?.closest('.fila');
+        const borrar = filas[0].querySelector('.borrar').getBoundingClientRect();
+        const enBorrar = edicion => document.elementFromPoint(borrar.right - 2, borrar.top + borrar.height / 2)?.closest('.fila');
+        return [filas.indexOf(enBorde), ${edicion} ? filas.indexOf(enBorrar()) : 0];
+      })()`);
+      igual(dueño, [0, 0], `el borde derecho de la primera celda y su botón de borrar son de ella (edición: ${edicion})`);
+    }
+
+    // (m) Compacta en edición: el nombre deja sitio al botón de borrar.
+    pg = await abrir({ datos: conGrupos({ n: 4, vista: 'compacta' }) });
+    await pg.esperar(400);
+    await pg.clic('#btn-editar');
+    afirmar(await pg.ev(`parseFloat(getComputedStyle(${grupoDe('Grande')}.querySelector('.fila')).paddingRight) >= 24`), 'relleno a la derecha para el botón de borrar');
   },
 };

@@ -5,7 +5,7 @@ import { avisar } from './util.js';
 import { CLAVE, VERSION, datos, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
 import { pintar, pintarLocal } from './pintado.js';
-import { CLAVE_OPCIONES, CLAVE_TEMA, hayGuardadoPendiente, pintarFondo, ponerOpciones, ponerTema } from './apariencia.js';
+import { CLAVE_OPCIONES, CLAVE_TEMA, pintarFondo, ponerOpciones, ponerTema, recibirEco } from './apariencia.js';
 import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
 import './ajustes-buscador.js';
@@ -19,7 +19,7 @@ import './importar.js';
 // Cambios hechos en otra pestaña u otro equipo sincronizado.
 alCambiar(cambios => {
   if (cambios[CLAVE_TEMA]?.newValue) ponerTema(cambios[CLAVE_TEMA].newValue);
-  if (cambios[CLAVE_OPCIONES]?.newValue && !hayGuardadoPendiente() && !esLoUltimo(CLAVE_OPCIONES, cambios[CLAVE_OPCIONES].newValue)) ponerOpciones(cambios[CLAVE_OPCIONES].newValue);
+  if (cambios[CLAVE_OPCIONES]?.newValue && !esLoUltimo(CLAVE_OPCIONES, cambios[CLAVE_OPCIONES].newValue)) recibirEco(cambios[CLAVE_OPCIONES].newValue);
   const deDatos = Object.entries(cambios).filter(([clave]) => clave === CLAVE || clave.startsWith('grupo:'));
   // Los ecos de lo que esta pestaña acaba de guardar no cuentan.
   if (!deDatos.length || deDatos.every(([clave, c]) => esLoUltimo(clave, c.newValue))) return;

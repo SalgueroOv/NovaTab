@@ -132,5 +132,52 @@ export default {
     await pg.raton('mouseReleased', xDe(m, 28), m.sepY);
     await pg.esperar(450);
     igual((await pg.ev(opcionesSync)).anchoIzq, 28, 'se guarda lo arrastrado, no el eco de fuera');
+
+    // ---- Revisión final ----
+    // (j) Un cambio de otra pestaña llegado durante el arrastre se conserva al soltar (solo el ancho es mío).
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(400);
+    m = await pg.ev(medidas);
+    await pg.raton('mousePressed', m.sepCentro, m.sepY);
+    await pg.raton('mouseMoved', xDe(m, 32), m.sepY);
+    await pg.ev(`__chromeFalso.remoto('sync', 'opciones', { sobrio: true, anchoIzq: 45 })`);
+    await pg.esperar(200);
+    await pg.raton('mouseMoved', xDe(m, 28), m.sepY);
+    await pg.raton('mouseReleased', xDe(m, 28), m.sepY);
+    await pg.esperar(500);
+    let g = await pg.ev(opcionesSync);
+    igual([g.anchoIzq, g.sobrio], [28, true], 'se guarda mi ancho y el cambio de la otra pestaña');
+    afirmar(await pg.ev(`document.body.classList.contains('sobrio')`), 'esta pestaña también lo aplica');
+    // Un simple clic (sin mover) tampoco deja la pestaña desfasada.
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(400);
+    m = await pg.ev(medidas);
+    await pg.raton('mousePressed', m.sepCentro, m.sepY);
+    await pg.ev(`__chromeFalso.remoto('sync', 'opciones', { sobrio: true })`);
+    await pg.esperar(200);
+    await pg.raton('mouseReleased', m.sepCentro, m.sepY);
+    await pg.esperar(300);
+    afirmar(await pg.ev(`document.body.classList.contains('sobrio')`), 'el cambio llegado durante un clic se aplica al soltar');
+
+    // (k) Con el ancho de siempre en una ventana de 1100 px, ArrowRight ensancha (no encoge) el panel.
+    pg = await abrir({ ancho: 1100 });
+    await pg.esperar(400);
+    const antes = (await pg.ev(medidas)).izqAncho;
+    await pg.ev(`document.getElementById('separador-paneles').focus()`);
+    await pg.tecla('ArrowRight');
+    await pg.esperar(100);
+    const despues = (await pg.ev(medidas)).izqAncho;
+    afirmar(despues > antes, `el panel crece con ArrowRight (de ${antes} a ${despues})`);
+    afirmar(Math.abs(Number(await pg.ev(`document.getElementById('separador-paneles').getAttribute('aria-valuenow')`)) - despues / (await pg.ev(medidas)).ancho * 100) <= 1.5, 'aria-valuenow corresponde al ancho real');
+
+    // (l) Home y End, y aria-valuetext.
+    pg = await abrir({ guardados: { opciones: { anchoIzq: 30 } } });
+    await pg.esperar(400);
+    await pg.ev(`document.getElementById('separador-paneles').focus()`);
+    igual(await pg.ev(`document.getElementById('separador-paneles').getAttribute('aria-valuetext')`), '30 %', 'aria-valuetext');
+    await pg.tecla('Home');
+    igual(await pg.ev(`document.getElementById('separador-paneles').getAttribute('aria-valuenow')`), '25', 'Inicio: 25');
+    await pg.tecla('End');
+    igual(await pg.ev(`document.getElementById('separador-paneles').getAttribute('aria-valuenow')`), '50', 'Fin: 50');
   },
 };

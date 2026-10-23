@@ -127,12 +127,16 @@ function aplicarAnchoIzq() {
   document.body.classList.toggle('ancho-izq', n !== null);
   if (n !== null) document.documentElement.style.setProperty('--ancho-izq', `${n}%`);
   else document.documentElement.style.removeProperty('--ancho-izq');
-  $('#separador-paneles').setAttribute('aria-valuenow', String(n ?? ANCHO_IZQ_DEFECTO));
+  if (n !== null) {
+    $('#separador-paneles').setAttribute('aria-valuenow', String(n));
+    $('#separador-paneles').setAttribute('aria-valuetext', `${n} %`);
+  }
 }
 
 // Mientras se arrastra el separador se aplica al momento sin guardar; al soltar se guarda una vez.
 export function ponerAnchoIzqVivo(v) {
   opciones = { ...opciones, anchoIzq: normalizarAnchoIzq(v) };
+  tocadas.add('anchoIzq');
   aplicarAnchoIzq();
 }
 
@@ -141,9 +145,27 @@ export function cambiarAnchoIzq(v, diferir = false) {
   guardarCambio(diferir);
 }
 
-// Mientras se arrastra, un eco de otra pestaña tampoco debe pisar lo que se arrastra.
+// Mientras se arrastra (o hay un guardado pendiente), un eco de otra pestaña no se aplica: se retiene y, al
+// guardar, se funde con lo propio (gana lo que se tocó aquí, lo demás se toma del eco).
 let pausaEcos = false;
+let ecoRetenido = null;
+const tocadas = new Set();
 export const pausarEcos = pausa => { pausaEcos = pausa; };
+
+export function recibirEco(nuevo) {
+  if (guardadoPendiente || pausaEcos) ecoRetenido = nuevo;
+  else ponerOpciones(nuevo);
+}
+
+export function fusionarEco() {
+  if (ecoRetenido) {
+    const mias = Object.fromEntries([...tocadas].map(k => [k, opciones[k]]));
+    const eco = ecoRetenido;
+    ecoRetenido = null;
+    ponerOpciones({ ...eco, ...mias });
+  }
+  tocadas.clear();
+}
 
 // Guarda las opciones; lo recuerda antes para reconocer su eco como propio (ver almacen.recordar).
 // Hay un cambio aplicado que aún no se guardó (controles que se arrastran): un eco ajeno no debe pisarlo.
@@ -152,6 +174,7 @@ export const hayGuardadoPendiente = () => guardadoPendiente || pausaEcos;
 export function guardarOpciones() {
   clearTimeout(temporizadorGuardado);
   guardadoPendiente = false;
+  fusionarEco();
   recordar(CLAVE_OPCIONES, opciones);
   return escribir(CLAVE_OPCIONES, opciones);
 }
@@ -170,6 +193,7 @@ function guardarCambio(diferir) {
 
 export function cambiarApariencia(parcial, diferir = false) {
   opciones = { ...opciones, apariencia: normalizarApariencia({ ...opciones.apariencia, ...parcial }) };
+  tocadas.add('apariencia');
   ponerApariencia(opciones.apariencia);
   guardarCambio(diferir);
 }
@@ -177,6 +201,7 @@ export function cambiarApariencia(parcial, diferir = false) {
 // Motor y atajos del buscador (ver motores.js).
 export function cambiarBuscador(parcial, diferir = false) {
   opciones = { ...opciones, buscador: normalizarBuscador({ ...opciones.buscador, ...parcial }) };
+  tocadas.add('buscador');
   guardarCambio(diferir);
 }
 document.addEventListener('visibilitychange', () => {
