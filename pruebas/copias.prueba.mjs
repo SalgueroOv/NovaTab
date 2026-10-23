@@ -69,5 +69,14 @@ export default {
     await pg.ev(`document.querySelectorAll('#lista-copias li')[1].querySelector('button').click()`);
     await pg.esperar(500);
     igual(await pg.ev(`Object.keys(localStorage).filter(k => k.startsWith('nota:'))`), [], 'sin notas huérfanas');
+
+    // Revisión final · (e) Una copia de hoy corrupta no bloquea la del día y una clave que no es fecha no cuenta.
+    const sembradas = { [`copia:${fechaLocal()}`]: { basura: 1 }, 'copia:zzz': copia(1, 'Rara') };
+    for (let i = 1; i <= 6; i++) sembradas[`copia:${fechaLocal(-i)}`] = copia(i, `Dia${i}`);
+    pg = await abrir({ guardados: sembradas });
+    await pg.esperar(400);
+    c = JSON.parse(await pg.ev(`localStorage.getItem('copia:${fechaLocal()}')`));
+    afirmar(Array.isArray(c.datos?.grupos), 'la copia corrupta de hoy se sustituye por una válida');
+    igual((await pg.ev(copiasGuardadas)).filter(k => /^copia:\d{4}-\d{2}-\d{2}$/.test(k)).length, 7, 'siete copias con fecha');
   },
 };

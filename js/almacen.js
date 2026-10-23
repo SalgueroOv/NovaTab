@@ -109,12 +109,30 @@ const claveGrupo = id => `grupo:${id}`;
 // cambio con ese mismo valor es el eco de una escritura propia.
 const ultimo = new Map();
 
+// Los ecos llegan con retraso: si se guarda dos veces seguidas, el eco de la primera llega cuando «ultimo»
+// ya es la segunda. Por eso lo escrito se recuerda también unos segundos.
+const propios = new Set();
+const ESPERA_ECO = 10 * 1000;
+
 export function recordar(clave, valor) {
-  if (valor === undefined) ultimo.delete(clave);
-  else ultimo.set(clave, JSON.stringify(valor));
+  if (valor === undefined) {
+    ultimo.delete(clave);
+    return;
+  }
+  const json = JSON.stringify(valor);
+  ultimo.set(clave, json);
+  const entrada = `${clave}
+${json}`;
+  propios.add(entrada);
+  setTimeout(() => propios.delete(entrada), ESPERA_ECO);
 }
 
-export const esLoUltimo = (clave, valor) => ultimo.get(clave) === (valor === undefined ? undefined : JSON.stringify(valor));
+export const esLoUltimo = (clave, valor) => {
+  if (valor === undefined) return !ultimo.has(clave);
+  const json = JSON.stringify(valor);
+  return ultimo.get(clave) === json || propios.has(`${clave}
+${json}`);
+};
 
 // Devuelve los datos con los enlaces dentro de cada grupo. Si están en un formato anterior (v1-v3, todo
 // en «datos»), los devuelve tal cual para que el arranque los migre.

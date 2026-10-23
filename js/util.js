@@ -57,6 +57,11 @@ export const dominio = url => partes(url).host.replace(/^www\./, '');
 
 export let temporizadorAviso;
 let temporizadorAccion;
+export function ocultarAvisoAccion() {
+  $('#aviso-accion').hidden = true;
+  clearTimeout(temporizadorAccion);
+}
+
 // Aviso con un botón (por ejemplo «Deshacer»): se oculta al pulsarlo o pasados «ms».
 export function avisarConAccion(texto, etiqueta, accion, ms = 8000) {
   const el = $('#aviso-accion');

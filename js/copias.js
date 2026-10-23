@@ -15,15 +15,18 @@ const legible = fecha => {
   return new Date(a, m - 1, d).toLocaleDateString('es', { day: 'numeric', month: 'short' }).replace('.', '');
 };
 
+// Solo las claves con forma de fecha: cualquier otra «copia:...» no es nuestra.
+const clavesDeCopia = async () => (await claves(PREFIJO)).filter(k => /^copia:\d{4}-\d{2}-\d{2}$/.test(k));
+
 const valida = c => typeof c?.fecha === 'string' && Array.isArray(c?.datos?.grupos);
 
 // Guarda la copia de hoy si aún no existe y deja solo las 7 más recientes. Devuelve si creó una.
 export async function hacerCopiaDelDia() {
   const hoy = fechaLocal();
-  if (await leerLocal(PREFIJO + hoy)) return false;
+  if (valida(await leerLocal(PREFIJO + hoy))) return false;
   const foto = await tomarFoto();
   await escribirLocal(PREFIJO + hoy, { fecha: hoy, datos: foto.datos, notas: foto.notas });
-  const todas = (await claves(PREFIJO)).sort();
+  const todas = (await clavesDeCopia()).sort();
   await borrar(todas.slice(0, Math.max(0, todas.length - MAXIMO)));
   return true;
 }
@@ -31,7 +34,7 @@ export async function hacerCopiaDelDia() {
 // De la más reciente a la más antigua; lo que no sea una copia utilizable se ignora.
 export async function listarCopias() {
   const lista = [];
-  for (const clave of (await claves(PREFIJO)).sort().reverse()) {
+  for (const clave of (await clavesDeCopia()).sort().reverse()) {
     const c = await leerLocal(clave);
     if (valida(c)) lista.push({ fecha: clave.slice(PREFIJO.length) });
   }

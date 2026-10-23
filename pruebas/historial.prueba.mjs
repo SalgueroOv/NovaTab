@@ -158,5 +158,73 @@ export default {
     igual(await pg.ev(`document.getElementById('aviso-accion').hidden`), false, 'aviso aún visible a los 7 s');
     await pg.esperar(1500);
     igual(await pg.ev(`document.getElementById('aviso-accion').hidden`), true, 'aviso oculto a los 8,5 s');
+
+    // Revisión final · (j) Dos Ctrl+Z a la vez no estropean la pila: Ctrl+Y y más Ctrl+Z siguen valiendo.
+    const pulsar = (tecla, extra = '') => `document.dispatchEvent(new KeyboardEvent('keydown', { key: '${tecla}', ctrlKey: true, bubbles: true${extra} }))`;
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(300);
+    for (const n of ['Alfa', 'Beta', 'Gamma']) {
+      await pg.ev(plegar(n));
+      await pg.esperar(250);
+    }
+    const plegados = async () => (await pg.datos()).grupos.slice(0, 3).map(g => g.plegado);
+    await pg.ev(`${pulsar('z')}; ${pulsar('z')}`);
+    await pg.esperar(600);
+    igual(await plegados(), [true, false, false], 'dos Ctrl+Z a la vez');
+    await pg.ev(`${pulsar('y')}; ${pulsar('y')}`);
+    await pg.esperar(600);
+    igual(await plegados(), [true, true, true], 'dos Ctrl+Y a la vez');
+    await pg.ev(`${pulsar('z')}; ${pulsar('z')}; ${pulsar('z')}`);
+    await pg.esperar(800);
+    igual(await plegados(), [false, false, false], 'tres Ctrl+Z llegan al estado inicial');
+
+    // (k) Un cambio de otra pestaña guardado con mi diálogo no se pisa al deshacer.
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(300);
+    await pg.clic('#btn-editar');
+    await pg.ev(`[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === 'Alfa').querySelector('.fila').click()`);
+    await pg.esperar(200);
+    await pg.ev(`chrome.storage.sync.get('grupo:g-beta').then(r => {
+      const e = r['grupo:g-beta']; e[0] = { ...e[0], nombre: 'Router Remoto' };
+      __chromeFalso.remoto('sync', 'grupo:g-beta', e);
+    })`);
+    await pg.esperar(300);
+    await pg.ev(`document.querySelector('#dlg-enlace input[name="nombre"]').value = 'Proxmox Local'`);
+    await pg.clic('#dlg-enlace button[value="ok"]');
+    await pg.esperar(500);
+    await pg.ev(`document.activeElement.blur()`);
+    await pg.tecla('z', 'ctrl');
+    await pg.esperar(500);
+    d = await pg.datos();
+    igual(grupo(d, 'Beta').enlaces[0].nombre, 'Router Remoto', 'deshacer no pisa el cambio de otra pestaña');
+    igual(grupo(d, 'Alfa').enlaces[0].nombre, 'Proxmox Alfa', 'deshacer sí revierte mi edición');
+    igual((await pg.ev(`chrome.storage.sync.get('grupo:g-beta').then(r => r['grupo:g-beta'][0].nombre)`)), 'Router Remoto', 'y lo guardado en sync tampoco');
+
+    // (l) Deshacer no revierte el texto de una nota escrito después del cambio.
+    pg = await abrir({ chrome: {}, datos: NOTAS });
+    await pg.esperar(300);
+    await pg.ev(teclear('uno'));
+    await pg.esperar(2500);
+    await pg.ev(plegar('Alfa'));
+    await pg.esperar(300);
+    await pg.ev(teclear('uno dos tres'));
+    await pg.esperar(2500);
+    await pg.ev(`document.activeElement.blur()`);
+    await pg.tecla('z', 'ctrl');
+    await pg.esperar(500);
+    igual(await pg.ev(`document.querySelector('.notas-texto').value`), 'uno dos tres', 'nota en pantalla tras deshacer un plegado');
+    igual(await pg.ev(`chrome.storage.sync.get('nota:w-notas').then(r => r['nota:w-notas'])`), 'uno dos tres', 'nota guardada tras deshacer un plegado');
+
+    // (m) El aviso «Deshacer» desaparece si hay un cambio nuevo: no deshace otra cosa.
+    pg = await abrir({ chrome: {} });
+    await pg.esperar(300);
+    await pg.ev(confirmarTodo);
+    await pg.clic('#btn-editar');
+    await pg.ev(botonDeGrupo('Alfa', 'borrar-grupo'));
+    await pg.esperar(300);
+    igual(await pg.ev(`document.getElementById('aviso-accion').hidden`), false, 'aviso tras borrar');
+    await pg.ev(plegar('Beta'));
+    await pg.esperar(300);
+    igual(await pg.ev(`document.getElementById('aviso-accion').hidden`), true, 'aviso oculto tras un cambio nuevo');
   },
 };

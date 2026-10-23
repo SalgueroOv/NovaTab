@@ -1,5 +1,5 @@
 // Modo edición: diálogos, altas y bajas, importar/exportar, restablecer y arrastrar.
-import { $, $$, avisar, avisarConAccion, crear, limitar, nuevoId, urlSegura } from './util.js';
+import { $, $$, avisar, avisarConAccion, crear, ocultarAvisoAccion, limitar, nuevoId, urlSegura } from './util.js';
 import { borrar, cargarDatos, claves, escribir, guardarDatos } from './almacen.js';
 import { ALTO_MAXIMO, ALTO_MINIMO, ANCHO_MINIMO, CLAVE, COLUMNAS, datos, fusionar, grupo, gruposDe, normalizar, ponerDatos } from './datos.js';
 import { REJILLAS, alto, bloque, colocarSinPosicion, panelDe, rejillaActiva, resolver } from './rejilla.js';
@@ -28,8 +28,8 @@ const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!documen
 // Deshacer y rehacer: cada foto es { datos, notas } (notas por id de widget). La foto del estado anterior
 // se empuja dentro de guardar(), por donde pasa todo cambio de datos.
 const historial = crearHistorial(20);
+const limpiarHistorial = () => { historial.limpiar(); ocultarAvisoAccion(); };
 let notasUltimas = {}; // las notas tal como estaban en la última carga o guardado, y lo escrito desde entonces
-let aplicando = false;
 
 export const sincronizado = () => {
   base = structuredClone(datos);
@@ -44,28 +44,35 @@ document.addEventListener('input', ev => {
 
 export const tomarFoto = async () => ({ datos: structuredClone(datos), notas: await leerNotas() });
 
-// Pone una foto como estado actual y la guarda sin añadirla al historial.
-export async function aplicarEstado(foto) {
+// Pone una foto como estado actual y la guarda sin añadirla al historial. Las notas de widgets que ya
+// estaban se dejan como están (lo escrito después no se revierte); «todasLasNotas» las reescribe también.
+// Solo se llama desde la cola (ver enCola).
+async function aplicarDentro(foto, todasLasNotas = false) {
+  const estaban = idsDeNotas(datos);
   ponerDatos(normalizar(structuredClone(foto.datos)));
   await borrarNotas(idsDeNotas(datos));
-  await escribirNotas(foto.notas);
+  const reaparecen = Object.entries(foto.notas).filter(([id]) => todasLasNotas || !estaban.has(id));
+  await escribirNotas(Object.fromEntries(reaparecen));
   resolver();
   pintar();
-  aplicando = true;
-  try { await guardar(); } finally { aplicando = false; }
+  await guardarDentro(true);
 }
+
+export const aplicarEstado = (foto, todasLasNotas = false) => enCola(() => aplicarDentro(foto, todasLasNotas));
 
 // Como aplicarEstado, pero el estado de ahora queda en el historial para poder deshacerlo.
-export async function reemplazarEstado(foto) {
+export const reemplazarEstado = foto => enCola(async () => {
   historial.empujar(await tomarFoto());
-  await aplicarEstado(foto);
-}
+  ocultarAvisoAccion();
+  await aplicarDentro(foto, true);
+});
 
-// Deshace o rehace un paso. Los diálogos, arrastres y títulos a medio escribir mandan sobre el atajo.
-async function pasoDeHistorial(sentido) {
+// Deshace o rehace un paso. Va en la cola: dos atajos seguidos se aplican uno detrás de otro.
+const pasoDeHistorial = sentido => enCola(async () => {
   const foto = historial[sentido](await tomarFoto());
-  if (foto) await aplicarEstado(foto);
-}
+  ocultarAvisoAccion();
+  if (foto) await aplicarDentro(foto);
+});
 export const deshacerUltimo = () => pasoDeHistorial('deshacer');
 export const rehacerUltimo = () => pasoDeHistorial('rehacer');
 
@@ -89,7 +96,7 @@ export function cambioDeFuera() {
 
 async function recargar() {
   deFuera = false;
-  historial.limpiar(); // lo ajeno ya guardado no se debe pisar al deshacer
+  limpiarHistorial(); // lo ajeno ya guardado no se debe pisar al deshacer
   const d = await cargarDatos();
   if (!d) return;
   ponerDatos(normalizar(d));
@@ -97,23 +104,29 @@ async function recargar() {
   pintar();
 }
 
-export const guardar = () => enCola(async () => {
+// El cuerpo de guardar(), para usarlo dentro de la cola. «sinHistorial»: no apunta el estado anterior.
+async function guardarDentro(sinHistorial = false) {
   if (deFuera && base) {
     deFuera = false;
-    historial.limpiar();
+    limpiarHistorial();
     const remoto = await cargarDatos();
     if (remoto) {
       ponerDatos(normalizar(fusionar(base, datos, remoto)));
+      // Lo que llegó de fuera ya no es «antes de mi cambio»: deshacer solo debe revertir lo mío.
+      base = structuredClone(normalizar(structuredClone(remoto)));
       resolver();
       pintar();
     }
   }
-  if (!aplicando && base && JSON.stringify(datos) !== JSON.stringify(base)) {
+  if (!sinHistorial && base && JSON.stringify(datos) !== JSON.stringify(base)) {
     historial.empujar({ datos: base, notas: { ...notasUltimas, ...(await leerNotas()) } });
+    ocultarAvisoAccion();
   }
   await guardarDatos(datos);
   sincronizado();
-});
+}
+
+export const guardar = () => enCola(() => guardarDentro());
 
 // Al terminar sin guardar (cancelar un diálogo, dejar un título igual) se aplica lo que llegó de fuera.
 // Tras un cierre que sí guarda, el guardado ya va en la cola y deFuera está a false.
@@ -322,9 +335,8 @@ export async function restablecerTodo() {
     return;
   }
   ponerDatos(normalizar(DATOS_DEFECTO));
-  historial.limpiar(); // el diálogo avisa de que no se puede deshacer
-  aplicando = true;
-  try { await guardarYPintar(); } finally { aplicando = false; }
+  await guardarYPintar();
+  limpiarHistorial(); // el diálogo avisa de que no se puede deshacer
 }
 
 $('#btn-restablecer').addEventListener('click', () => {
