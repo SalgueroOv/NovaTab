@@ -134,5 +134,13 @@ export default {
     isla = await pg.ev(caja('#isla'));
     afirmar(isla.top < (await pg.ev(caja('.izquierda'))).top, 'a 800 px la isla va por encima del contenido');
     afirmar(isla.left >= 0 && isla.right <= 800, `y cabe en la ventana (${JSON.stringify(isla)})`);
+
+    // (o) A 400 px los botones de la barra no se montan unos sobre otros.
+    pg = await abrir({ ancho: 400, alto: 760, reducirMovimiento: true });
+    await pg.esperar(400);
+    const solapes = await pg.ev(`(() => { const bs = [...document.querySelectorAll('#isla .capa-barra > button')].map(b => b.getBoundingClientRect()); return bs.slice(1).filter((r, i) => r.left < bs[i].right - 1).length; })()`);
+    igual(solapes, 0, 'a 400 px ningún botón de la isla pisa al siguiente');
+    afirmar(await pg.ev(`document.getElementById('isla').getBoundingClientRect().right <= 400`), 'y la isla cabe');
+    afirmar(await pg.ev(`(() => { const b = document.getElementById('btn-paleta').getBoundingClientRect(); return [...document.querySelectorAll('#btn-paleta > *')].filter(e => getComputedStyle(e).display !== 'none').every(e => e.getBoundingClientRect().right <= b.right + 1); })()`), 'nada de «Buscar o mandar» se sale de su botón');
   },
 };

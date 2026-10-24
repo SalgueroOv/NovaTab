@@ -229,6 +229,15 @@ button { font: inherit; color: inherit; }
 .editando-txt { margin-right: auto; color: var(--texto-2); font-size: 14px; }
 .editando-txt b { color: var(--texto); }
 .botones-datos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+/* En una pantalla estrecha, «Buscar o mandar» se queda en la lupa (el atajo Ctrl+K sigue valiendo). */
+@media (max-width: 600px) {
+  .buscar-mandar { flex: none; justify-content: center; width: 40px; padding: 0; }
+  .buscar-mandar kbd { display: none; }
+  /* El texto se oculta a la vista pero no a los lectores de pantalla: sigue siendo el nombre del botón. */
+  .buscar-mandar .buscar-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .capa-barra { justify-content: space-between; }
+}
+.boton-texto:disabled { opacity: .45; cursor: not-allowed; }
 /* Sin panel derecho, la isla va encima del izquierdo (la columna se deshace y la isla sube a la primera fila). */
 .sin-der .columna-der { display: contents; }
 .sin-der .isla-hueco { order: -1; }

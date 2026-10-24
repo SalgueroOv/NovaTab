@@ -105,7 +105,7 @@ Un `<canvas>` a pantalla completa sustituye al `<div id="fondo">` con SVG. El mo
 ### 5.3 La isla (mando)
 
 Una barra fija arriba con `background: var(--velo)`, `border: 1px solid var(--linea)` y el radio de los
-paneles. **Mismo `left` y `width` que el panel de servicios** (lo sigue un `ResizeObserver` y el separador). Si
+paneles. **Mismo `left` y `width` que el panel de servicios**: vive en la misma columna de la rejilla, así que hereda su ancho y sigue al separador sin observar nada (decidido en el plan de la fase 3). Abierta (menú de perfiles) es opaca, con `--superficie`. Si
 el panel derecho está oculto, se coloca sobre el izquierdo. En pantallas de 1000 px o menos, donde la rejilla
 se apila, ocupa el ancho del contenido y queda fija arriba.
 
@@ -219,7 +219,7 @@ Cada una con su plan en `docs/superpowers/plans/` antes de ejecutarse:
 
 1. **Temas derivados** (hecha, versión 5.2.0): tríos, `color-mix`, `@property`, superficies tintadas en todo lo existente, acento por tema y temas propios (sin la interfaz nueva de crear todavía, o con un formulario mínimo).
 2. **Fondos en canvas** (hecha, versión 5.3.0): motor `Terreno`, los once fondos, semilla por perfil, morfosis, luz, imagen en canvas, migración de ids y miniaturas.
-3. **La isla**: sustituye esquina, selector de perfil y barra de edición; menú de perfiles con miniaturas; sigue al panel y al separador.
+3. **La isla** (hecha, versión 5.4.0): sustituye esquina, selector de perfil y barra de edición; menú de perfiles con miniaturas; sigue al panel y al separador.
 4. **Estudio de Personalizar**: las cuatro pestañas, ámbitos, cartas con miniatura, Crear tema, Datos con lo movido.
 5. **Paleta renovada** con búsqueda en otros perfiles.
 6. **Estilos y aspecto de los grupos**: `estilo`, vista `auto`, filas de dos líneas, fichas, reloj de dígitos y migración de `vista`.

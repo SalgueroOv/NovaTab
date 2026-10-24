@@ -7,6 +7,7 @@ Extensión de Chrome que sustituye la pestaña nueva por una página de inicio p
 - Widgets: tiempo, notas, Google Calendar, Spotify y tus webs más visitadas.
 - Fondos animados: el relieve de cada perfil dibujado de nueve formas (curvas, cotas, rayas, galaxia…), que se mueve despacio y se ilumina bajo el ratón, o tu imagen.
 - Temas: once incluidos y los tuyos propios (fondo y acento), comunes a todos los perfiles; menús y paneles se tiñen con el tema.
+- Un solo mando, la isla, encima del panel derecho: el perfil (con su terreno), «Buscar o mandar» (Ctrl+K), reunión, editar y personalizar; se convierte en el menú de perfiles o en la barra de edición.
 - Modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 - Todo se guarda en tu cuenta de Chrome (`chrome.storage.sync`, cada grupo en su propia clave): no hay servidor propio. Si otra pestaña cambia algo mientras editas, se aplica al terminar sin pisar lo tuyo.
 
@@ -66,6 +67,7 @@ En modo edición, con el foco en la cabecera de un grupo o widget (Tab): flechas
 | `js/terreno.js`, `js/fondos.js`, `js/imagen-fondo.js` | El relieve de cada perfil, sus nueve dibujos animados en canvas (con luz bajo el ratón) y la imagen de fondo propia (reducida y guardada solo en el equipo) |
 | `js/motores.js`, `js/ajustes-buscador.js` | Motores de búsqueda y atajos `!clave`, y su pestaña «Buscador» (con sugerencias de Google opcionales) |
 | `js/perfiles.js`, `js/perfiles-ops.js`, `js/selector-perfiles.js` | Perfiles: registro y migración, crear/duplicar/borrar/cambiar, y el selector de la cabecera (con el ojo del modo reunión, que pasa al perfil Demo) |
+| `js/isla.js` | La isla: sus capas (barra, menú de perfiles y barra de edición) y su alto |
 | `js/widgets/*.js` | Los widgets nuevos, uno por archivo, registrados con `registrar()` de `js/widgets.js`: reloj mundial, cuenta atrás, tareas (sus datos en `tareas-datos.js`), RSS y estado de servicios |
 | `js/separador.js` | Franja arrastrable entre los paneles (el izquierdo del 25 al 50 %, doble clic para restaurar) |
 | `js/comandos.js`, `js/atajos.js` | Paleta de comandos (Ctrl+K) y Alt+1…Alt+9 para los nueve primeros enlaces locales, Alt+P y Alt+Mayús+P para cambiar de perfil |
