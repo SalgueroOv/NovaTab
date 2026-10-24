@@ -8,7 +8,7 @@ const poner = (id, valor) => `(() => { const e = document.getElementById('${id}'
 const DEFECTO = {
   acento: null, fondo: 'curvas', intensidad: 100, intensidadImagen: 40, densidad: 'comoda',
   esquinas: 'medio', hora24: true, segundos: false, fecha: true,
-  semilla: null, densidadFondo: 0.55, relieve: 0.45, movimiento: 'lento', brillo: true,
+  semilla: null, densidadFondo: 0.55, relieve: 0.45, movimiento: 'lento', brillo: true, estilo: 'mapa',
 };
 
 export default {

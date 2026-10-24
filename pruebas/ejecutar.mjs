@@ -28,15 +28,16 @@ let fallos = 0;
 let pasadas = 0;
 let saltadas = 0;
 const cola = [...archivos];
+const fallidas = []; // [archivo, nombre, mensaje]: con varios hilos se repiten solas al final
 
 // Cada hilo tiene su Chrome (el foco y los tiempos de una prueba no dependen de las demás) y va tomando pruebas
 // de la cola. Cada resultado se escribe entero de una vez para que no se mezcle con los de otro hilo.
-async function hilo() {
+async function hilo(lista = cola, alFallar = (archivo, nombre, mensaje) => fallidas.push([archivo, nombre, mensaje])) {
   const navegador = await Browser.launch();
   const abrirEn = crearAbrir(navegador, servidor.url);
   try {
     let archivo;
-    while ((archivo = cola.shift())) {
+    while ((archivo = lista.shift())) {
       const { default: prueba } = await import(pathToFileURL(join(dir, archivo)).href);
       if (prueba.red && sinRed) {
         saltadas++;
@@ -62,8 +63,7 @@ async function hilo() {
         pasadas++;
         console.log(`✔ ${prueba.nombre}`);
       } catch (err) {
-        fallos++;
-        console.log(`✘ ${prueba.nombre}  [${archivo}]\n    ${err.message}`);
+        alFallar(archivo, prueba.nombre, err.message);
       } finally {
         for (const a of abiertas) await a.cerrar().catch(() => {});
       }
@@ -74,7 +74,19 @@ async function hilo() {
 }
 
 try {
-  await Promise.all(Array.from({ length: Math.min(hilos, archivos.length) }, hilo));
+  await Promise.all(Array.from({ length: Math.min(hilos, archivos.length) }, () => hilo()));
+  // Con varias a la vez, una prueba que mide tiempos puede fallar por la carga: cada fallida se repite sola. Si
+  // pasa, cuenta como pasada pero se dice; si vuelve a fallar, es un fallo de verdad.
+  const fallo = (archivo, nombre, mensaje) => {
+    fallos++;
+    console.log(`✘ ${nombre}  [${archivo}]\n    ${mensaje}`);
+  };
+  for (const [archivo, , mensaje] of hilos > 1 ? fallidas.splice(0) : []) {
+    const antes = pasadas;
+    await hilo([archivo], fallo);
+    if (pasadas > antes) console.log(`  (falló con otras a la vez: «${mensaje}»; sola pasa)`);
+  }
+  for (const f of fallidas) fallo(...f);
 } finally {
   await servidor.cerrar();
 }

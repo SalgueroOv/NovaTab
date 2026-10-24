@@ -23,7 +23,7 @@ const editarGrande = async (pg, vista) => {
 export default {
   nombre: 'vistas: modelo, alto por vista, selector y vecinos',
   async ejecutar(abrir) {
-    // (a) Normalizar: sin vista o con basura es «lista».
+    // (a) Normalizar: sin vista o con basura es «auto» (sigue al estilo), y «lista» de antes de la versión 5 también.
     const sucio = conGrupos({ vista: undefined });
     sucio.grupos[1].vista = 'nada';
     sucio.grupos.push({ ...structuredClone(sucio.grupos[1]), id: 'g-5', nombre: 'Cinco', vista: 5, pos: { x: 7, y: 1, w: 6 } });
@@ -32,7 +32,7 @@ export default {
     let pg = await abrir({ datos: sucio });
     await pg.esperar(300);
     const d0 = await pg.datos();
-    igual(d0.grupos.map(g => g.vista), ['lista', 'lista', 'lista', 'iconos', 'compacta'], 'vista normalizada');
+    igual(d0.grupos.map(g => g.vista), ['auto', 'auto', 'auto', 'iconos', 'compacta'], 'vista normalizada');
 
     // (b) filasDe y alto.
     const filas = (n, vista, w) => pg.ev(`${modulo}.then(m => m.filasDe({ vista: '${vista}', pos: { w: ${w} }, enlaces: new Array(${n}).fill({}) }))`);
@@ -47,8 +47,8 @@ export default {
     await pg.clic('#btn-editar');
     await pg.ev(`[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === 'Grande').querySelector('[data-accion="editar-grupo"]').click()`);
     await pg.esperar(200);
-    igual(await pg.ev(`[...document.querySelectorAll('#dlg-grupo select[name="vista"] option')].map(o => [o.value, o.textContent])`), [['lista', 'Lista'], ['iconos', 'Iconos'], ['compacta', 'Compacta']], 'opciones del selector');
-    igual(await pg.ev(`document.querySelector('#dlg-grupo select[name="vista"]').value`), 'lista', 'vista actual marcada');
+    igual(await pg.ev(`[...document.querySelectorAll('#dlg-grupo select[name="vista"] option')].map(o => [o.value, o.textContent])`), [['auto', 'Automática (sigue al estilo)'], ['lista', 'Lista'], ['iconos', 'Iconos'], ['compacta', 'Compacta']], 'opciones del selector');
+    igual(await pg.ev(`document.querySelector('#dlg-grupo select[name="vista"]').value`), 'auto', 'vista actual marcada');
     await pg.ev(`document.querySelector('#dlg-grupo select[name="vista"]').value = 'compacta'`);
     await pg.clic('#dlg-grupo button[value="ok"]');
     await pg.esperar(400);
@@ -91,15 +91,15 @@ export default {
       i.dispatchEvent(new Event('change', { bubbles: true }));
     })()`);
     await pg.esperar(500);
-    afirmar((await pg.datos()).grupos.every(g => g.vista === 'lista'), 'importados sin vista quedan en lista');
+    afirmar((await pg.datos()).grupos.every(g => g.vista === 'auto'), 'importados sin vista quedan en auto');
     await pg.ev(`document.querySelector('[data-nuevo-grupo]').click()`);
     await pg.esperar(200);
     await pg.ev(`document.querySelector('#dlg-grupo input[name="nombre"]').value = 'Nuevo'`);
     await pg.clic('#dlg-grupo button[value="ok"]');
     await pg.esperar(400);
-    igual(grupoEn(await pg.datos(), 'Nuevo').vista, 'lista', 'grupo creado a mano');
+    igual(grupoEn(await pg.datos(), 'Nuevo').vista, 'auto', 'grupo creado a mano');
     const importados = await pg.ev(`import('/js/importar.js').then(m => m.gruposDeCarpetas([{ id: 'c', nombre: 'Casa', enlaces: [{ nombre: 'a', url: 'http://192.168.9.9/' }] }], new Set(['c']), new Set()).grupos.map(g => g.vista))`);
-    igual(importados, ['lista'], 'grupos de Importar marcadores');
+    igual(importados, ['auto'], 'grupos de Importar marcadores');
 
     // ---- Dibujo de las vistas ----
     const grupoDe = nombre => `[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === '${nombre}')`;

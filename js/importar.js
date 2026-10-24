@@ -67,7 +67,7 @@ export function gruposDeCarpetas(carpetas, elegidas, guardados) {
       zona: locales * 2 > enlaces.length ? 'local' : 'online',
       color: '#8a8c92',
       privado: false,
-      vista: 'lista',
+      vista: 'auto',
       pos: null,
       enlaces,
     });

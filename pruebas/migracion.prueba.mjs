@@ -22,7 +22,7 @@ export default {
     await pg.esperar(300);
     igual(await pg.ev(enArea('local', 'respaldo-v3')), DATOS_V3, 'respaldo de los datos v3');
     const estructura = await pg.ev(enArea('sync', 'perfil:principal:datos'));
-    igual(estructura.version, 4, 'versión guardada');
+    igual(estructura.version, 5, 'versión guardada (la 5 solo añade la vista «auto»)');
     afirmar(estructura.grupos.every(g => !('enlaces' in g)), 'la estructura no debe llevar los enlaces');
     for (const g of DATOS_V3.grupos) {
       igual((await pg.ev(enArea('sync', `enlaces:${g.id}`))).map(e => e.nombre), g.enlaces.map(e => e.nombre), `enlaces guardados de ${g.nombre}`);
@@ -67,7 +67,7 @@ export default {
     await pg.ev(`localStorage.removeItem('chrome-falso/localFalla')`);
     await pg.recargar();
     await pg.esperar(300);
-    igual(await pg.ev(`${leer('perfil:principal:datos')}.then(d => d.version)`), 4, 'versión tras volver a abrir sin fallos');
+    igual(await pg.ev(`${leer('perfil:principal:datos')}.then(d => d.version)`), 5, 'versión tras volver a abrir sin fallos');
 
     // (e) Importar una copia v3 deja el formato v4 y no deja grupos huérfanos.
     pg = await abrir({ chrome: {} });
@@ -84,6 +84,6 @@ export default {
     await pg.esperar(500);
     const claves = await pg.ev(clavesSync);
     igual(claves.filter(k => k.startsWith('enlaces:')), ['enlaces:g1', 'enlaces:g2', 'enlaces:g3', 'enlaces:g4', 'enlaces:g5'], 'claves de grupo tras importar');
-    igual(await pg.ev(`${enArea('sync', 'perfil:principal:datos')}.then(d => d.version)`), 4, 'versión tras importar');
+    igual(await pg.ev(`${enArea('sync', 'perfil:principal:datos')}.then(d => d.version)`), 5, 'versión tras importar');
   },
 };

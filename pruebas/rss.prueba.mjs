@@ -80,7 +80,9 @@ export default {
 
     // (d) Caché de 30 minutos, en local y nunca en sync; recargar fuerza la petición.
     pg = await abrir(feedsEn({ [URL_FEED]: rssXml(5) }));
-    await pg.esperar(600);
+    // Con las pruebas en paralelo la primera petición puede tardar: se espera a ella (y un poco más, por si hubiera otra).
+    await pg.ev(`new Promise(ok => { const t0 = Date.now(); (function mira() { if ((window.__rss?.length ?? 0) >= 1 || Date.now() - t0 > 4000) ok(); else setTimeout(mira, 50); })(); })`);
+    await pg.esperar(300);
     igual(await pg.ev(`window.__rss.length`), 1, 'una petición la primera vez');
     const cache = JSON.parse(await pg.ev(`localStorage.getItem('chrome.local/rss:w-rss')`));
     igual(cache.items.length, 5, 'caché en local');
