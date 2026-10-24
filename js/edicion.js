@@ -12,6 +12,7 @@ import { borrarTareas, escribirTareas, idsDeTareas, leerTareas } from './widgets
 import { idsDeOtrosPerfiles, migracionFallida, perfilActivo } from './perfiles.js';
 import { renumerar, trasladarPorWidget } from './renumerar.js';
 import { archivoDeCopia, carpetaDeCopias, escribirEnCarpeta, textoDeCopia } from './carpeta-copias.js';
+import { pedirPermisoDe } from './estado-grupos.js';
 
 export let editando = false;
 export let arrastre = null;
@@ -255,17 +256,24 @@ export async function borrarEnlace(gid, eid) {
 }
 
 export async function nuevoGrupo(zona) {
-  const r = await dialogoGrupo('Nuevo grupo', { nombre: '', zona, color: '#8a8c92', vista: 'auto', privado: false });
+  const r = await dialogoGrupo('Nuevo grupo', { nombre: '', zona, color: '#8a8c92', vista: 'auto', privado: false, comprobar: false });
   if (!r) return;
-  datos.grupos.push({ id: nuevoId(), nombre: r.nombre.trim(), zona: r.zona, color: r.color, privado: r.privado === 'on', vista: r.vista, pos: null, enlaces: [] });
+  // Un grupo nuevo no tiene enlaces todavía: el permiso se pide al marcar la opción en un grupo con enlaces.
+  datos.grupos.push({ id: nuevoId(), nombre: r.nombre.trim(), zona: r.zona, color: r.color, privado: r.privado === 'on', vista: r.vista, comprobar: r.comprobar === 'on', pos: null, enlaces: [] });
   colocarSinPosicion(datos);
   await guardarYPintar();
 }
 
 export async function editarGrupo(gid) {
   const g = grupo(gid);
-  const r = await dialogoGrupo('Editar grupo', { nombre: g.nombre, zona: g.zona, color: g.color, vista: g.vista, privado: g.privado });
+  const r = await dialogoGrupo('Editar grupo', { nombre: g.nombre, zona: g.zona, color: g.color, vista: g.vista, privado: g.privado, comprobar: g.comprobar });
   if (!r) return;
+  // Al marcar «Comprobar si responden» se pide el permiso de sus direcciones (aún dentro del clic en Guardar).
+  if (r.comprobar === 'on' && !g.comprobar && g.enlaces.length && !(await pedirPermisoDe(g).catch(() => false))) {
+    avisar('Sin permiso no se puede comprobar si responden');
+    r.comprobar = '';
+  }
+  g.comprobar = r.comprobar === 'on';
   g.nombre = r.nombre.trim();
   g.color = r.color;
   g.privado = r.privado === 'on';

@@ -60,6 +60,7 @@
       <header class="derecha-cab">
         <h1 id="t-local" class="titulo-editable" data-titulo="local" spellcheck="false">Red local</h1>
         <span class="etiqueta-zona" id="resumen-local"></span>
+        <span class="resumen-estado" id="resumen-estado" role="status" hidden></span>
       </header>
       <h2 class="solo-lectores">Tus servicios</h2>
       <div class="rejilla" id="rejilla" data-panel="der" style="--columnas: 12"></div>
@@ -234,6 +235,7 @@
         </select>
       </label>
       <label class="opcion opcion-dialogo"><input type="checkbox" name="privado"> Privado: se oculta en modo reunión</label>
+      <label class="opcion opcion-dialogo"><input type="checkbox" name="comprobar"> Comprobar si responden (en la red local; pide permiso para sus direcciones)</label>
       <menu>
         <button type="button" value="cancelar" data-cerrar>Cancelar</button>
         <button value="ok" class="primario">Guardar</button>

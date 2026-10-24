@@ -70,11 +70,11 @@ export async function sondearTodos(origenes, opciones) {
 // ---------- Permisos ----------
 
 const hayPermisos = () => typeof chrome !== 'undefined' && !!chrome.permissions;
-const tienePermiso = patrones => new Promise(resolver => {
+export const tienePermiso = patrones => new Promise(resolver => {
   if (!hayPermisos() || !patrones.length) resolver(true);
   else chrome.permissions.contains({ origins: patrones }, ok => resolver(!!ok));
 });
-const pedirPermiso = patrones => new Promise(resolver => chrome.permissions.request({ origins: patrones }, ok => resolver(!!ok)));
+export const pedirPermiso = patrones => new Promise(resolver => chrome.permissions.request({ origins: patrones }, ok => resolver(!!ok)));
 
 // ---------- Pintado ----------
 

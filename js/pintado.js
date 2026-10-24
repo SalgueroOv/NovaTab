@@ -73,6 +73,7 @@ export function pintarLocal() {
     for (const n of nodos) if (n.parentNode !== rejilla) rejilla.append(n);
   }
   $('#vacio-local').hidden = bloquesDe('der').some(visible);
+  document.dispatchEvent(new Event('novatab:pintado')); // el estado de los grupos que comprueban (estado-grupos.js)
 }
 
 export function botonesGrupo() {

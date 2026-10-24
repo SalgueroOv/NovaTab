@@ -1103,3 +1103,17 @@ dialog menu button {
 .hora .cae { animation: cae-digito .6s cubic-bezier(.2, .8, .2, 1); }
 @keyframes cae-digito { from { transform: translateY(-40%); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .hora .cae { animation: none; } }
+
+/* ---------- Estado de los servicios en los grupos que lo comprueban ---------- */
+.estado-enlace { display: inline-flex; flex: none; align-items: center; gap: 6px; color: var(--texto-2); font-size: 11px; }
+.estado-enlace .punto { width: 8px; height: 8px; border-radius: 50%; background: var(--borde-fuerte); }
+.estado-enlace[data-estado="vivo"] .punto { background: #2fb36b; animation: latido 2.4s ease-in-out infinite; }
+.estado-enlace[data-estado="lento"] .punto, .estado-enlace[data-estado="desconocido"] .punto { background: #e0a42b; }
+.estado-enlace[data-estado="caido"] .punto { background: #e0503f; }
+@keyframes latido { 50% { box-shadow: 0 0 0 4px color-mix(in oklab, #2fb36b 25%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .estado-enlace .punto { animation: none !important; } }
+.vista-iconos .estado-enlace { position: absolute; top: 4px; right: 6px; }
+.vista-iconos .estado-enlace .ms, .vista-compacta .estado-enlace .ms { display: none; }
+.resumen-estado { margin-left: 12px; color: var(--texto-2); font-size: 12px; }
+.resumen-estado[data-grave="caido"]::before, .resumen-estado[data-grave="lento"]::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #e0503f; vertical-align: 1px; }
+.resumen-estado[data-grave="lento"]::before { background: #e0a42b; }
