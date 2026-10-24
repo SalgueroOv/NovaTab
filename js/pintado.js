@@ -7,7 +7,6 @@ import { caja } from './buscador.js';
 import { editando, guardarYPintar } from './edicion.js';
 import { pintarWidget } from './widgets.js';
 import { pintarIconoElegido } from './iconos.js';
-import { enlacesDeAtajo } from './atajos.js';
 
 // Siglas y color según el nombre del servicio. Si no coincide ninguno,
 // se usan las iniciales y el color del grupo.
@@ -155,7 +154,6 @@ export function pintarGrupoLocal(g) {
   if (g.privado) cab.append(crear('span', 'privado solo-edicion', 'Privado'));
   cab.append(...botonesGrupo(), botonPlegar(g.plegado));
 
-  const numeros = new Map(enlacesDeAtajo().map(({ enlace }, i) => [enlace.id, i + 1]));
   const lista = crear('div', `enlaces vista-${vistaEfectiva(g)}`);
   lista.style.setProperty('--columnas-iconos', String(iconosPorFila(g.pos.w)));
   for (const e of g.enlaces) {
@@ -165,13 +163,6 @@ export function pintarGrupoLocal(g) {
     a.dataset.id = e.id;
     a.draggable = editando;
     a.append(icono(e, g), crear('span', 'nombre', e.nombre), crear('span', 'dir mono', direccion(e.url)));
-    if (numeros.has(e.id)) {
-      // La cifra de Alt+número: discreta, solo al pasar el ratón o con el foco.
-      const num = crear('span', 'atajo-num', String(numeros.get(e.id)));
-      num.title = `Alt+${numeros.get(e.id)}`;
-      num.setAttribute('aria-hidden', 'true');
-      a.append(num);
-    }
     a.append(botonBorrar());
     lista.append(a);
   }

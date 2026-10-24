@@ -63,16 +63,10 @@ export default {
     igual(await pulsar(pg, 1, ', ctrlKey: true'), false, 'Ctrl+Alt+1 no actúa');
     igual(await pulsar(pg, 1, ', shiftKey: true'), false, 'Alt+Mayús+1 no actúa');
 
-    // (f) Las cifras: ocultas sin ratón y visibles encima.
+    // (f) Los enlaces no enseñan la cifra de su atajo (ocupaba sitio y movía la dirección): el atajo existe igual.
     pg = await abrir();
     await pg.esperar(300);
-    igual(await pg.ev(`[...document.querySelectorAll('#rejilla .atajo-num')].map(n => n.textContent).sort()`), ['1', '2', '3', '4', '5', '6', '7', '8', '9'], 'cifras 1 a 9');
-    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla .atajo-num')).opacity`), '0', 'cifra oculta sin ratón');
-    const [x, y] = await pg.centro('#rejilla .grupo .fila');
-    await pg.raton('mouseMoved', x, y, 0);
-    await pg.esperar(400);
-    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla .grupo .fila .atajo-num')).opacity`), '0.7', 'cifra visible con el ratón encima');
-    afirmar(await pg.ev(`!!document.querySelector('#rejilla .grupo .fila .atajo-num[aria-hidden="true"]')`), 'la cifra es decorativa para lectores de pantalla');
+    igual(await pg.ev(`document.querySelectorAll('#rejilla .atajo-num').length`), 0, 'sin cifras en los enlaces');
 
     // (g) Con la red local oculta, Alt+número no abre enlaces que no se ven.
     pg = await abrir({ guardados: { opciones: { ocultos: { izq: false, der: true } } } });

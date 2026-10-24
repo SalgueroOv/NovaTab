@@ -577,16 +577,12 @@ dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
 .rejilla .enlaces.vista-iconos .fila { position: relative; flex-direction: column; justify-content: center; gap: 4px; height: auto; margin: 0; padding: 2px 4px; text-align: center; }
 .vista-iconos .fila .icono { width: calc(var(--alto-fila) * .85); height: calc(var(--alto-fila) * .85); }
 .vista-iconos .fila .nombre { flex: none; width: 100%; font-size: 12px; text-align: center; }
-.vista-iconos .atajo-num { position: absolute; top: 2px; left: 4px; min-width: 0; }
 .vista-iconos .borrar, .vista-compacta .fila .borrar { position: absolute; top: 2px; right: 2px; }
 .vista-compacta .fila { position: relative; }
 .vista-compacta .fila .borrar { top: 50%; right: 0; transform: translateY(-50%); }
 .vista-iconos .fila-vacia, .vista-compacta .fila-vacia { grid-column: 1 / -1; }
 .fila .icono { width: var(--icono-fila); height: var(--icono-fila); font-size: 10px; }
 .fila .nombre { flex: 1; min-width: 0; overflow: hidden; font-size: var(--texto-fila); text-overflow: ellipsis; white-space: nowrap; }
-.fila .atajo-num { flex: none; min-width: 1.2em; opacity: 0; color: var(--texto-2); font-size: 11px; text-align: center; transition: opacity .15s; }
-.fila:hover .atajo-num, .fila:focus-visible .atajo-num { opacity: .7; }
-.editando .atajo-num { display: none; }
 .fila .dir { flex: none; color: var(--texto-2); font-size: 12px; }
 
 /* Plegar: el bloque se queda en su título; la flecha aparece al pasar por encima. */

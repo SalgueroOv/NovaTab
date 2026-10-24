@@ -143,7 +143,6 @@ export default {
       pg = await abrir({ datos: conGrupos({ n: 4, vista }) });
       await pg.esperar(400);
       igual(await pg.ev(`${grupoDe('Grande')}.querySelector('.fila').title`), 'http://192.168.1.10/', `title en ${vista}`);
-      igual(await pg.ev(`${grupoDe('Grande')}.querySelector('.atajo-num')?.textContent`), '1', `cifra de Alt+1 en ${vista}`);
     }
 
     // (k) En modo edición, borrar y arrastrar enlaces funcionan en iconos y compacta.
