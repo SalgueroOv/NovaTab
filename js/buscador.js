@@ -144,9 +144,16 @@ document.addEventListener('click', ev => {
 });
 export const escribiendo = el => !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
 
+// «/», o empezar a escribir (una letra o cifra sin Ctrl, Alt ni Cmd), lleva al buscador; lo escrito entra en él.
+// No con el foco en un campo, un diálogo abierto, en la isla o en Personalizar, ni en modo edición.
 document.addEventListener('keydown', ev => {
-  if (ev.key === '/' && !escribiendo(document.activeElement) && !$('dialog[open]')) {
+  if (ev.ctrlKey || ev.altKey || ev.metaKey || ev.isComposing) return;
+  const foco = document.activeElement;
+  if (escribiendo(foco) || $('dialog[open]') || foco?.closest?.('#isla, #panel-tema')) return;
+  if (ev.key === '/') {
     ev.preventDefault();
     buscar.focus();
+  } else if ((ev.key.length === 1 && ev.key !== ' ') || ev.key === 'Dead') {
+    if (!document.body.classList.contains('editando')) buscar.focus(); // sin preventDefault: la tecla cae en el campo
   }
 });
