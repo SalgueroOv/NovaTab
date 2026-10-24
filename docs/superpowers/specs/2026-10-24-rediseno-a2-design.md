@@ -98,7 +98,7 @@ Un `<canvas>` a pantalla completa sustituye al `<div id="fondo">` con SVG. El mo
 - **Ajustes del fondo** (en el aspecto del perfil): `densidadFondo` (0–1; `densidad` ya es cómoda/compacta), `relieve` (0–1), `movimiento` (`quieto` | `lento` | `vivo`, por defecto `lento`), `brillo` (luz bajo el ratón, por defecto sí) e `intensidad` (0–100, se conserva el ajuste actual: multiplica la opacidad del dibujo). El slider actual de intensidad sigue sirviendo para la imagen.
 - **Luz bajo el ratón**: lo que está a menos de 190 px del puntero se repinta en el color de acento por capas (10 niveles) con una curva suave (smoothstep) cuya capa exterior es casi transparente. Así se difumina hacia el borde y no hay círculo visible.
 - **Rendimiento**: como mucho 30 dibujos por segundo, también al mover el ratón. Sin dibujar con la pestaña oculta. Con `quieto`, solo se redibuja al mover el ratón (si hay luz), al redimensionar o al cambiar de ajustes. En Chrome sin ventana (solo CPU) a 1440×900, cada dibujo de los mockups tarda entre 0,8 y 13 ms (Galaxia es el más caro). Cualquier fondo que supere 20 ms por dibujo en esas condiciones hay que aligerarlo.
-- **Imagen propia**: se conserva todo lo actual (se reduce a 1920 px en WebP y se guarda solo en `storage.local`, con `intensidadImagen` como velo). Se pinta en el mismo canvas tipo *cover*, con un velo del color `bg` del tema. Sin movimiento ni luz, y lo dice el ajuste: «Con una imagen el fondo no se mueve ni se ilumina con el ratón».
+- **Imagen propia**: se conserva todo lo actual (se reduce a 1920 px en WebP y se guarda solo en `storage.local`, con `intensidadImagen` como velo). Sigue siendo el `background-image` de `#fondo` (tipo *cover*) con un velo del color `bg` del tema; el canvas se oculta. Decidido en el plan de la fase 2: se ve igual y conserva lo que ya funcionaba. Sin movimiento ni luz, y lo dice el ajuste: «Con una imagen el fondo no se mueve ni se ilumina con el ratón».
 - **Miniaturas**: la misma clase dibuja vistas fijas (escala proporcional) para las cartas de temas, de fondos y de perfiles.
 - **Movimiento reducido**: fondo fijo, sin morfosis, sin titileo.
 
@@ -218,7 +218,7 @@ antiguos o de otra versión.
 Cada una con su plan en `docs/superpowers/plans/` antes de ejecutarse:
 
 1. **Temas derivados** (hecha, versión 5.2.0): tríos, `color-mix`, `@property`, superficies tintadas en todo lo existente, acento por tema y temas propios (sin la interfaz nueva de crear todavía, o con un formulario mínimo).
-2. **Fondos en canvas**: motor `Terreno`, los once fondos, semilla por perfil, morfosis, luz, imagen en canvas, migración de ids y miniaturas.
+2. **Fondos en canvas** (hecha, versión 5.3.0): motor `Terreno`, los once fondos, semilla por perfil, morfosis, luz, imagen en canvas, migración de ids y miniaturas.
 3. **La isla**: sustituye esquina, selector de perfil y barra de edición; menú de perfiles con miniaturas; sigue al panel y al separador.
 4. **Estudio de Personalizar**: las cuatro pestañas, ámbitos, cartas con miniatura, Crear tema, Datos con lo movido.
 5. **Paleta renovada** con búsqueda en otros perfiles.

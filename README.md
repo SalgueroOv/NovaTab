@@ -5,6 +5,7 @@ Extensión de Chrome que sustituye la pestaña nueva por una página de inicio p
 - Buscador de Google (con Modo IA, imágenes, vídeos, noticias y Maps) que también busca en tus enlaces.
 - Grupos de enlaces que colocas y redimensionas en una cuadrícula, con logos de [Dashboard Icons](https://github.com/homarr-labs/dashboard-icons) o iconos de [Lucide](https://lucide.dev).
 - Widgets: tiempo, notas, Google Calendar, Spotify y tus webs más visitadas.
+- Fondos animados: el relieve de cada perfil dibujado de nueve formas (curvas, cotas, rayas, galaxia…), que se mueve despacio y se ilumina bajo el ratón, o tu imagen.
 - Temas: once incluidos y los tuyos propios (fondo y acento), comunes a todos los perfiles; menús y paneles se tiñen con el tema.
 - Modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 - Todo se guarda en tu cuenta de Chrome (`chrome.storage.sync`, cada grupo en su propia clave): no hay servidor propio. Si otra pestaña cambia algo mientras editas, se aplica al terminar sin pisar lo tuyo.
@@ -62,7 +63,7 @@ En modo edición, con el foco en la cabecera de un grupo o widget (Tab): flechas
 | `js/datos.js`, `js/almacen.js` | Modelo de datos y todo el acceso a `chrome.storage` |
 | `js/rejilla.js`, `js/pintado.js` | Cuadrícula (posiciones, colisiones y alto según la vista: lista, iconos o compacta) y pintado de grupos |
 | `js/edicion.js` | Modo edición: diálogos, importar/exportar, restablecer, arrastrar y deshacer/rehacer (Ctrl+Z, Ctrl+Y) |
-| `js/fondos.js`, `js/imagen-fondo.js` | Diez dibujos de fondo y la imagen de fondo propia (reducida y guardada solo en el equipo) |
+| `js/terreno.js`, `js/fondos.js`, `js/imagen-fondo.js` | El relieve de cada perfil, sus nueve dibujos animados en canvas (con luz bajo el ratón) y la imagen de fondo propia (reducida y guardada solo en el equipo) |
 | `js/motores.js`, `js/ajustes-buscador.js` | Motores de búsqueda y atajos `!clave`, y su pestaña «Buscador» (con sugerencias de Google opcionales) |
 | `js/perfiles.js`, `js/perfiles-ops.js`, `js/selector-perfiles.js` | Perfiles: registro y migración, crear/duplicar/borrar/cambiar, y el selector de la cabecera (con el ojo del modo reunión, que pasa al perfil Demo) |
 | `js/widgets/*.js` | Los widgets nuevos, uno por archivo, registrados con `registrar()` de `js/widgets.js`: reloj mundial, cuenta atrás, tareas (sus datos en `tareas-datos.js`), RSS y estado de servicios |
