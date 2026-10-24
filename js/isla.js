@@ -14,10 +14,24 @@ export const capaActual = () => actual;
 // El alto de la capa tal como se ve (el menú de perfiles tiene un tope y se desplaza por dentro).
 const ajustarAlto = () => { isla.style.height = `${capas[actual].offsetHeight}px`; };
 
+// El menú de perfiles mide al menos 560 px (o la ventana menos 24 px): si la isla es más estrecha, crece
+// centrada sobre ella sin salirse de la ventana.
+function ajustarAncho() {
+  isla.style.left = isla.style.width = '';
+  if (actual !== 'perfiles') return;
+  const r = isla.getBoundingClientRect();
+  const ancho = Math.min(560, innerWidth - 24);
+  if (r.width >= ancho) return;
+  const izquierda = Math.min(Math.max(12, r.left - (ancho - r.width) / 2), innerWidth - 12 - ancho);
+  isla.style.left = `${izquierda - r.left}px`;
+  isla.style.width = `${ancho}px`;
+}
+
 export function ponerCapa(capa) {
   actual = capa;
   for (const [nombre, el] of Object.entries(capas)) el.hidden = nombre !== capa;
   document.body.classList.toggle('con-velo', capa === 'perfiles');
+  ajustarAncho();
   ajustarAlto();
   document.dispatchEvent(new CustomEvent('novatab:capa', { detail: { capa } }));
 }

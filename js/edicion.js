@@ -11,6 +11,7 @@ import { crearHistorial } from './historial.js';
 import { borrarTareas, escribirTareas, idsDeTareas, leerTareas } from './widgets/tareas-datos.js';
 import { idsDeOtrosPerfiles, migracionFallida, perfilActivo } from './perfiles.js';
 import { renumerar, trasladarPorWidget } from './renumerar.js';
+import { archivoDeCopia, carpetaDeCopias, escribirEnCarpeta, textoDeCopia } from './carpeta-copias.js';
 
 export let editando = false;
 export let arrastre = null;
@@ -324,8 +325,14 @@ $('#btn-deshacer').addEventListener('click', () => deshacerUltimo());
 $('#btn-nuevo-widget').addEventListener('click', () => nuevoWidget());
 
 $('#btn-exportar').addEventListener('click', async () => {
-  const copia = { ...datos, notas: await leerNotas(), tareas: await leerTareas() };
-  const blob = new Blob([JSON.stringify(copia, null, 2)], { type: 'application/json' });
+  const texto = textoDeCopia({ datos, notas: await leerNotas(), tareas: await leerTareas() });
+  // Con carpeta de copias, el archivo se sobrescribe ahí; si no se puede, se descarga como siempre.
+  try {
+    if (await escribirEnCarpeta(archivoDeCopia(perfilActivo()), texto, { pedir: true })) {
+      return avisar(`Copia guardada en «${(await carpetaDeCopias()).name}»`);
+    }
+  } catch { /* se descarga */ }
+  const blob = new Blob([texto], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'marcadores.json';

@@ -935,14 +935,26 @@ dialog menu button {
 .lista-marcadores .cuenta { flex: none; color: var(--texto-2); font-size: 12px; }
 
 /* Paleta de comandos (Ctrl+K) */
-#paleta { width: min(560px, calc(100vw - 32px)); margin-top: 12vh; padding: 12px; }
-#paleta-texto { width: 100%; margin: 0 0 8px; padding: 10px 12px; font-size: 15px; }
-#paleta-lista { max-height: 50vh; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
-#paleta-lista li { display: flex; align-items: baseline; gap: 10px; padding: 8px 10px; border-radius: 10px; font-size: 14px; cursor: pointer; }
-#paleta-lista li[aria-selected="true"] { background: var(--superficie-2); }
+/* La paleta se abre sobre la isla, con su color y su ancho (al menos 560 px); el velo es su fondo. */
+#paleta {
+  position: fixed; inset: auto; top: var(--p-arriba, 12vh); left: var(--p-izq, calc((100vw - min(560px, calc(100vw - 24px))) / 2)); width: var(--p-ancho, min(560px, calc(100vw - 24px)));
+  margin: 0; padding: 8px; border-radius: min(var(--radio-panel), 22px); background: var(--superficie);
+}
+#paleta-texto { width: 100%; margin: 0 0 6px; padding: 10px 12px; font-size: 15px; }
+#paleta-lista { max-height: min(60vh, 520px); margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+#paleta-lista .p-cab { display: flex; align-items: center; justify-content: space-between; padding: 10px 10px 4px; color: var(--texto-2); font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+#paleta-lista .p-opcion { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 6px 10px; border-radius: 10px; font-size: 14px; cursor: pointer; }
+#paleta-lista .p-opcion[aria-selected="true"] { background: var(--superficie-2); }
 #paleta-lista .p-titulo { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#paleta-lista .p-detalle { flex: none; color: var(--texto-2); font-size: 12px; }
-#paleta-lista .p-vacio { color: var(--texto-2); cursor: default; }
+#paleta-lista mark { background: none; color: var(--acento); font-weight: 700; }
+#paleta-lista .p-detalle { flex: none; max-width: 40%; overflow: hidden; color: var(--texto-2); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+#paleta-lista .p-figura { flex: none; width: 24px; height: 24px; border-radius: 7px; }
+#paleta-lista .p-muestra { position: relative; border: 1px solid var(--borde-fuerte); border-radius: 50%; background: var(--m-bg); }
+#paleta-lista .p-muestra::after { content: ""; position: absolute; right: -2px; bottom: -2px; width: 9px; height: 9px; border-radius: 50%; background: var(--m-acento); }
+#paleta-lista .p-inicial { display: grid; place-items: center; background: var(--superficie-2); color: var(--texto-2); font-size: 10px; font-weight: 700; }
+#paleta-lista .p-atajo { flex: none; padding: 1px 6px; border-radius: 6px; background: var(--borde); color: var(--texto); font: 600 11px/1.6 "Public Sans", sans-serif; }
+#paleta-lista .p-cab .p-atajo { letter-spacing: 0; text-transform: none; }
+#paleta-lista .p-vacio { padding: 8px 10px; color: var(--texto-2); cursor: default; }
 
 /* Widgets de la fase 7 */
 .reloj-mundial { display: flex; flex-direction: column; gap: 2px; padding: 4px 16px 12px; }
