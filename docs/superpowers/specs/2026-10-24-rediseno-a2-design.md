@@ -80,7 +80,7 @@ deriva en CSS con `color-mix(in oklab, …)`, como en `mockups/v2/comun.css`:
 | `--velo` | `bg` al 84 % sobre transparente: fondo de paneles y de la isla |
 | `--sobre-acento` | Negro o blanco, el de más contraste con el acento |
 
-- `--bg`, `--ink`, `--acento` y `--sobre-acento` se registran con `@property` (`syntax: "<color>"`) y llevan transición de 0,8 s, así el cambio de tema y de perfil se anima. Sin transición con movimiento reducido.
+- `--bg` y `--ink` se registran con `@property` (`syntax: "<color>"`) y llevan transición de 0,8 s, así el cambio de tema y de perfil se anima (todo lo derivado de ellos también). `--acento` no se registra: cambia de golpe y su valor calculado sigue siendo el hex que se guardó. Sin transición con movimiento reducido.
 - **Menús, diálogos, la isla, el estudio y los avisos usan estas superficies**, nunca un gris fijo. Desaparecen `--superficie: #2a2d33` y el acento azul de Google.
 - **Temas incluidos**: se conservan los diez ids actuales (`bosque`, `noche`, `medianoche`, `grafito`, `carbon`, `papel`, `glaciar`, `niebla`, `menta`, `rosa`) para no migrar nada, redefinidos como tríos. Se añade `abismo`. Para los que existen en el mockup se toman sus valores de `comun.js` (`TEMAS`); el resto los elige el constructor con el mismo criterio: tinta y acento con contraste AA. **Sin violeta ni índigo** (regla de la skill de diseño del proyecto), **y sin crema con terracota.** Cada tema trae su propio acento, en vez del azul común.
 - **Acento**: el del tema, uno de cinco alternativos o uno libre. Se guarda en `apariencia.acento` como ahora (`null` = el del tema).
