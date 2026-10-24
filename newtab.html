@@ -94,6 +94,25 @@
             <label for="intensidad">Intensidad</label>
             <input type="range" id="intensidad" min="0" max="100" step="1" value="100">
           </div>
+          <p class="ayuda-panel nota-imagen" id="nota-imagen" hidden>Con una imagen el fondo no se mueve ni se ilumina con el ratón.</p>
+          <div class="ajustes-terreno" id="ajustes-terreno">
+            <div class="intensidad">
+              <label for="densidad-fondo">Densidad</label>
+              <input type="range" id="densidad-fondo" min="0" max="100" step="1" value="55">
+            </div>
+            <div class="intensidad">
+              <label for="relieve">Relieve</label>
+              <input type="range" id="relieve" min="0" max="100" step="1" value="45">
+            </div>
+            <h2 class="opciones-titulo">Movimiento</h2>
+            <div class="eleccion" role="group" aria-label="Movimiento">
+              <button type="button" data-movimiento="quieto">Quieto</button>
+              <button type="button" data-movimiento="lento">Lento</button>
+              <button type="button" data-movimiento="vivo">Vivo</button>
+            </div>
+            <label class="opcion opcion-brillo"><input type="checkbox" id="opt-brillo" checked> Iluminar bajo el ratón</label>
+            <button class="boton-texto" type="button" id="otro-terreno" title="Cada perfil tiene su propio relieve: esto le da otro">Generar otro terreno</button>
+          </div>
         </div>
         <div role="tabpanel" id="pestana-buscador" hidden>
           <h2>Motor de búsqueda</h2>

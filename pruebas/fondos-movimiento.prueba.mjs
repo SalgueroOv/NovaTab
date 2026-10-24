@@ -58,6 +58,14 @@ export default {
     afirmar(alfas.every((a, i) => i === 0 || a > alfas[i - 1]), 'cada capa más opaca que la anterior');
     afirmar(alfas[alfas.length - 1] > 0.5, 'el centro se ve bien');
 
+    // (i) Cambiar de tema redibuja el fondo con la tinta nueva, también con el fondo quieto (al final de la transición).
+    await pg.ev(aspecto({ movimiento: 'quieto', brillo: false }));
+    await pg.ev(`import('/js/apariencia.js').then(m => m.ponerTema('papel'))`);
+    await pg.esperar(1300);
+    const rojoMedio = await pg.ev(`(() => { const c = document.getElementById('terreno'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let s = 0, n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 20) { s += d[i]; n++; } return n ? s / n : 255; })()`);
+    afirmar(rojoMedio < 100, `las líneas toman la tinta oscura de Papel (rojo medio ${Math.round(rojoMedio)})`);
+    await pg.ev(`import('/js/apariencia.js').then(m => m.ponerTema('bosque'))`);
+
     // (c) Con movimiento reducido, ni siquiera «vivo» anima.
     pg = await abrir({ reducirMovimiento: true });
     await pg.esperar(500);

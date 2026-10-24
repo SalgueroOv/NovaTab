@@ -59,6 +59,7 @@ export class Terreno {
     this.estadistica = { luz: 0 };
     this.pendiente = false;
     this.ultimo = 0;
+    this.redibujarHasta = 0;
     if (estatico) return;
     this.medir();
     addEventListener('resize', () => { this.medir(); this.pedir(); });
@@ -80,7 +81,7 @@ export class Terreno {
     requestAnimationFrame(this.bucle);
     const dt = this.prev ? Math.min(0.1, (ahora - this.prev) / 1000) : 0;
     this.prev = ahora;
-    if (document.hidden || !this.w) return;
+    if (document.hidden || !this.w || this.c.hidden) return; // oculto con «liso» o con la imagen
     const vel = reducido.matches ? 0 : VELOCIDAD[this.op.movimiento] ?? 0;
     this.t += dt * vel;
     if (this.campoB) {
@@ -94,7 +95,7 @@ export class Terreno {
       this.dibujar();
       return;
     }
-    if ((this.pendiente || vel) && ahora - this.ultimo > 33) {
+    if ((this.pendiente || vel || ahora < this.redibujarHasta) && ahora - this.ultimo > 33) {
       this.ultimo = ahora;
       this.pendiente = false;
       this.dibujar();
@@ -112,6 +113,12 @@ export class Terreno {
   // Un dibujo en cuanto lo permita el bucle (varios cambios seguidos dan uno solo).
   pedir() {
     this.pendiente = true;
+  }
+
+  // Dibujar durante un rato aunque el relieve esté quieto: los colores del tema cambian con una transición.
+  pedirDurante(ms) {
+    this.pendiente = true;
+    this.redibujarHasta = Math.max(this.redibujarHasta, performance.now() + ms);
   }
 
   // Una semilla nueva (otro perfil u otro terreno) transforma el relieve durante 1,3 s; si llega en mitad de

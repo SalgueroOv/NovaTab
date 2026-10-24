@@ -6,7 +6,7 @@ import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
 import { FONDOS } from './fondos.js';
-import { Terreno } from './terreno.js';
+import { Terreno, miniatura } from './terreno.js';
 import { BUSCADOR, normalizarBuscador } from './motores.js';
 import { MAX_TEMAS_PROPIOS, TEMAS, buscarTema, sobreAcento, temasPropios, todosLosTemas } from './temas.js';
 import { CLAVE_FONDO_IMAGEN, borrarImagenFondo, guardarImagenFondo, leerImagenFondo, reducirImagen } from './imagen-fondo.js';
@@ -73,6 +73,7 @@ export function ponerTema(id, { animar = true } = {}) {
   if (!animar) sinTransicion();
   aplicarColores(buscarTema(temaActual));
   marcarMuestras();
+  pintarMinisFondo();
 }
 
 // Pone los tres colores del tema (y el acento libre, si lo hay) en :root; lo demás se deriva en style.css.
@@ -85,7 +86,14 @@ export function aplicarColores(t, acento = apariencia.acento ?? t.acento) {
   raiz.dataset.tema = t.id;
   raiz.dataset.modo = t.modo;
   $('#acento-libre').value = acento;
+  // El fondo sigue a los colores durante su transición (0,8 s), solo si cambian de verdad.
+  const colores = `${t.bg}${t.ink}${acento}`;
+  if (colores !== coloresPintados) {
+    coloresPintados = colores;
+    terreno.pedirDurante(900);
+  }
 }
+let coloresPintados = '';
 
 // Sin la transición de colores durante un instante (al arrancar no debe verse el paso desde Bosque).
 function sinTransicion() {
@@ -137,7 +145,9 @@ export function ponerApariencia(a) {
   $('#opt-fecha').checked = apariencia.fecha;
   muestrasFondo.forEach(m => m.setAttribute('aria-pressed', String(m.dataset.fondo === apariencia.fondo)));
   $('#intensidad').value = String(usaImagen() ? apariencia.intensidadImagen : apariencia.intensidad);
+  pintarAjustesTerreno();
   pintarFondo();
+  pintarMinisFondo();
   reloj();
   programarReloj();
 }
@@ -369,9 +379,15 @@ alCambiar(cambios => {
 // Cada imagen elegida es una petición: si mientras se reduce se pide otra cosa, el resultado viejo se descarta.
 let peticionImagen = 0;
 const muestrasFondo = Object.entries(FONDOS).concat([['liso', { nombre: 'Liso' }], ['imagen', { nombre: 'Imagen propia' }]]).map(([id, f]) => {
-  const b = crear('button', null, f.nombre);
+  const b = crear('button');
   b.type = 'button';
   b.dataset.fondo = id;
+  if (FONDOS[id]) {
+    const mini = crear('canvas', 'mini-fondo');
+    mini.setAttribute('aria-hidden', 'true');
+    b.append(mini);
+  }
+  b.append(f.nombre);
   b.addEventListener('click', () => {
     peticionImagen++; // elegir un fondo cancela una imagen que aún se esté reduciendo
     // «Imagen propia»: sin imagen, o si ya está elegida, abre el selector de archivos (así se cambia la imagen).
@@ -381,6 +397,35 @@ const muestrasFondo = Object.entries(FONDOS).concat([['liso', { nombre: 'Liso' }
   return b;
 });
 $('#muestras-fondo').append(...muestrasFondo);
+
+// Las miniaturas de las muestras: el terreno del perfil en cada estilo, con los colores del tema. Solo se
+// pintan si se ven (con el panel cerrado no miden nada), así que también al abrir la pestaña Fondo.
+export function pintarMinisFondo() {
+  const t = buscarTema(temaActual);
+  const tema = { bg: t.bg, ink: t.ink, acento: apariencia.acento ?? t.acento, modo: t.modo };
+  for (const c of $$('#muestras-fondo canvas.mini-fondo')) {
+    miniatura(c, { semilla: apariencia.semilla ?? perfilActivo(), estilo: c.parentElement.dataset.fondo, densidad: apariencia.densidadFondo, relieve: apariencia.relieve, tema });
+  }
+}
+$('#btn-tema').addEventListener('click', () => requestAnimationFrame(pintarMinisFondo));
+$('#panel-tema [data-pestana="fondo"]').addEventListener('click', () => requestAnimationFrame(pintarMinisFondo));
+
+// Los ajustes del terreno, solo cuando se dibuja (no con «liso» ni con la imagen, que avisa de que no se mueve).
+function pintarAjustesTerreno() {
+  $('#ajustes-terreno').hidden = apariencia.fondo === 'liso' || usaImagen();
+  $('#nota-imagen').hidden = !usaImagen();
+  $('#densidad-fondo').value = String(Math.round(apariencia.densidadFondo * 100));
+  $('#relieve').value = String(Math.round(apariencia.relieve * 100));
+  for (const b of $$('[data-movimiento]')) b.setAttribute('aria-pressed', String(b.dataset.movimiento === apariencia.movimiento));
+  $('#opt-brillo').checked = apariencia.brillo;
+}
+$('#densidad-fondo').addEventListener('input', ev => cambiarApariencia({ densidadFondo: Number(ev.target.value) / 100 }, true));
+$('#relieve').addEventListener('input', ev => cambiarApariencia({ relieve: Number(ev.target.value) / 100 }, true));
+for (const b of $$('[data-movimiento]')) b.addEventListener('click', () => cambiarApariencia({ movimiento: b.dataset.movimiento }));
+$('#opt-brillo').addEventListener('change', ev => cambiarApariencia({ brillo: ev.target.checked }));
+$('#otro-terreno').addEventListener('click', () => {
+  cambiarApariencia({ semilla: `${perfilActivo()}-${Math.random().toString(36).slice(2, 7).padEnd(5, '0')}` });
+});
 // El deslizador gobierna la intensidad del dibujo, o la de la imagen cuando el fondo es la imagen.
 $('#intensidad').addEventListener('input', ev => {
   const valor = Number(ev.target.value);
