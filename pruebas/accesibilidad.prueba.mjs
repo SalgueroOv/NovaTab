@@ -80,6 +80,7 @@ export default {
           await dialogo('añadir widget', `document.getElementById('btn-nuevo-widget').click()`, `document.getElementById('dlg-widget').close()`);
           await dialogo('marcadores', `document.getElementById('dlg-marcadores').showModal()`, `document.getElementById('dlg-marcadores').close()`);
           await dialogo('perfil', `document.getElementById('dlg-perfil').showModal()`, `document.getElementById('dlg-perfil').close()`);
+          await dialogo('tema propio', `document.querySelector('.crear-tema').click()`, `document.querySelector('#dlg-tema [data-cerrar]').click()`);
           await dialogo('restablecer', `document.getElementById('dlg-restablecer').showModal()`, `document.getElementById('dlg-restablecer').close()`);
     }
     await tema(pg, 'bosque');

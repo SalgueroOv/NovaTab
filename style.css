@@ -328,6 +328,24 @@ dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
   border-radius: 50%;
   background: var(--m-bg);
 }
+.muestra-propia { position: relative; display: flex; }
+.muestra-propia .muestra { flex: 1; min-width: 0; padding-right: 36px; }
+.editar-tema {
+  position: absolute; top: 50%; right: 6px; display: grid; place-items: center; width: 28px; height: 28px;
+  border: 0; border-radius: 50%; background: transparent; color: var(--texto-2); cursor: pointer; transform: translateY(-50%);
+}
+.editar-tema:hover, .editar-tema:focus-visible { background: var(--hover); color: var(--texto); }
+.editar-tema .ico { width: 16px; height: 16px; }
+.crear-tema {
+  grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px;
+  border: 1px dashed var(--borde-fuerte); border-radius: 12px; background: transparent; color: var(--texto-2); font: inherit; font-size: 13px; cursor: pointer;
+}
+.crear-tema:hover:not(:disabled) { background: var(--hover); color: var(--texto); }
+.crear-tema:disabled { cursor: not-allowed; opacity: .6; }
+.colores-tema { display: flex; gap: 16px; }
+.colores-tema label { flex: 1; }
+.colores-tema input[type="color"] { display: block; width: 100%; height: 36px; margin-top: 6px; padding: 0; border: 1px solid var(--borde-fuerte); border-radius: 8px; background: none; cursor: pointer; }
+#dlg-tema menu .borrar-tema { margin-right: auto; }
 .muestra i::after {
   content: "";
   position: absolute;

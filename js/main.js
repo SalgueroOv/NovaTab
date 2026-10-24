@@ -6,7 +6,9 @@ import { avisar } from './util.js';
 import { VERSION, datos, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
 import { pintar, pintarLocal } from './pintado.js';
-import { CLAVE_OPCIONES, opciones, pintarFondo, ponerOpciones, ponerTema, recibirEco } from './apariencia.js';
+import { CLAVE_OPCIONES, opciones, pintarFondo, pintarMuestras, ponerOpciones, ponerTema, recibirEco, temaActual } from './apariencia.js';
+import { CLAVE_TEMAS_PROPIOS, leerTemasPropios, normalizarTemasPropios, ponerTemasPropios } from './temas.js';
+import './editor-tema.js';
 import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
 import './buscador.js';
 import './ajustes-buscador.js';
@@ -37,6 +39,13 @@ alCambiar(cambios => {
   if (aspecto && !esLoUltimo(claveAsp, aspecto)) {
     if (aspecto.tema) ponerTema(aspecto.tema);
     recibirEco({ ...aspecto, buscador: opciones.buscador });
+  }
+  // Un tema propio creado, cambiado o borrado en otra pestaña u otro equipo.
+  const temas = cambios[CLAVE_TEMAS_PROPIOS];
+  if (temas && !esLoUltimo(CLAVE_TEMAS_PROPIOS, temas.newValue)) {
+    ponerTemasPropios(normalizarTemasPropios(temas.newValue));
+    pintarMuestras();
+    ponerTema(temaActual);
   }
   const comunes = cambios[CLAVE_OPCIONES]?.newValue;
   if (comunes && !esLoUltimo(CLAVE_OPCIONES, comunes)) recibirEco({ ...opciones, buscador: comunes.buscador });
@@ -69,7 +78,7 @@ let recarga;
   let comunes = null;
   try {
     await migrar();
-    [guardados, aspecto, comunes] = await Promise.all([cargarDatos(perfilActivo()), leer(claveAspecto(perfilActivo())), leer(CLAVE_OPCIONES)]);
+    [guardados, aspecto, comunes] = await Promise.all([cargarDatos(perfilActivo()), leer(claveAspecto(perfilActivo())), leer(CLAVE_OPCIONES), leerTemasPropios()]);
   } catch (err) {
     // Sin migrar: se enseña lo de antes pero no se guarda nada en las claves nuevas hasta la próxima apertura.
     bloquearGuardado('Tus datos aún no se han actualizado al formato nuevo: se reintentará al abrir otra pestaña');
@@ -81,6 +90,7 @@ let recarga;
       comunes = legado.opciones;
     } catch { /* sin datos guardados */ }
   }
+  pintarMuestras();
   ponerTema(aspecto?.tema, { animar: false });
   ponerOpciones({ ...aspecto, buscador: comunes?.buscador });
   try {

@@ -5,7 +5,8 @@ Extensión de Chrome que sustituye la pestaña nueva por una página de inicio p
 - Buscador de Google (con Modo IA, imágenes, vídeos, noticias y Maps) que también busca en tus enlaces.
 - Grupos de enlaces que colocas y redimensionas en una cuadrícula, con logos de [Dashboard Icons](https://github.com/homarr-labs/dashboard-icons) o iconos de [Lucide](https://lucide.dev).
 - Widgets: tiempo, notas, Google Calendar, Spotify y tus webs más visitadas.
-- Temas, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
+- Temas: once incluidos y los tuyos propios (fondo y acento), comunes a todos los perfiles; menús y paneles se tiñen con el tema.
+- Modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 - Todo se guarda en tu cuenta de Chrome (`chrome.storage.sync`, cada grupo en su propia clave): no hay servidor propio. Si otra pestaña cambia algo mientras editas, se aplica al terminar sin pisar lo tuyo.
 
 ## Instalar
@@ -69,7 +70,8 @@ En modo edición, con el foco en la cabecera de un grupo o widget (Tab): flechas
 | `js/comandos.js`, `js/atajos.js` | Paleta de comandos (Ctrl+K) y Alt+1…Alt+9 para los nueve primeros enlaces locales, Alt+P y Alt+Mayús+P para cambiar de perfil |
 | `js/importar.js` | Importar marcadores de Chrome como grupos (permiso `bookmarks` opcional, pedido al pulsar) |
 | `js/historial.js`, `js/copias.js` | Pila de deshacer (20 pasos) y copia automática diaria (7 últimas, en Opciones) |
-| `js/buscador.js`, `js/apariencia.js` | Buscador y editor de apariencia: diez temas, acento, fondo, densidad, esquinas, reloj y paneles |
+| `js/buscador.js`, `js/apariencia.js` | Buscador y editor de apariencia: tema, acento, fondo, densidad, esquinas, reloj y paneles |
+| `js/temas.js`, `js/editor-tema.js` | Temas (fondo, tinta y acento; el resto de colores se deriva en `style.css`) y el editor de temas propios |
 | `js/widgets.js`, `js/iconos.js` | Widgets y selector de iconos (Dashboard Icons y Lucide vía jsDelivr) |
 | `datos-defecto.js` | Datos de ejemplo de la primera vez |
 | `empaquetar/` | Script del `.zip` para repartir y su `LEEME.txt` |

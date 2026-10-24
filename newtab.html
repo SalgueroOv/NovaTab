@@ -211,6 +211,23 @@
     </form>
   </dialog>
 
+  <dialog id="dlg-tema">
+    <form method="dialog">
+      <h2>Crear tema</h2>
+      <label>Nombre <input name="nombre" maxlength="20" required autocomplete="off" spellcheck="false"></label>
+      <div class="colores-tema">
+        <label>Fondo <input name="bg" type="color"></label>
+        <label>Acento <input name="acento" type="color"></label>
+      </div>
+      <p class="dlg-aviso">La página entera muestra el tema mientras eliges los colores. Es para todos tus perfiles.</p>
+      <menu>
+        <button type="button" class="boton-texto peligro borrar-tema" id="borrar-tema" hidden>Borrar tema</button>
+        <button type="button" value="cancelar" data-cerrar>Cancelar</button>
+        <button value="ok" class="primario">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
   <dialog id="dlg-perfil">
     <form method="dialog">
       <h2>Perfil</h2>

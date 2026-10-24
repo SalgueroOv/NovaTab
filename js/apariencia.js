@@ -7,7 +7,7 @@ import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
 import { FONDOS } from './fondos.js';
 import { BUSCADOR, normalizarBuscador } from './motores.js';
-import { TEMAS, buscarTema, sobreAcento, todosLosTemas } from './temas.js';
+import { MAX_TEMAS_PROPIOS, TEMAS, buscarTema, sobreAcento, temasPropios, todosLosTemas } from './temas.js';
 import { CLAVE_FONDO_IMAGEN, borrarImagenFondo, guardarImagenFondo, leerImagenFondo, reducirImagen } from './imagen-fondo.js';
 
 export const CLAVE_TEMA = 'tema';
@@ -21,9 +21,11 @@ export const IDS_FONDO = ['curvas', 'grafo', 'teselas', 'ondas', 'puntos', 'raya
 
 export const OPCIONES = { fondoGrupos: true, sobrio: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA, buscador: BUSCADOR, anchoIzq: null };
 
-// Las muestras de la pestaña Tema: un círculo con el fondo del tema y un punto con su acento.
+// Las muestras de la pestaña Tema: un círculo con el fondo del tema y un punto con su acento. Las de los
+// temas propios llevan un botón para editarlas, y al final está «Crear tema» (ver editor-tema.js).
+const editarTema = id => document.dispatchEvent(new CustomEvent('novatab:editar-tema', { detail: { id } }));
 export function pintarMuestras() {
-  $('#muestras').replaceChildren(...todosLosTemas().map(t => {
+  const piezas = todosLosTemas().map(t => {
     const b = crear('button', 'muestra');
     b.type = 'button';
     b.dataset.tema = t.id;
@@ -34,8 +36,23 @@ export function pintarMuestras() {
       ponerTema(t.id);
       guardarOpciones();
     });
-    return b;
-  }));
+    if (!t.propio) return b;
+    const editar = crear('button', 'editar-tema');
+    editar.type = 'button';
+    editar.innerHTML = svg('lapiz');
+    editar.setAttribute('aria-label', `Editar el tema ${t.nombre}`);
+    editar.title = editar.getAttribute('aria-label');
+    editar.addEventListener('click', () => editarTema(t.id));
+    const caja = crear('div', 'muestra-propia');
+    caja.append(b, editar);
+    return caja;
+  });
+  const crearTema = crear('button', 'crear-tema', 'Crear tema');
+  crearTema.type = 'button';
+  crearTema.disabled = temasPropios().length >= MAX_TEMAS_PROPIOS;
+  crearTema.title = crearTema.disabled ? `Ya tienes ${MAX_TEMAS_PROPIOS} temas propios: borra uno para crear otro` : 'Un tema con tu fondo y tu acento, para todos los perfiles';
+  crearTema.addEventListener('click', () => editarTema(null));
+  $('#muestras').replaceChildren(...piezas, crearTema);
   marcarMuestras();
 }
 const marcarMuestras = () => {

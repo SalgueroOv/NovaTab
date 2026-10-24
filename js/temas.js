@@ -1,5 +1,11 @@
 // Temas: cada uno son tres colores (fondo, tinta y acento) y un modo; el resto de colores (superficies,
-// líneas, textos secundarios) se deriva de ellos en style.css.
+// líneas, textos secundarios) se deriva de ellos en style.css. Los temas propios del usuario (fondo y
+// acento) se guardan en «temas-propios», comunes a todos los perfiles.
+import { escribir, leer, recordar } from './almacen.js';
+
+export const CLAVE_TEMAS_PROPIOS = 'temas-propios';
+export const MAX_TEMAS_PROPIOS = 12;
+export const MAX_NOMBRE_TEMA = 20;
 
 export const TEMAS = [
   { id: 'bosque', nombre: 'Bosque', modo: 'oscuro', bg: '#18221d', ink: '#e3ece5', acento: '#a8d672' },
@@ -30,7 +36,56 @@ export function sobreAcento(hex) {
   return (l + 0.05) / 0.0637 > 1.05 / (l + 0.05) ? '#1f1f1f' : '#ffffff';
 }
 
+// Mezcla dos colores #rrggbb canal a canal (k = 0 da a, k = 1 da b).
+function mezclar(a, b, k) {
+  const canal = (hex, i) => parseInt(hex.slice(i, i + 2), 16);
+  return '#' + [1, 3, 5].map(i => Math.round(canal(a, i) * (1 - k) + canal(b, i) * k).toString(16).padStart(2, '0')).join('');
+}
+
+// Un tema completo a partir de su fondo y su acento: el modo y la tinta salen del fondo.
+export function temaDesde(nombre, bg, acento, id) {
+  const modo = luminosidad(bg) > 0.3 ? 'claro' : 'oscuro';
+  const ink = modo === 'claro' ? mezclar(bg, '#000000', 0.88) : mezclar(bg, '#ffffff', 0.9);
+  return { id, nombre, modo, bg, ink, acento, propio: true };
+}
+
+const HEX = /^#[0-9a-f]{6}$/i;
+const ID_PROPIO = /^propio-[a-z0-9]{4,12}$/;
+
+// La lista guardada, sin nada inválido: ids bien formados y sin repetir, nombre de 1 a 20 caracteres,
+// colores #rrggbb, como mucho doce. Lo que no es una lista da una lista vacía.
+export function normalizarTemasPropios(lista) {
+  if (!Array.isArray(lista)) return [];
+  const vistos = new Set();
+  const temas = [];
+  for (const t of lista) {
+    if (!t || typeof t !== 'object' || typeof t.id !== 'string' || !ID_PROPIO.test(t.id) || vistos.has(t.id)) continue;
+    const nombre = typeof t.nombre === 'string' ? t.nombre.trim() : '';
+    if (!nombre || nombre.length > MAX_NOMBRE_TEMA || !HEX.test(t.bg) || !HEX.test(t.acento)) continue;
+    vistos.add(t.id);
+    temas.push(temaDesde(nombre, t.bg.toLowerCase(), t.acento.toLowerCase(), t.id));
+    if (temas.length === MAX_TEMAS_PROPIOS) break;
+  }
+  return temas;
+}
+
 let propios = [];
+export const temasPropios = () => propios;
+export const ponerTemasPropios = lista => { propios = lista; };
+
+export async function leerTemasPropios() {
+  ponerTemasPropios(normalizarTemasPropios(await leer(CLAVE_TEMAS_PROPIOS)));
+  return propios;
+}
+
+// Se guardan solo los datos (lo derivado se rehace al leer); se recuerda antes para reconocer su eco.
+export async function guardarTemasPropios(lista) {
+  const valor = lista.map(({ id, nombre, bg, acento }) => ({ id, nombre, bg, acento }));
+  recordar(CLAVE_TEMAS_PROPIOS, valor);
+  await escribir(CLAVE_TEMAS_PROPIOS, valor);
+}
+
+export const nuevoIdTema = () => `propio-${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
 
 export const todosLosTemas = () => [...TEMAS, ...propios];
 
