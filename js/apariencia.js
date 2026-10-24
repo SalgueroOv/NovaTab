@@ -262,6 +262,7 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('novatab:volcar', () => { if (guardadoPendiente) guardarOpciones(); });
 
 export function ponerOpciones(o) {
+  aspectoListo = true;
   const nuevas = o && typeof o === 'object' ? o : {};
   opciones = { ...OPCIONES, ...nuevas, ocultos: { ...OPCIONES.ocultos, ...(nuevas.ocultos || {}) }, apariencia: normalizarApariencia(nuevas.apariencia), buscador: normalizarBuscador(nuevas.buscador), anchoIzq: normalizarAnchoIzq(nuevas.anchoIzq) };
   ponerApariencia(opciones.apariencia);
@@ -341,6 +342,9 @@ const usaImagen = () => apariencia.fondo === 'imagen' && !!imagenFondo;
 export const terreno = new Terreno($('#terreno'));
 const velo = crear('div', 'velo');
 $('#fondo').append(velo);
+// Hasta tener el aspecto del perfil no se dibuja nada: con los valores por defecto el relieve empezaría en
+// el de Principal y luego se transformaría en el del perfil abierto.
+let aspectoListo = false;
 export function pintarFondo() {
   const fondo = $('#fondo'), lienzo = $('#terreno');
   const imagen = usaImagen();
@@ -356,8 +360,8 @@ export function pintarFondo() {
     velo.style.opacity = String(1 - apariencia.intensidadImagen / 100);
   } else {
     const id = FONDOS[apariencia.fondo] ? apariencia.fondo : apariencia.fondo === 'imagen' ? 'curvas' : null;
-    lienzo.hidden = !id;
-    if (id) {
+    lienzo.hidden = !id || !aspectoListo || apariencia.intensidad === 0; // con intensidad 0 no se vería
+    if (!lienzo.hidden) {
       terreno.config({
         semilla: apariencia.semilla ?? perfilActivo(), estilo: id, densidad: apariencia.densidadFondo,
         relieve: apariencia.relieve, movimiento: apariencia.movimiento, brillo: apariencia.brillo,
@@ -366,6 +370,9 @@ export function pintarFondo() {
     fondo.style.opacity = String(apariencia.intensidad / 100);
   }
   $('#quitar-imagen').hidden = !imagenFondo;
+  // La imagen puede llegar después (o de otra pestaña): los controles del panel la siguen.
+  $('#intensidad').value = String(imagen ? apariencia.intensidadImagen : apariencia.intensidad);
+  pintarAjustesTerreno();
 }
 
 leerImagenFondo().then(url => { imagenFondo = url; pintarFondo(); }).catch(() => {});

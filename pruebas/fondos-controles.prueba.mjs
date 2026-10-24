@@ -65,6 +65,17 @@ export default {
     afirmar(await pg.ev(`document.getElementById('ajustes-terreno').hidden`), 'sin ajustes del terreno con imagen');
     igual(await pg.ev(dibujosEn(1000)), 0, 'con imagen el fondo no se dibuja');
 
+    // (f) La imagen llega de otra pestaña después de abrir: el panel pasa a sus controles y a su intensidad.
+    pg = await abrir({ chrome: {}, guardados: { 'chrome.sync/perfil:principal:aspecto': { apariencia: { fondo: 'imagen', intensidad: 70, intensidadImagen: 40 } } } });
+    await pg.esperar(500);
+    await abrirFondo(pg);
+    igual(await pg.ev(`document.getElementById('intensidad').value`), '70', 'sin imagen, el deslizador es la intensidad del dibujo');
+    await pg.ev(`__chromeFalso.remoto('local', 'fondo-imagen', 'data:image/webp;base64,AAAA')`);
+    await pg.esperar(400);
+    afirmar(!(await pg.ev(`document.getElementById('nota-imagen').hidden`)), 'llega la imagen: se ve su nota');
+    afirmar(await pg.ev(`document.getElementById('ajustes-terreno').hidden`), 'y se ocultan los ajustes del terreno');
+    igual(await pg.ev(`document.getElementById('intensidad').value`), '40', 'y el deslizador pasa a la intensidad de la imagen');
+
     // (e) Cada perfil tiene su relieve: la semilla por defecto es su id.
     const perfiles = {
       'chrome.sync/perfiles': { version: 5, lista: [{ id: 'principal', nombre: 'Principal' }, { id: 'otro', nombre: 'Otro' }] },

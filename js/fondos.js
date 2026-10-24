@@ -54,15 +54,19 @@ export function pintarLuz(ctx, capas, acento, tope, modo = 'stroke') {
   });
 }
 
-// Datos fijos por semilla (nodos, estrellas), guardados para no rehacerlos en cada dibujo.
+// Datos fijos por semilla (nodos, estrellas), guardados para no rehacerlos en cada dibujo. Una galaxia
+// ocupa varios MB, así que se guardan pocos: los más recientes (cambiar de terreno muchas veces no acumula).
 const guardados = new Map();
+const MAX_GUARDADOS = 6;
 function fijo(clave, crear) {
-  if (!guardados.has(clave)) {
-    if (guardados.size > 40) guardados.clear();
-    guardados.set(clave, crear());
-  }
-  return guardados.get(clave);
+  let valor = guardados.get(clave);
+  if (valor) guardados.delete(clave); // al final: es el más reciente
+  else valor = crear();
+  guardados.set(clave, valor);
+  if (guardados.size > MAX_GUARDADOS) guardados.delete(guardados.keys().next().value);
+  return valor;
 }
+export const tamanoGuardados = () => guardados.size;
 
 // ---------- Curvas de nivel («marching squares») ----------
 

@@ -60,7 +60,11 @@ export class Terreno {
     this.pendiente = false;
     this.ultimo = 0;
     this.redibujarHasta = 0;
+    this.vueltas = 0; // fotogramas pedidos (el bucle descansa cuando no hay nada que hacer)
+    this.enMarcha = false;
+    this.estatico = estatico;
     if (estatico) return;
+    this.bucle = this.bucle.bind(this);
     this.medir();
     addEventListener('resize', () => { this.medir(); this.pedir(); });
     // La luz sigue al ratón; sin luz, moverlo no obliga a dibujar.
@@ -71,17 +75,29 @@ export class Terreno {
       if (this.op.brillo) this.pedir();
     });
     document.addEventListener('pointerleave', () => { this.raton = null; this.pedir(); });
-    this.bucle = this.bucle.bind(this);
+    document.addEventListener('visibilitychange', () => this.despertar());
+    this.despertar();
+  }
+
+  // El bucle solo corre mientras hay algo que hacer; cualquier cambio lo despierta.
+  despertar() {
+    if (this.enMarcha || this.estatico) return;
+    this.enMarcha = true;
+    this.prev = 0;
     requestAnimationFrame(this.bucle);
   }
 
-  // Cada fotograma: con la pestaña oculta no hace nada; durante una transformación dibuja siempre; si no,
-  // como mucho cada 33 ms y solo si el relieve se mueve o hay un cambio pendiente.
+  // Cada fotograma: con la pestaña oculta o el canvas oculto se detiene; durante una transformación dibuja
+  // siempre; si no, como mucho cada 33 ms y solo si el relieve se mueve o hay un cambio pendiente. Sin nada
+  // de eso, deja de pedir fotogramas hasta el siguiente cambio.
   bucle(ahora) {
-    requestAnimationFrame(this.bucle);
+    this.vueltas++;
     const dt = this.prev ? Math.min(0.1, (ahora - this.prev) / 1000) : 0;
     this.prev = ahora;
-    if (document.hidden || !this.w || this.c.hidden) return; // oculto con «liso» o con la imagen
+    if (document.hidden || !this.w || this.c.hidden) { // oculto con «liso», la imagen o intensidad 0
+      this.enMarcha = false;
+      return;
+    }
     const vel = reducido.matches ? 0 : VELOCIDAD[this.op.movimiento] ?? 0;
     this.t += dt * vel;
     if (this.campoB) {
@@ -93,6 +109,7 @@ export class Terreno {
       this.ultimo = ahora;
       this.pendiente = false;
       this.dibujar();
+      requestAnimationFrame(this.bucle);
       return;
     }
     if ((this.pendiente || vel || ahora < this.redibujarHasta) && ahora - this.ultimo > 33) {
@@ -100,6 +117,8 @@ export class Terreno {
       this.pendiente = false;
       this.dibujar();
     }
+    if (vel || this.pendiente || ahora < this.redibujarHasta) requestAnimationFrame(this.bucle);
+    else this.enMarcha = false;
   }
 
   medir() {
@@ -113,12 +132,13 @@ export class Terreno {
   // Un dibujo en cuanto lo permita el bucle (varios cambios seguidos dan uno solo).
   pedir() {
     this.pendiente = true;
+    this.despertar();
   }
 
   // Dibujar durante un rato aunque el relieve esté quieto: los colores del tema cambian con una transición.
   pedirDurante(ms) {
-    this.pendiente = true;
     this.redibujarHasta = Math.max(this.redibujarHasta, performance.now() + ms);
+    this.pedir();
   }
 
   // Una semilla nueva (otro perfil u otro terreno) transforma el relieve durante 1,3 s; si llega en mitad de

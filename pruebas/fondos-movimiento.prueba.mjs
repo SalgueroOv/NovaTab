@@ -97,5 +97,34 @@ export default {
     igual(pg.errores, [], 'sin errores con cambios de perfil seguidos');
     igual(await pg.ev(`novatab.terreno.op.semilla`), await pg.ev(`import('/js/perfiles.js').then(m => m.perfilActivo())`), 'la semilla es la del perfil activo');
     afirmar(await pg.ev(`novatab.terreno.campoB === null`), 'sin transformaciones a medias');
+
+    // (j) Al abrir otro perfil, su relieve sube desde el llano (no viene del de Principal).
+    pg = await abrir({ chrome: {}, datos: null, guardados: { ...DOS_PERFILES, 'chrome.local/perfil-activo': 'otro', 'chrome.sync/perfil:otro:aspecto': { tema: 'bosque', apariencia: { fondo: 'grafo' } } } });
+    await pg.esperar(2000);
+    igual(await pg.ev(`[novatab.terreno.op.semilla, novatab.terreno.semAnt, novatab.terreno.op.estilo]`), ['otro', '', 'grafo'], 'sube desde el llano con su semilla y su estilo');
+
+    // (k) Con intensidad 0 el fondo no se ve: no se dibuja.
+    await pg.ev(aspecto({ intensidad: 0, movimiento: 'lento' }));
+    await pg.esperar(200);
+    afirmar(await pg.ev(`document.getElementById('terreno').hidden`), 'intensidad 0 oculta el canvas');
+    igual(await pg.ev(dibujosEn(1000)), 0, 'intensidad 0: ningún dibujo');
+
+    // (l) Sin nada que hacer el bucle descansa (no pide fotogramas) y vuelve en cuanto hay un cambio.
+    await pg.ev(aspecto({ intensidad: 100, movimiento: 'quieto' }));
+    await pg.esperar(1200);
+    const vueltas = `(async () => { const v0 = novatab.terreno.vueltas; await new Promise(r => setTimeout(r, 1000)); return novatab.terreno.vueltas - v0; })()`;
+    igual(await pg.ev(vueltas), 0, 'quieto: el bucle no pide fotogramas');
+    await pg.ev(aspecto({ relieve: 0.2 }));
+    await pg.esperar(200);
+    igual(await pg.ev(`novatab.terreno.op.relieve`), 0.2, 'el cambio llega al fondo');
+    afirmar(await pg.ev(`novatab.terreno.dibujos`) > 0, 'y se dibuja');
+    const antesDeLento = await pg.ev(`novatab.terreno.dibujos`);
+    await pg.ev(aspecto({ movimiento: 'lento' }));
+    await pg.esperar(600);
+    afirmar(await pg.ev(`novatab.terreno.dibujos`) - antesDeLento >= 5, 'con lento vuelve a animarse');
+
+    // (m) La caché de dibujos por semilla no crece sin límite.
+    const tamano = await pg.ev(`import('/js/fondos.js').then(m => { const c = document.createElement('canvas'); c.width = 160; c.height = 100; const ctx = c.getContext('2d'); const T = { w: 160, h: 100, t: 0, escala: 0.1, op: { densidad: 0.5, relieve: 0.5 }, valor: () => 0.5 }; for (let i = 0; i < 20; i++) m.FONDOS.galaxia.dibujar(T, ctx, { ink: '#fff', acento: '#0f0', base: 0.15, r: null, luz: 0.9, semilla: 's' + i }); return m.tamanoGuardados(); })`);
+    afirmar(tamano <= 6, `la caché guarda como mucho 6 (guarda ${tamano})`);
   },
 };
