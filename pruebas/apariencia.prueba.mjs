@@ -8,7 +8,7 @@ const poner = (id, valor) => `(() => { const e = document.getElementById('${id}'
 const DEFECTO = {
   acento: null, fondo: 'curvas', intensidad: 100, intensidadImagen: 40, densidad: 'comoda',
   esquinas: 'medio', hora24: true, segundos: false, fecha: true,
-  semilla: null, densidadFondo: 0.55, relieve: 0.45, movimiento: 'lento', brillo: true, estilo: 'mapa',
+  semilla: null, densidadFondo: 0.55, relieve: 0.45, movimiento: 'lento', brillo: true, estilo: 'mapa', direcciones: true,
 };
 
 export default {
@@ -90,10 +90,10 @@ export default {
     // (f) Densidad: la altura de fila cambia y el arrastre sigue cayendo en la celda correcta.
     pg = await abrir(conApariencia({ densidad: 'compacta' }));
     await pg.esperar(300);
-    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '32px', 'filas compactas');
+    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '42px', 'filas compactas (Mapa: dos líneas)');
     pg = await abrir();
     await pg.esperar(300);
-    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '40px', 'filas cómodas');
+    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '48px', 'filas cómodas (Mapa: dos líneas)');
     pg = await abrir(conApariencia({ densidad: 'compacta' }));
     await pg.esperar(300);
     await pg.clic('#btn-editar');
@@ -152,7 +152,7 @@ export default {
     igual({ densidad: guardado.densidad, esquinas: guardado.esquinas, hora24: guardado.hora24, segundos: guardado.segundos, fecha: guardado.fecha }, esperado, 'ajustes guardados');
     await pg.recargar();
     await pg.esperar(300);
-    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '32px', 'densidad tras recargar');
+    igual(await pg.ev(`getComputedStyle(document.querySelector('#rejilla')).gridAutoRows`), '42px', 'densidad tras recargar');
     igual(await pg.ev(radio('#rejilla .grupo')), '24px', 'esquinas tras recargar');
     igual((await pg.ev(horaFecha))[1], true, 'fecha oculta tras recargar');
 
