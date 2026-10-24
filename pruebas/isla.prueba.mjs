@@ -102,6 +102,32 @@ export default {
     await pg.esperar(700);
     afirmar(await pg.ev(`document.getElementById('btn-perfil').getBoundingClientRect().right <= document.getElementById('isla').getBoundingClientRect().right`), 'el chip no se sale de la isla');
 
+    // (l) Editar: la isla pasa a la barra de edición, con deshacer desactivado mientras no haya nada.
+    pg = await abrir({ reducirMovimiento: true });
+    await pg.esperar(400);
+    await pg.clic('#btn-editar');
+    await pg.esperar(200);
+    afirmar(!(await pg.ev(`document.querySelector('#isla .capa-edicion').hidden`)) && await pg.ev(`document.querySelector('#isla .capa-barra').hidden`), 'en edición se ve la barra de edición y no la normal');
+    igual(await pg.ev(`['[data-nuevo-grupo="local"]', '#btn-nuevo-widget', '#btn-deshacer', '#btn-listo'].filter(s => !document.querySelector('#isla .capa-edicion ' + s))`), [], 'con sus cuatro botones');
+    afirmar(await pg.ev(`document.getElementById('btn-deshacer').disabled`), 'deshacer desactivado sin historial');
+    igual(await pg.ev(`document.getElementById('editando-txt').textContent`), 'Editando Principal', 'dice qué perfil se edita');
+
+    // (m) Borrar un grupo activa deshacer, y deshacer lo devuelve.
+    await pg.ev(`window.confirm = () => true`);
+    await pg.ev(`[...document.querySelectorAll('#rejilla .grupo')].find(g => g.querySelector('h3').textContent === 'Alfa').querySelector('[data-accion="borrar-grupo"]').click()`);
+    await pg.esperar(400);
+    afirmar(!(await pg.ev(`document.getElementById('btn-deshacer').disabled`)), 'tras borrar, deshacer se activa');
+    await pg.clic('#btn-deshacer');
+    await pg.esperar(400);
+    afirmar((await pg.datos()).grupos.some(g => g.nombre === 'Alfa'), 'deshacer devuelve el grupo');
+    afirmar(await pg.ev(`document.getElementById('btn-deshacer').disabled`), 'y deshacer vuelve a desactivarse');
+
+    // (n) Listo vuelve a la barra normal y sale del modo edición.
+    await pg.clic('#btn-listo');
+    await pg.esperar(200);
+    afirmar(!(await pg.ev(`document.querySelector('#isla .capa-barra').hidden`)), 'Listo vuelve a la barra');
+    afirmar(!(await pg.ev(`document.body.classList.contains('editando')`)), 'y sale de la edición');
+
     // (d) A 800 px la isla va arriba del todo y cabe en la ventana.
     pg = await abrir({ ancho: 800, reducirMovimiento: true });
     await pg.esperar(400);

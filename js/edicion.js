@@ -31,7 +31,9 @@ export const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!
 // Deshacer y rehacer: cada foto es { datos, notas } (notas por id de widget). La foto del estado anterior
 // se empuja dentro de guardar(), por donde pasa todo cambio de datos.
 const historial = crearHistorial(20);
-export const limpiarHistorial = () => { historial.limpiar(); ocultarAvisoAccion(); };
+// El botón Deshacer de la isla, activo solo si hay algo que deshacer.
+const marcarDeshacer = () => { $('#btn-deshacer').disabled = !historial.puedeDeshacer(); };
+export const limpiarHistorial = () => { historial.limpiar(); ocultarAvisoAccion(); marcarDeshacer(); };
 let notasUltimas = {}; // las notas tal como estaban en la última carga o guardado, y lo escrito desde entonces
 let tareasUltimas = {}; // lo mismo con las listas de tareas
 
@@ -85,6 +87,7 @@ export const aplicarEstado = (foto, todasLasNotas = false) => enCola(() => aplic
 // Como aplicarEstado, pero el estado de ahora queda en el historial para poder deshacerlo.
 export const reemplazarEstado = foto => enCola(async () => {
   historial.empujar(await tomarFoto());
+  marcarDeshacer();
   ocultarAvisoAccion();
   await aplicarDentro(foto, true);
 });
@@ -93,6 +96,7 @@ export const reemplazarEstado = foto => enCola(async () => {
 const pasoDeHistorial = sentido => enCola(async () => {
   const conFoco = cabeceraConFoco();
   const foto = historial[sentido](await tomarFoto());
+  marcarDeshacer();
   ocultarAvisoAccion();
   if (foto) await aplicarDentro(foto);
   if (conFoco) enfocarCabecera(conFoco);
@@ -143,6 +147,7 @@ async function guardarDentro(sinHistorial = false) {
   }
   if (!sinHistorial && base && JSON.stringify(datos) !== JSON.stringify(base)) {
     historial.empujar({ datos: base, notas: { ...notasUltimas, ...(await leerNotas()) }, tareas: { ...tareasUltimas, ...(await leerTareas()) } });
+    marcarDeshacer();
     ocultarAvisoAccion();
   }
   await guardarDatos(datos, perfilActivo());
@@ -315,6 +320,7 @@ export function ponerEdicion(activo) {
 
 $('#btn-editar').addEventListener('click', () => ponerEdicion(!editando));
 $('#btn-listo').addEventListener('click', () => ponerEdicion(false));
+$('#btn-deshacer').addEventListener('click', () => deshacerUltimo());
 $('#btn-nuevo-widget').addEventListener('click', () => nuevoWidget());
 
 $('#btn-exportar').addEventListener('click', async () => {

@@ -150,6 +150,6 @@ export default {
     igual(await pos(pg, 'g-alfa'), { x: 1, y: 1, w: 6, panel: 'der' }, 'a 800 px nada cambia');
 
     // (k) La flecha del botón de perfil es decoración: no entra en su nombre accesible.
-    afirmar((await pg.ev(`getComputedStyle(document.getElementById('btn-perfil'), '::after').content`)).includes('/ ""'), 'la flecha del selector de perfiles tiene texto alternativo vacío');
+    afirmar(await pg.ev(`(() => { const f = document.querySelector('#btn-perfil .flecha-perfil'); return !!f && f.getAttribute('aria-hidden') === 'true' && f.textContent === ''; })()`), 'la flecha del selector de perfiles es decorativa (aria-hidden, sin texto)');
   },
 };
