@@ -83,7 +83,7 @@ export default {
     pg = await abrir();
     await pg.esperar(300);
     await pg.clic('#btn-tema');
-    igual(await pg.ev(`[...document.querySelectorAll('#panel-tema [role="tab"]')].map(t => t.textContent)`), ['Tema', 'Fondo', 'Diseño', 'Buscador'], 'pestañas');
+    igual(await pg.ev(`[...document.querySelectorAll('#panel-tema [role="tab"]')].map(t => t.textContent)`), ['Aspecto', 'Disposición', 'Buscador', 'Datos'], 'pestañas');
     await pg.ev(`document.querySelector('#panel-tema [data-pestana="buscador"]').click()`);
     igual(await pg.ev(`[...document.querySelectorAll('#motor-buscador option')].map(o => o.textContent)`), ['Google', 'DuckDuckGo', 'Bing', 'Perplexity', 'ChatGPT'], 'motores del selector');
     igual(await pg.ev(`document.getElementById('motor-buscador').value`), 'google', 'Google marcado');

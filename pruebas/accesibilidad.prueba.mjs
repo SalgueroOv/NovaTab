@@ -44,7 +44,7 @@ export default {
       await revisar(`panel Tema [${id}]`, pg);
     }
     await tema(pg, 'bosque');
-    for (const pestana of ['fondo', 'diseno', 'buscador']) {
+    for (const pestana of ['diseno', 'buscador', 'datos']) {
       await pg.ev(`document.querySelector('#panel-tema [data-pestana="${pestana}"]').click()`);
       await revisar(`panel ${pestana}`, pg);
     }

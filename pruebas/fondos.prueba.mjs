@@ -9,7 +9,7 @@ const huella = `(() => { const c = document.getElementById('terreno'); const d =
 const elegir = id => `document.querySelector('#muestras-fondo [data-fondo="${id}"]').click()`;
 const abrirFondo = async pg => {
   await pg.clic('#btn-tema');
-  await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
+  await pg.ev(`document.querySelector('#panel-tema [data-pestana="tema"]').click()`);
 };
 
 export default {

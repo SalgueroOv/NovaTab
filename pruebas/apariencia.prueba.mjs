@@ -44,12 +44,12 @@ export default {
 
     // (c) Tres pestañas.
     await pg.clic('#btn-tema');
-    igual(await pg.ev(`[...document.querySelectorAll('#panel-tema [role="tab"]')].map(t => t.textContent)`), ['Tema', 'Fondo', 'Diseño', 'Buscador'], 'pestañas');
-    afirmar(await pg.ev(`document.getElementById('pestana-fondo').hidden`), 'Fondo oculto al principio');
-    await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
-    afirmar(!(await pg.ev(`document.getElementById('pestana-fondo').hidden`)), 'Fondo visible tras pulsar su pestaña');
-    afirmar(await pg.ev(`document.getElementById('pestana-tema').hidden`), 'Tema oculto tras pulsar Fondo');
-    igual(await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').getAttribute('aria-selected')`), 'true', 'aria-selected');
+    igual(await pg.ev(`[...document.querySelectorAll('#panel-tema [role="tab"]')].map(t => t.textContent)`), ['Aspecto', 'Disposición', 'Buscador', 'Datos'], 'pestañas');
+    afirmar(await pg.ev(`document.getElementById('pestana-diseno').hidden`), 'Disposición oculta al principio');
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="diseno"]').click()`);
+    afirmar(!(await pg.ev(`document.getElementById('pestana-diseno').hidden`)), 'Disposición visible tras pulsar su pestaña');
+    afirmar(await pg.ev(`document.getElementById('pestana-tema').hidden`), 'Aspecto oculto tras pulsar Disposición');
+    igual(await pg.ev(`document.querySelector('#panel-tema [data-pestana="diseno"]').getAttribute('aria-selected')`), 'true', 'aria-selected');
     await pg.tecla('Escape');
     afirmar(await pg.ev(`document.getElementById('panel-tema').hidden`), 'Escape cierra el panel');
 
