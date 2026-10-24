@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C · Salas</title>
+  <link rel="stylesheet" href="comun.css">
+  <style>
+    /* Propuesta C: cada perfil es una sala. Un solo mando arriba (la isla) se transforma en el
+       selector de salas, en la paleta o en la barra de edición; Personalizar abre un estudio
+       donde la página entera encoge a la izquierda y se ve cambiar mientras se ajusta. */
+    body { overflow: hidden; --aviso-abajo: 28px; }
+
+    .c-escena {
+      position: fixed; inset: 0; overflow-x: hidden; overflow-y: auto; background: var(--bg);
+      transform-origin: 0 50%; transition: transform .7s var(--ease), border-radius .7s var(--ease), box-shadow .7s;
+    }
+    .estudio .c-escena { transform: translateX(48px) scale(var(--k, .6)); border-radius: calc(var(--r3) / var(--k, .6)); box-shadow: var(--sombra); outline: 1px solid var(--linea); }
+    .estudio .c-escena * { pointer-events: none; }
+
+    .c-contenido { position: relative; z-index: 1; padding: 120px 64px 72px; }
+    .c-contenido.sale > * { animation: c-sale .26s var(--ease) both; }
+    .c-contenido.entra > * { animation: c-entra .6s var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); }
+    @keyframes c-sale { to { opacity: 0; transform: translateX(calc(var(--sentido, 1) * -64px)); } }
+    @keyframes c-entra { from { opacity: 0; transform: translateX(calc(var(--sentido, 1) * 64px)); } }
+
+    .c-cabeza { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); align-items: end; gap: 48px; }
+    .sin-inicio .c-reloj, .sin-inicio .c-fecha, .sin-inicio .c-buscador { display: none; }
+    .c-reloj { margin: 0; font-size: clamp(120px, 15vw, 232px); font-weight: 200; line-height: .8; letter-spacing: -.055em; }
+    .c-reloj .dos-puntos { opacity: .45; }
+    .c-fecha { margin: 22px 0 0 8px; color: var(--suave); font-size: 20px; }
+    .c-sala { padding-bottom: 10px; }
+    .c-sala h1 { margin: 0; font-size: 40px; font-weight: 650; letter-spacing: -.025em; line-height: 1.05; }
+    .c-sala p { margin: 10px 0 0; color: var(--suave); font-size: 16px; }
+    .c-sala b { color: var(--ink); font-weight: 600; }
+    .c-sala .grave { color: var(--peligro); }
+
+    .c-buscador {
+      display: flex; align-items: center; gap: 14px; max-width: 920px; height: 62px; margin: 48px 0 56px; padding: 0 12px 0 22px;
+      border: 1px solid var(--linea-fuerte); border-radius: var(--r3); background: var(--velo); color: var(--suave);
+      transition: border-color .2s, background-color .2s;
+    }
+    .c-buscador:focus-within { border-color: var(--acento); background: var(--s1); }
+    .c-buscador input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: none; color: var(--ink); font-size: 18px; }
+    .c-buscador input::placeholder { color: var(--tenue); }
+
+    .c-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 40px 48px; }
+    .sin-servicios .c-grupos { display: none; }
+    .c-grupo h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: 15px; font-weight: 600; }
+    .c-grupo h2 .n { color: var(--tenue); font-weight: 400; }
+    .reunion [data-privado] { display: none; }
+    .sin-internet [data-internet] { display: none; }
+    .privado { padding: 1px 8px; border-radius: 99px; background: var(--s3); color: var(--suave); font-size: 11px; font-weight: 500; }
+    .c-baldosas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .c-baldosa {
+      position: relative; display: flex; flex-direction: column; gap: 4px; min-height: 140px; padding: 16px;
+      border: 1px solid var(--linea); border-radius: var(--r2); background: var(--velo);
+      transition: transform .35s var(--ease), border-color .2s, background-color .2s;
+    }
+    [data-densidad="compacta"] .c-baldosa { min-height: 112px; padding: 12px; }
+    .c-baldosa:hover { transform: translateY(-4px); border-color: var(--linea-fuerte); background: var(--s1); }
+    .c-baldosa .logo { width: 36px; height: 36px; margin-bottom: auto; border-radius: 9px; transition: transform .4s var(--muelle); }
+    .c-baldosa:hover .logo { transform: scale(1.12) rotate(-4deg); }
+    .c-baldosa b { margin-top: 14px; overflow: hidden; font-size: 15px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .c-baldosa .dir { overflow: hidden; color: var(--tenue); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .c-baldosa .lat { position: absolute; top: 18px; right: 16px; display: inline-flex; align-items: center; gap: 6px; color: var(--suave); font-size: 12px; }
+    .c-baldosa.mini { min-height: 96px; }
+    .c-baldosa.mini b { margin-top: 10px; }
+    .c-quitar { position: absolute; top: 8px; right: 8px; display: none; }
+    .editando .c-baldosa { border-style: dashed; border-color: var(--linea-fuerte); }
+    .editando .c-baldosa .lat { display: none; }
+    .editando .c-quitar { display: grid; }
+    .c-anadir { display: none; align-items: center; justify-content: center; gap: 8px; color: var(--suave); font-size: 14px; }
+    .editando .c-anadir { display: flex; }
+
+    /* ---------- La isla ---------- */
+    .c-isla {
+      position: fixed; top: 18px; left: 50%; z-index: 40; overflow: hidden;
+      border: 1px solid var(--linea); border-radius: var(--r3); background: var(--s1); box-shadow: var(--sombra);
+      transform: translateX(-50%);
+      transition: width .55s var(--muelle), height .55s var(--muelle), opacity .3s, transform .5s var(--ease);
+    }
+    .estudio .c-isla { opacity: 0; transform: translate(-50%, -24px); pointer-events: none; }
+    .c-capa { position: absolute; top: 0; left: 50%; opacity: 0; transform: translateX(-50%) scale(.97); transition: opacity .2s, transform .45s var(--ease); pointer-events: none; }
+    .c-capa.activa { opacity: 1; transform: translateX(-50%); transition-delay: .12s; pointer-events: auto; }
+    [data-capa="barra"], [data-capa="edicion"] { display: flex; align-items: center; gap: 4px; height: 58px; padding: 0 8px; white-space: nowrap; }
+    [data-capa="perfiles"] { width: 760px; padding: 18px; }
+    [data-capa="paleta"] { width: 660px; }
+    .c-sep { width: 1px; height: 26px; margin: 0 6px; background: var(--linea); }
+    .c-perfil-btn { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px 0 6px; border: 0; border-radius: var(--r2); background: none; font-weight: 600; }
+    .c-perfil-btn canvas { width: 32px; height: 32px; border-radius: calc(var(--r2) - 4px); }
+    .c-perfil-btn:hover, .c-buscar-btn:hover, .c-ico-btn:hover { background: var(--s2); }
+    .c-perfil-btn .ico { color: var(--tenue); }
+    .c-buscar-btn { display: flex; align-items: center; gap: 10px; width: 280px; height: 44px; padding: 0 8px 0 12px; border: 0; border-radius: var(--r2); background: var(--s2); color: var(--tenue); font-size: 14px; text-align: left; }
+    .c-buscar-btn span { flex: 1; }
+    .c-ico-btn { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: var(--r2); background: none; color: var(--suave); }
+    .c-ico-btn[aria-pressed="true"] { background: var(--s3); color: var(--acento); }
+    .c-ico-btn::after {
+      content: attr(aria-label); position: absolute; top: calc(100% + 14px); left: 50%; padding: 6px 10px; border-radius: var(--r1);
+      background: var(--ink); color: var(--bg); font-size: 12px; font-weight: 500; white-space: nowrap;
+      opacity: 0; transform: translate(-50%, -4px); transition: opacity .15s, transform .25s var(--ease); pointer-events: none;
+    }
+    .c-ico-btn:hover::after, .c-ico-btn:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+    .c-isla:has(.c-ico-btn:hover), .c-isla:has(.c-ico-btn:focus-visible) { overflow: visible; }
+    .c-editando { padding: 0 10px 0 12px; color: var(--suave); font-size: 14px; }
+    .c-editando b { color: var(--ink); }
+
+    .c-salas-cab { display: flex; align-items: baseline; justify-content: space-between; margin: 0 4px 14px; }
+    .c-salas-cab h2 { margin: 0; font-size: 17px; font-weight: 650; }
+    .c-salas-cab span { color: var(--tenue); font-size: 13px; }
+    .c-salas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .c-sala-op { display: flex; flex-direction: column; gap: 8px; padding: 0; border: 0; background: none; text-align: left; }
+    .c-sala-op .marco { position: relative; overflow: hidden; border-radius: var(--r2); outline: 1px solid var(--linea); outline-offset: -1px; }
+    .c-sala-op canvas { display: block; width: 100%; aspect-ratio: 4 / 3; transition: transform .6s var(--ease); }
+    .c-sala-op:hover canvas { transform: scale(1.08); }
+    .c-sala-op[aria-current="true"] .marco { outline: 2px solid var(--acento); outline-offset: 2px; }
+    .c-sala-op b { display: block; font-size: 15px; font-weight: 600; }
+    .c-sala-op small { display: block; color: var(--tenue); font-size: 12px; }
+    .c-sala-op .actual { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 99px; background: var(--acento); color: var(--sobre-acento); font-size: 12px; font-weight: 600; }
+    .c-sala-nueva .marco { display: grid; place-items: center; aspect-ratio: 4 / 3; outline-style: dashed; color: var(--suave); }
+    .c-salas-pie { display: flex; gap: 4px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--linea); }
+
+    .c-velo { position: fixed; inset: 0; z-index: 35; background: color-mix(in oklab, var(--bg) 50%, transparent); opacity: 0; pointer-events: none; transition: opacity .3s; }
+    .con-velo .c-velo { opacity: 1; pointer-events: auto; }
+
+    /* ---------- Estudio ---------- */
+    .c-estudio {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 30; display: flex; flex-direction: column; width: 480px;
+      background: var(--bg); opacity: 0; transform: translateX(60px); transition: opacity .3s, transform .7s var(--ease);
+    }
+    .c-estudio.abierto { opacity: 1; transform: none; }
+    .c-estudio-cab { display: flex; align-items: flex-start; justify-content: space-between; padding: 28px 18px 8px 22px; }
+    .c-estudio-cab h2 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -.01em; }
+    .c-estudio-cab small { display: block; margin-top: 2px; color: var(--tenue); font-size: 13px; font-weight: 400; }
+    .c-estudio-cuerpo { flex: 1; min-height: 0; }
+    .c-estudio-pie { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 22px; border-top: 1px solid var(--linea); color: var(--tenue); font-size: 13px; }
+
+    @media (max-width: 900px) {
+      .c-contenido { padding: 96px 16px 48px; }
+      .c-cabeza { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+      .c-grupos { grid-template-columns: minmax(0, 1fr); }
+      .c-baldosas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .c-buscar-btn { width: 44px; padding: 0; justify-content: center; }
+      .c-buscar-btn span, .c-buscar-btn kbd, .c-sep { display: none; }
+      [data-capa="perfiles"], [data-capa="paleta"] { width: calc(100vw - 24px); }
+      .c-salas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .estudio .c-escena { transform: translateY(-100%); }
+      .c-estudio { width: auto; left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="c-escena" id="escena">
+    <canvas class="terreno" id="terreno" aria-hidden="true"></canvas>
+    <main class="c-contenido" id="contenido"></main>
+  </div>
+
+  <div class="c-velo" id="velo"></div>
+
+  <nav class="c-isla" id="isla" aria-label="Mando">
+    <div class="c-capa" data-capa="barra"></div>
+    <div class="c-capa" data-capa="edicion"></div>
+    <div class="c-capa" data-capa="perfiles"></div>
+    <div class="c-capa" data-capa="paleta"></div>
+  </nav>
+
+  <aside class="c-estudio" id="estudio" aria-labelledby="t-estudio" hidden>
+    <header class="c-estudio-cab">
+      <h2 id="t-estudio">Estudio<small id="estudio-sub"></small></h2>
+      <button class="icono-mini" type="button" id="cerrar-estudio" aria-label="Cerrar el estudio"></button>
+    </header>
+    <div class="c-estudio-cuerpo" id="ajustes"></div>
+    <footer class="c-estudio-pie"><span><kbd>Alt</kbd><kbd>P</kbd> cambia la sala que ajustas</span><button class="boton primario" type="button" id="hecho">${'Hecho'}</button></footer>
+  </aside>
+
+  <script src="comun.js"></script>
+  <script>
+    const { $, $$, ico, esc, logo, host, estado, perfil } = Nova;
+    Nova.iniciar({ canvas: $('#terreno') });
+    $('#cerrar-estudio').innerHTML = ico('cerrar');
+    $('#hecho').textContent = 'Hecho';
+
+    // ---------- Sala ----------
+
+    const contenido = $('#contenido');
+    function pintarSala() {
+      const p = perfil();
+      const baldosa = (s, mini) => `
+        <a class="c-baldosa${mini ? ' mini' : ''}" href="#" data-nombre="${esc(s.nombre)}" ${s.id ? `data-sid="${s.id}"` : ''}>
+          ${logo(s)}
+          <b>${esc(s.nombre)}</b>
+          <span class="dir ${mini ? '' : 'mono'}">${esc(host(s.url))}</span>
+          ${s.id ? '<span class="lat"><i class="punto"></i><span class="ms"></span></span>' : ''}
+          <button class="icono-mini c-quitar" type="button" aria-label="Quitar ${esc(s.nombre)}">${ico('cerrar')}</button>
+        </a>`;
+      contenido.innerHTML = `
+        <section class="c-cabeza" style="--i:0">
+          <div><p class="c-reloj" id="hora"></p><p class="c-fecha" id="fecha"></p></div>
+          <div class="c-sala"><h1>${esc(p.nombre)}</h1><p id="resumen"></p></div>
+        </section>
+        <form class="c-buscador" role="search" style="--i:1" onsubmit="event.preventDefault(); Nova.aviso('Buscando en ' + Nova.estado.motor + '…')">
+          ${ico('buscar')}<input type="search" placeholder="Busca en ${esc(estado.motor)} o en tus servicios" aria-label="Buscar" autocomplete="off"><kbd>Ctrl</kbd><kbd>K</kbd>
+        </form>
+        <div class="c-grupos">
+          ${p.grupos.map((g, i) => `
+            <section class="c-grupo" style="--i:${i + 2}" ${g.privado ? 'data-privado' : ''} aria-label="${esc(g.nombre)}">
+              <h2>${esc(g.nombre)} <span class="n">${g.servicios.length}</span>${g.privado ? '<span class="privado">Privado</span>' : ''}</h2>
+              <div class="c-baldosas">${g.servicios.map(s => baldosa(s)).join('')}<button class="c-baldosa c-anadir" type="button">${ico('mas')}Añadir</button></div>
+            </section>`).join('')}
+          <section class="c-grupo" style="--i:${p.grupos.length + 2}" data-internet aria-label="Internet">
+            <h2>Internet <span class="n">${p.internet.length}</span></h2>
+            <div class="c-baldosas">${p.internet.map(s => baldosa(s, true)).join('')}</div>
+          </section>
+        </div>`;
+      Nova.reloj($('#hora'), $('#fecha'));
+      Nova.actualizarLatencias(contenido);
+      pintarResumen();
+    }
+    function pintarResumen() {
+      const r = Nova.resumen(), el = $('#resumen');
+      if (el) el.innerHTML = `<b>${r.ok} de ${r.total}</b> responden · <span class="${r.grave ? 'grave' : ''}">${esc(r.hallazgo)}</span>`;
+    }
+    function entrar(sentido) {
+      contenido.style.setProperty('--sentido', sentido);
+      contenido.classList.remove('sale');
+      void contenido.offsetWidth;
+      contenido.classList.add('entra');
+    }
+
+    // ---------- Isla ----------
+
+    const isla = $('#isla'), capas = Object.fromEntries($$('[data-capa]', isla).map(c => [c.dataset.capa, c]));
+    let modo = null;
+    function medir() {
+      const c = capas[modo];
+      isla.style.width = `${c.offsetWidth}px`;
+      isla.style.height = `${c.offsetHeight}px`;
+    }
+    const ro = new ResizeObserver(() => modo && medir());
+    Object.values(capas).forEach(c => ro.observe(c));
+    function ponerModo(m) {
+      modo = m;
+      isla.dataset.modo = m;
+      for (const [nombre, c] of Object.entries(capas)) { c.classList.toggle('activa', nombre === m); c.inert = nombre !== m; }
+      document.body.classList.toggle('con-velo', m === 'perfiles' || m === 'paleta');
+      medir();
+    }
+    const reposo = () => ponerModo(estado.editando ? 'edicion' : 'barra');
+
+    function pintarBarra() {
+      const p = perfil(), b = (accion, icono, texto, pulsado) => `<button class="c-ico-btn" type="button" data-accion="${accion}" aria-label="${texto}" ${pulsado != null ? `aria-pressed="${pulsado}"` : ''}>${ico(icono)}</button>`;
+      capas.barra.innerHTML = `
+        <button class="c-perfil-btn" type="button" data-accion="perfiles" aria-haspopup="true"><canvas data-mini="${p.semilla}" data-perfil="${p.id}"></canvas>${esc(p.nombre)}${ico('abajo')}</button>
+        <span class="c-sep"></span>
+        <button class="c-buscar-btn" type="button" data-accion="paleta">${ico('comando')}<span>Buscar o mandar</span><kbd>Ctrl</kbd><kbd>K</kbd></button>
+        <span class="c-sep"></span>
+        ${b('reunion', estado.reunion ? 'ojoNo' : 'ojo', estado.reunion ? 'Salir de reunión' : 'Modo reunión', estado.reunion)}
+        ${b('editar', 'lapiz', 'Editar la sala', null)}
+        ${b('estudio', 'ajustes', 'Personalizar', null)}`;
+      capas.edicion.innerHTML = `
+        <span class="c-editando">Editando <b>${esc(p.nombre)}</b></span><span class="c-sep"></span>
+        <button class="boton fantasma" type="button">${ico('mas')}Grupo</button>
+        <button class="boton fantasma" type="button">${ico('widget')}Widget</button>
+        <button class="boton fantasma" type="button">${ico('deshacer')}Deshacer</button>
+        <button class="boton primario" type="button" data-accion="listo">${ico('check')}Listo</button>`;
+      Nova.pintarMinis(capas.barra);
+      if (modo) medir();
+    }
+    function pintarSalas() {
+      capas.perfiles.innerHTML = `
+        <div class="c-salas-cab"><h2>Salas</h2><span><kbd>Alt</kbd><kbd>P</kbd> siguiente · <kbd>Esc</kbd> cerrar</span></div>
+        <div class="c-salas">
+          ${Nova.PERFILES.map(q => `
+            <button class="c-sala-op" type="button" data-id="${q.id}" aria-current="${q.id === estado.perfil}">
+              <span class="marco"><canvas data-mini="${q.semilla}" data-perfil="${q.id}" data-tema-mini="${q.tema}"></canvas>${q.id === estado.perfil ? '<span class="actual">Aquí</span>' : ''}</span>
+              <span><b>${esc(q.nombre)}</b><small>${Nova.contar(q)} servicios · ${Nova.TEMAS[q.tema].nombre}</small></span>
+            </button>`).join('')}
+          <button class="c-sala-op c-sala-nueva" type="button" data-accion="nueva"><span class="marco">${ico('mas')}</span><span><b>Nueva sala</b><small>Vacía o copia de esta</small></span></button>
+        </div>
+        <div class="c-salas-pie"><button class="boton fantasma" type="button" data-accion="renombrar">Renombrar ${esc(perfil().nombre)}</button><button class="boton fantasma" type="button" data-accion="duplicar">Duplicar</button></div>`;
+      Nova.pintarMinis(capas.perfiles);
+    }
+
+    const paleta = new Nova.Paleta(capas.paleta, { alCerrar: reposo });
+    function abrirPaleta() { if (document.documentElement.classList.contains('estudio')) return; ponerModo('paleta'); paleta.abrir(); }
+    document.addEventListener('nova:paleta', abrirPaleta);
+
+    isla.addEventListener('click', e => {
+      const id = e.target.closest('[data-id]')?.dataset.id, accion = e.target.closest('[data-accion]')?.dataset.accion;
+      if (id) { reposo(); Nova.cambiarPerfil(id); return; }
+      if (accion === 'perfiles') { pintarSalas(); ponerModo('perfiles'); capas.perfiles.querySelector('[aria-current="true"]').focus(); }
+      else if (accion === 'paleta') abrirPaleta();
+      else if (accion === 'reunion') Nova.cambiar({ reunion: !estado.reunion });
+      else if (accion === 'editar') Nova.cambiar({ editando: true });
+      else if (accion === 'listo') Nova.cambiar({ editando: false });
+      else if (accion === 'estudio') abrirEstudio(true);
+      else if (accion) { reposo(); Nova.aviso({ nueva: 'Nueva sala', renombrar: 'Renombrar sala', duplicar: 'Sala duplicada' }[accion] || accion); }
+    });
+    $('#velo').addEventListener('click', reposo);
+
+    // ---------- Estudio ----------
+
+    const estudio = $('#estudio'), ajustes = new Nova.Ajustes($('#ajustes'));
+    function abrirEstudio(abrir) {
+      const raiz = document.documentElement;
+      raiz.style.setProperty('--k', ((innerWidth - 480 - 96) / innerWidth).toFixed(3));
+      raiz.classList.toggle('estudio', abrir);
+      if (abrir) { $('#estudio-sub').textContent = `Ajustes de ${perfil().nombre} y comunes`; estudio.hidden = false; ajustes.alMostrar(); Nova.abrir(estudio); }
+      else Nova.cerrar(estudio);
+    }
+    $('#cerrar-estudio').addEventListener('click', () => abrirEstudio(false));
+    $('#hecho').addEventListener('click', () => abrirEstudio(false));
+    document.addEventListener('nova:ajustes', () => { reposo(); abrirEstudio(true); });
+
+    // ---------- Global ----------
+
+    document.addEventListener('click', e => {
+      const a = e.target.closest('a[data-nombre]');
+      if (a) { e.preventDefault(); if (!estado.editando) Nova.aviso(`Abriendo ${a.dataset.nombre}…`); }
+    });
+    addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || modo === 'paleta') return;
+      if (modo === 'perfiles') reposo();
+      else if (document.documentElement.classList.contains('estudio')) abrirEstudio(false);
+      else if (estado.editando) Nova.cambiar({ editando: false });
+    });
+    document.addEventListener('nova:latencias', () => { Nova.actualizarLatencias(contenido); pintarResumen(); });
+    document.addEventListener('nova:perfil', e => {
+      $('#estudio-sub').textContent = `Ajustes de ${perfil().nombre} y comunes`;
+      contenido.style.setProperty('--sentido', e.detail.sentido);
+      contenido.classList.remove('entra');
+      contenido.classList.add('sale');
+      setTimeout(() => { pintarSala(); entrar(e.detail.sentido); }, Nova.reducido.matches ? 0 : 240);
+    });
+    document.addEventListener('nova:cambio', () => {
+      pintarBarra();
+      if (modo !== 'paleta' && modo !== 'perfiles') reposo();
+      const ph = $('.c-buscador input');
+      if (ph) ph.placeholder = `Busca en ${estado.motor} o en tus servicios`;
+      pintarResumen();
+    });
+    addEventListener('resize', () => { if (document.documentElement.classList.contains('estudio')) abrirEstudio(true); });
+
+    pintarSala();
+    entrar(1);
+    pintarBarra();
+    reposo();
+  </script>
+</body>
+</html>

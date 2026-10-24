@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A · Variantes del mando</title>
+  <link rel="stylesheet" href="comun.css">
+  <style>
+    /* Segunda ronda de la propuesta A. Sin barra inferior ni cota; el mando cambia de sitio según ?v=:
+       1 en la cabecera de los servicios, 2 en una isla arriba, 3 en una esquina mínima.
+       Además la página tiene tres estilos (Mapa, Baldosas, Compacto) que se eligen en Personalizar. */
+    body { overflow: hidden; }
+    .escena {
+      position: fixed; inset: 0; overflow-x: hidden; overflow-y: auto; background: var(--bg);
+      transform-origin: 0 50%; transition: transform .7s var(--ease), border-radius .7s var(--ease);
+    }
+    .estudio .escena { transform: translateX(48px) scale(var(--k, .6)); border-radius: calc(var(--r3) / var(--k, .6)); box-shadow: var(--sombra); outline: 1px solid var(--linea); }
+    .estudio .escena * { pointer-events: none; }
+
+    .lienzo {
+      position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, var(--izq, 42%)) 24px minmax(0, 1fr); gap: 56px 16px;
+      min-height: 100%; padding: 56px 40px 56px; transition: padding .5s var(--ease);
+    }
+    [data-v="2"] .lienzo { padding-top: 100px; }
+    [data-v="3"] .lienzo { padding-top: 100px; }
+    .con-hoja .lienzo { padding-right: 504px; grid-template-columns: minmax(0, 1fr); }
+    .con-hoja .separador, [data-estilo="baldosas"] .separador { display: none; }
+
+    /* Separador entre columnas: se arrastra, se mueve con las flechas y doble clic restaura. */
+    .separador { position: relative; cursor: col-resize; touch-action: none; }
+    .separador::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--linea-fuerte); opacity: 0; transition: opacity .2s; }
+    .separador:hover::before, .separador:focus-visible::before, .arrastrando .separador::before { opacity: 1; }
+    .separador:focus-visible { outline: 0; }
+    .separador i { position: sticky; top: calc(50vh - 32px); display: block; width: 4px; height: 44px; margin: 96px auto 0; border-radius: 4px; background: var(--s4); transition: background-color .2s, height .3s var(--ease); }
+    .separador:hover i, .separador:focus-visible i, .arrastrando .separador i { height: 64px; background: var(--acento); }
+    .arrastrando, .arrastrando * { cursor: col-resize !important; user-select: none; }
+    .arrastrando .lienzo, .arrastrando .isla { transition: none; }
+    .lienzo.entra > * { animation: entra .55s var(--ease) both; }
+    .lienzo.entra > :nth-child(2) { animation-delay: 80ms; }
+
+    .inicio { display: flex; flex-direction: column; }
+    .sin-inicio .reloj-bloque, .sin-inicio .buscador { display: none; }
+    .sin-internet .internet { display: none; }
+    .sin-servicios .servicios { display: none; }
+    .reloj { margin: 0; white-space: nowrap; font-size: clamp(96px, 10.5vw, 176px); font-weight: 250; line-height: .86; letter-spacing: -.045em; }
+    .reloj .dos-puntos { margin: 0 -.03em; opacity: .5; }
+    .fecha { margin: 18px 0 0 6px; color: var(--suave); font-size: 20px; }
+    .buscador {
+      display: flex; align-items: center; gap: 12px; height: 58px; margin-top: 44px; padding: 0 12px 0 18px;
+      border: 1px solid var(--linea-fuerte); border-radius: var(--r2); background: var(--velo); color: var(--suave);
+      transition: border-color .2s, background-color .2s;
+    }
+    .buscador:focus-within { border-color: var(--acento); background: var(--s1); }
+    .buscador input { flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: none; color: var(--ink); font-size: 17px; }
+    .buscador input::placeholder { color: var(--tenue); }
+    .buscador .pista { display: inline-flex; align-items: center; gap: 6px; color: var(--tenue); font-size: 12px; white-space: nowrap; }
+    .internet { margin-top: 40px; }
+    .internet h2 { margin: 0 0 12px; color: var(--suave); font-size: 13px; font-weight: 600; }
+    .accesos { display: flex; flex-wrap: wrap; gap: 6px; }
+    .acceso { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 84px; padding: 12px 4px 10px; border-radius: var(--r2); font-size: 13px; transition: background-color .2s, transform .25s var(--ease); }
+    .acceso .logo { width: 30px; height: 30px; }
+    .acceso:hover { background: var(--s2); transform: translateY(-3px); }
+
+    .servicios { align-self: start; padding: 28px 32px 22px; border: 1px solid var(--linea); border-radius: var(--r3); background: var(--velo); }
+    .serv-cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .serv-cab h1 { margin: 0; font-size: 26px; font-weight: 650; letter-spacing: -.015em; line-height: 1.2; }
+    .resumen { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 6px 0 26px; color: var(--suave); font-size: 15px; }
+    .resumen b { color: var(--ink); font-weight: 600; }
+    .resumen .grave { color: var(--peligro); }
+    .grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px 44px; }
+    .grupos.entra > * { animation: entra .55s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
+    .grupo h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; color: var(--suave); font-size: 13px; font-weight: 600; }
+    .grupo h2 .n { color: var(--tenue); font-weight: 400; }
+    .privado { padding: 1px 8px; border-radius: 99px; background: var(--s3); color: var(--suave); font-size: 11px; font-weight: 500; }
+    .reunion [data-privado] { display: none; }
+
+    .servicio { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: calc(var(--fila) + 10px); margin: 0 -10px; padding: 4px 10px; border-radius: var(--r1); transition: background-color .15s, transform .35s var(--ease), border-color .2s; }
+    .servicio:hover { background: var(--s2); }
+    .servicio-txt { display: flex; flex-direction: column; min-width: 0; }
+    .servicio-nombre { overflow: hidden; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    .servicio-host { overflow: hidden; color: var(--tenue); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .servicio-lat { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 96px; color: var(--suave); font-size: 13px; }
+    .editar-fila, .anadir { display: none; }
+    .editando .servicio { grid-template-columns: 16px 28px minmax(0, 1fr) 28px; }
+    .editando .servicio-lat { display: none; }
+    .editando .editar-fila { display: grid; }
+    .editando .grupo { margin: -8px; padding: 8px; border-radius: var(--r2); outline: 1px dashed var(--linea-fuerte); }
+    .asa { color: var(--tenue); cursor: grab; }
+    .asa .ico { width: 16px; height: 16px; }
+    .anadir { align-items: center; gap: 12px; width: 100%; min-height: 40px; margin-top: 4px; padding: 0 10px; border: 0; border-radius: var(--r1); background: none; color: var(--suave); font-size: 14px; }
+    .anadir:hover { background: var(--s2); color: var(--ink); }
+    .editando .anadir { display: flex; animation: entra .35s var(--ease) both; }
+
+    /* ---------- Estilo Baldosas ---------- */
+    [data-estilo="baldosas"] .lienzo { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+    [data-estilo="baldosas"] .inicio { display: grid; grid-template-columns: auto minmax(0, 560px); align-items: end; justify-content: space-between; gap: 32px 56px; }
+    [data-estilo="baldosas"] .reloj { font-size: clamp(110px, 14vw, 220px); font-weight: 200; letter-spacing: -.055em; }
+    [data-estilo="baldosas"] .con-hoja .inicio { grid-template-columns: minmax(0, 1fr); }
+    [data-estilo="baldosas"] .con-hoja .reloj { font-size: clamp(96px, 9vw, 150px); }
+    [data-estilo="baldosas"] .buscador { margin-top: 0; }
+    [data-estilo="baldosas"] .internet { margin-top: 20px; }
+    [data-estilo="baldosas"] .servicios { padding: 0; border: 0; background: none; }
+    [data-estilo="baldosas"] .grupos { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 36px 48px; }
+    [data-estilo="baldosas"] .lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    [data-estilo="baldosas"] .servicio { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 136px; margin: 0; padding: 16px; border: 1px solid var(--linea); border-radius: var(--r2); background: var(--velo); }
+    [data-estilo="baldosas"] .servicio:hover { transform: translateY(-4px); border-color: var(--linea-fuerte); background: var(--s1); }
+    [data-estilo="baldosas"] .servicio .logo { width: 36px; height: 36px; margin-bottom: auto; border-radius: 9px; transition: transform .4s var(--muelle); }
+    [data-estilo="baldosas"] .servicio:hover .logo { transform: scale(1.12) rotate(-4deg); }
+    [data-estilo="baldosas"] .servicio-txt { width: 100%; margin-top: 14px; }
+    [data-estilo="baldosas"] .servicio-nombre { font-size: 15px; font-weight: 600; }
+    [data-estilo="baldosas"] .servicio-lat { position: absolute; top: 16px; right: 14px; min-width: 0; font-size: 12px; }
+    [data-estilo="baldosas"] .editando .servicio, [data-estilo="baldosas"].editando .servicio { border-style: dashed; }
+    [data-estilo="baldosas"].editando .asa { display: none; }
+    [data-estilo="baldosas"].editando .quitar { position: absolute; top: 8px; right: 8px; }
+    [data-estilo="baldosas"].editando .grupo { outline: 0; }
+    [data-estilo="baldosas"] .anadir { justify-content: center; min-height: 136px; margin: 0; border: 1px dashed var(--linea-fuerte); border-radius: var(--r2); }
+
+    /* ---------- Estilo Compacto ---------- */
+    [data-estilo="compacto"] .lienzo { grid-template-columns: minmax(0, var(--izq, 26%)) 24px minmax(0, 1fr); gap: 40px 8px; }
+    [data-estilo="compacto"] .reloj { font-size: 84px; font-weight: 300; letter-spacing: -.04em; }
+    [data-estilo="compacto"] .fecha { margin-top: 10px; font-size: 16px; }
+    [data-estilo="compacto"] .buscador { height: 48px; margin-top: 28px; }
+    [data-estilo="compacto"] .buscador .pista { display: none; }
+    [data-estilo="compacto"] .internet { margin-top: 28px; }
+    [data-estilo="compacto"] .accesos { flex-direction: column; gap: 0; }
+    [data-estilo="compacto"] .acceso { flex-direction: row; gap: 12px; width: auto; padding: 8px 10px; margin: 0 -10px; font-size: 14px; }
+    [data-estilo="compacto"] .acceso .logo { width: 22px; height: 22px; }
+    [data-estilo="compacto"] .acceso:hover { transform: none; }
+    [data-estilo="compacto"] .grupos { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px 36px; }
+    [data-estilo="compacto"] .servicio { min-height: var(--fila); padding: 0 10px; }
+    [data-estilo="compacto"] .servicio .logo { width: 22px; height: 22px; }
+    [data-estilo="compacto"] .servicio { grid-template-columns: 22px minmax(0, 1fr) auto; }
+    [data-estilo="compacto"] .servicio-host { display: none; }
+    [data-estilo="compacto"].editando .servicio { grid-template-columns: 16px 22px minmax(0, 1fr) 28px; }
+    [data-estilo="compacto"] .servicio-lat { min-width: 72px; }
+
+    /* ---------- v1: el mando en la cabecera de los servicios ---------- */
+    .perfil-h { display: inline-flex; align-items: center; gap: 12px; margin: -6px 0 0 -8px; padding: 6px 10px 6px 8px; border: 0; border-radius: var(--r2); background: none; font: inherit; letter-spacing: inherit; text-align: left; transition: background-color .15s; }
+    .perfil-h:hover, .perfil-h[aria-expanded="true"] { background: var(--s2); }
+    .perfil-h canvas { width: 34px; height: 34px; border-radius: calc(var(--r1) - 1px); }
+    .perfil-h .ico { color: var(--tenue); transition: transform .3s var(--ease); }
+    .perfil-h[aria-expanded="true"] .ico { transform: rotate(180deg); }
+    .herr { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 2px; }
+    .herr.entra > * { animation: entra .3s var(--ease) both; animation-delay: calc(var(--i) * 40ms); }
+    .herr-btn { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 10px; border: 0; border-radius: var(--r1); background: none; color: var(--suave); font-size: 13px; font-weight: 500; white-space: nowrap; transition: background-color .15s, color .15s; }
+    .herr-btn .ico { width: 16px; height: 16px; }
+    .herr-btn:hover { background: var(--s2); color: var(--ink); }
+    .herr-btn[aria-pressed="true"] { background: var(--s3); color: var(--ink); }
+    .herr-btn[aria-pressed="true"] .ico { color: var(--acento); }
+    .herr-btn kbd { margin-left: 2px; }
+    .herr .boton { height: 34px; font-size: 13px; }
+    .con-hoja .herr [data-accion="paleta"] { display: none; }
+
+    /* ---------- v3: esquina mínima ---------- */
+    .esquina {
+      position: fixed; top: 20px; right: 24px; z-index: 30; display: flex; align-items: center; gap: 2px; height: 48px; padding: 0 4px;
+      border: 1px solid var(--linea); border-radius: var(--r2); background: var(--s1); box-shadow: 0 6px 20px -10px rgb(0 0 0 / .35);
+      transition: opacity .3s, transform .5s var(--ease);
+    }
+    .estudio .esquina, .con-hoja .esquina { opacity: 0; transform: translateY(-12px); pointer-events: none; }
+    .esquina.entra > * { animation: entra .3s var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
+    .chip { display: inline-flex; align-items: center; gap: 9px; height: 40px; padding: 0 10px 0 5px; border: 0; border-radius: calc(var(--r2) - 4px); background: none; font-size: 14px; font-weight: 600; }
+    .chip canvas { width: 30px; height: 30px; border-radius: calc(var(--r1) - 2px); }
+    .chip .ico { color: var(--tenue); width: 16px; height: 16px; }
+    .chip:hover, .chip[aria-expanded="true"], .mas-btn:hover, .mas-btn[aria-expanded="true"] { background: var(--s2); }
+    .mas-btn { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: calc(var(--r2) - 4px); background: none; color: var(--suave); }
+    .esquina .sep { width: 1px; height: 24px; margin: 0 4px; background: var(--linea); }
+    .esquina .boton { height: 36px; font-size: 13px; }
+    .esquina .editando-txt { padding: 0 8px; color: var(--suave); font-size: 13px; }
+    .esquina .editando-txt b { color: var(--ink); }
+
+    /* ---------- Menús emergentes (v1 y v3) ---------- */
+    .pop { position: fixed; z-index: 45; width: 380px; padding: 8px; border: 1px solid var(--linea); border-radius: var(--r3); background: var(--s1); box-shadow: var(--sombra); }
+    .pop h2 { margin: 6px 10px 8px; color: var(--tenue); font-size: 12px; font-weight: 600; }
+    .op { display: grid; grid-template-columns: 76px 1fr auto; align-items: center; gap: 14px; width: 100%; padding: 8px; border: 0; border-radius: var(--r2); background: none; text-align: left; transition: background-color .15s; }
+    .op:hover, .op:focus-visible { background: var(--s2); }
+    .op[aria-checked="true"] { background: var(--s3); }
+    .op canvas { width: 76px; height: 50px; border-radius: var(--r1); }
+    .op b { display: block; font-size: 15px; font-weight: 600; }
+    .op small { display: block; color: var(--tenue); font-size: 12px; }
+    .op > .ico { color: var(--acento); }
+    .pop-pie { display: flex; gap: 4px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--linea); }
+    .pop.mas { width: 280px; }
+    .item { display: flex; align-items: center; gap: 12px; width: 100%; height: 42px; padding: 0 10px; border: 0; border-radius: var(--r1); background: none; color: var(--ink); font-size: 14px; text-align: left; }
+    .item:hover, .item:focus-visible { background: var(--s2); }
+    .item .ico { color: var(--suave); }
+    .item span { flex: 1; }
+    .item .estado-item { color: var(--acento); font-size: 12px; font-weight: 600; }
+    .pop .linea { height: 1px; margin: 6px 4px; background: var(--linea); }
+
+    /* ---------- v2: la isla ---------- */
+    .isla {
+      position: fixed; top: 24px; z-index: 40; overflow: hidden;
+      border: 1px solid var(--linea); border-radius: var(--r3); background: var(--velo);
+      transition: height .55s var(--muelle), left .5s var(--ease), width .5s var(--ease), opacity .3s, transform .5s var(--ease);
+    }
+    .con-velo .isla { background: var(--s1); }
+    .estudio .isla { opacity: 0; transform: translateY(-24px); pointer-events: none; }
+    .capa { position: absolute; top: 0; left: 0; width: 100%; opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .45s var(--ease); pointer-events: none; }
+    .capa.activa { opacity: 1; transform: none; transition-delay: .12s; pointer-events: auto; }
+    [data-capa="barra"], [data-capa="edicion"] { display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 8px; white-space: nowrap; }
+    [data-capa="edicion"] .editando-txt { margin-right: auto; }
+    [data-capa="perfiles"] { padding: 16px; }
+    .isla .sep { width: 1px; height: 24px; margin: 0 5px; background: var(--linea); }
+    .buscar-btn { display: flex; flex: 1; align-items: center; gap: 10px; min-width: 0; height: 40px; padding: 0 8px 0 12px; border: 0; border-radius: var(--r2); background: var(--s2); color: var(--tenue); font-size: 14px; text-align: left; }
+    .buscar-btn span { flex: 1; }
+    .ico-btn { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: var(--r2); background: none; color: var(--suave); }
+    .ico-btn:hover, .buscar-btn:hover { background: var(--s3); }
+    .ico-btn[aria-pressed="true"] { background: var(--s3); color: var(--acento); }
+    .ico-btn::after {
+      content: attr(aria-label); position: absolute; top: calc(100% + 12px); left: 50%; padding: 6px 10px; border-radius: var(--r1);
+      background: var(--ink); color: var(--bg); font-size: 12px; font-weight: 500; white-space: nowrap; pointer-events: none;
+      opacity: 0; transform: translate(-50%, -4px); transition: opacity .15s, transform .25s var(--ease);
+    }
+    .ico-btn:hover::after, .ico-btn:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+    .isla:has(.ico-btn:hover), .isla:has(.ico-btn:focus-visible) { overflow: visible; }
+    .isla .editando-txt { padding: 0 8px 0 10px; color: var(--suave); font-size: 13px; }
+    .isla .editando-txt b { color: var(--ink); }
+    .isla .boton { height: 38px; font-size: 13px; }
+    .salas-cab { display: flex; align-items: baseline; justify-content: space-between; margin: 0 4px 14px; }
+    .salas-cab h2 { margin: 0; font-size: 16px; font-weight: 650; }
+    .salas-cab span { color: var(--tenue); font-size: 12px; }
+    .salas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .sala { display: flex; flex-direction: column; gap: 8px; padding: 0; border: 0; background: none; text-align: left; }
+    .sala .marco { position: relative; overflow: hidden; border-radius: var(--r2); outline: 1px solid var(--linea); outline-offset: -1px; }
+    .sala canvas { display: block; width: 100%; aspect-ratio: 4 / 3; transition: transform .6s var(--ease); }
+    .sala:hover canvas { transform: scale(1.08); }
+    .sala[aria-current="true"] .marco { outline: 2px solid var(--acento); outline-offset: 2px; }
+    .sala b { display: block; font-size: 14px; font-weight: 600; }
+    .sala small { display: block; color: var(--tenue); font-size: 12px; }
+    .sala-nueva .marco { display: grid; place-items: center; aspect-ratio: 4 / 3; outline-style: dashed; color: var(--suave); }
+
+    .velo { position: fixed; inset: 0; z-index: 35; background: color-mix(in oklab, var(--bg) 50%, transparent); opacity: 0; pointer-events: none; transition: opacity .3s; }
+    .con-velo .velo { opacity: 1; pointer-events: auto; }
+
+    /* ---------- Personalizar: hoja (v1, v3) o estudio (v2) ---------- */
+    .hoja {
+      position: fixed; top: 16px; right: 16px; bottom: 16px; z-index: 30; display: flex; flex-direction: column; width: 456px;
+      border: 1px solid var(--linea); border-radius: var(--r3); background: var(--s1); box-shadow: var(--sombra);
+      opacity: 0; transform: translateX(40px); transition: opacity .25s, transform .55s var(--ease);
+    }
+    [data-v="2"] .hoja { top: 0; right: 0; bottom: 0; width: 480px; border: 0; border-radius: 0; background: var(--bg); box-shadow: none; transform: translateX(60px); }
+    .hoja.abierto { opacity: 1; transform: none; }
+    .hoja-cab { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 14px 6px 20px; }
+    .hoja-cab h2 { margin: 0; font-size: 20px; font-weight: 650; }
+    [data-v="2"] .hoja-cab { padding-top: 28px; }
+    [data-v="2"] .hoja-cab h2 { font-size: 24px; }
+    .hoja-cab small { display: block; color: var(--tenue); font-size: 13px; font-weight: 400; }
+    .hoja-cuerpo { flex: 1; min-height: 0; }
+    .hoja-pie { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-top: 1px solid var(--linea); color: var(--tenue); font-size: 13px; }
+
+    .dlg { width: min(640px, calc(100vw - 32px)); margin-top: 12vh; padding: 0; border: 1px solid var(--linea); border-radius: var(--r3); background: var(--s1); color: var(--ink); box-shadow: var(--sombra); }
+    .dlg[open] { animation: aparece .3s var(--ease); }
+    .dlg::backdrop { background: color-mix(in oklab, var(--bg) 55%, transparent); }
+    @keyframes aparece { from { opacity: 0; transform: translateY(-10px) scale(.98); } }
+
+    @media (max-width: 900px) {
+      .lienzo, .con-hoja .lienzo, [data-estilo] .lienzo { grid-template-columns: minmax(0, 1fr); padding: 88px 16px 40px; gap: 36px; }
+      .separador { display: none; }
+      [data-estilo="baldosas"] .inicio { grid-template-columns: minmax(0, 1fr); }
+      .servicios { padding: 22px 18px; }
+      .serv-cab { flex-direction: column; }
+      .herr-btn span, .herr-btn kbd { display: none; }
+      .hoja, [data-v="2"] .hoja { inset: 64px 0 0; width: auto; border-radius: var(--r3) var(--r3) 0 0; }
+      .estudio .escena { transform: translateY(-100%); }
+      .buscar-btn { width: 40px; padding: 0; justify-content: center; }
+      .buscar-btn span, .buscar-btn kbd { display: none; }
+      .pop { width: calc(100vw - 24px); }
+      .salas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="escena" id="escena">
+    <canvas class="terreno" id="terreno" aria-hidden="true"></canvas>
+    <main class="lienzo" id="lienzo">
+      <section class="inicio" aria-label="Inicio">
+        <div class="reloj-bloque"><p class="reloj" id="hora"></p><p class="fecha" id="fecha"></p></div>
+        <div>
+          <form class="buscador" role="search" onsubmit="event.preventDefault(); Nova.aviso('Buscando en ' + Nova.estado.motor + '…')">
+            <span id="ico-buscar"></span>
+            <input type="search" placeholder="Busca en Google o en tus servicios" aria-label="Buscar" autocomplete="off">
+            <span class="pista"><kbd>Ctrl</kbd><kbd>K</kbd> comandos</span>
+          </form>
+          <section class="internet" aria-labelledby="t-internet"><h2 id="t-internet">Internet</h2><div class="accesos" id="accesos"></div></section>
+        </div>
+      </section>
+      <div class="separador" id="separador" role="separator" aria-orientation="vertical" aria-label="Ancho de la columna izquierda" aria-valuemin="25" aria-valuemax="55" aria-valuenow="42" tabindex="0" title="Arrastra para repartir el espacio; doble clic para restaurar"><i></i></div>
+      <section class="servicios" aria-labelledby="t-servicios">
+        <header class="serv-cab"><h1 id="t-servicios"></h1><div class="herr" id="herr"></div></header>
+        <p class="resumen" id="resumen"></p>
+        <div class="grupos" id="grupos"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="velo" id="velo"></div>
+  <div class="esquina" id="esquina" hidden></div>
+  <nav class="isla" id="isla" aria-label="Mando" hidden>
+    <div class="capa" data-capa="barra"></div>
+    <div class="capa" data-capa="edicion"></div>
+    <div class="capa" data-capa="perfiles"></div>
+    <div class="capa" data-capa="paleta"></div>
+  </nav>
+  <div class="pop flotante" id="pop" role="menu" hidden></div>
+
+  <aside class="hoja" id="hoja" aria-labelledby="t-hoja" hidden>
+    <header class="hoja-cab"><h2 id="t-hoja">Personalizar<small id="hoja-sub"></small></h2><button class="icono-mini" type="button" id="cerrar-hoja" aria-label="Cerrar"></button></header>
+    <div class="hoja-cuerpo" id="ajustes"></div>
+    <footer class="hoja-pie"><span><kbd>Alt</kbd><kbd>P</kbd> cambia el perfil que ajustas</span><button class="boton primario" type="button" id="hecho">Hecho</button></footer>
+  </aside>
+
+  <dialog class="dlg" id="dlg" aria-label="Paleta de comandos"><div id="dlg-raiz"></div></dialog>
+
+  <script src="comun.js"></script>
+  <script>
+    const { $, $$, ico, esc, logo, host, estado, perfil } = Nova;
+    const V = ['1', '2', '3'].includes(new URLSearchParams(location.search).get('v')) ? new URLSearchParams(location.search).get('v') : '1';
+    const raiz = document.documentElement;
+    raiz.dataset.v = V;
+    document.title = `A${V} · ${{ 1: 'Mando en la cabecera', 2: 'Isla', 3: 'Esquina mínima' }[V]}`;
+    Nova.iniciar({ canvas: $('#terreno') });
+    Nova.reloj($('#hora'), $('#fecha'));
+    $('#ico-buscar').outerHTML = ico('buscar');
+    $('#cerrar-hoja').innerHTML = ico('cerrar');
+    const ESTILOS = [['mapa', 'Mapa', 'Reloj grande y lista sobre el terreno'], ['baldosas', 'Baldosas', 'Cada servicio, una ficha'], ['compacto', 'Compacto', 'Mucho a la vista, poco adorno']];
+    const animar = el => { el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); };
+
+    // ---------- Contenido ----------
+
+    function pintarServicios(entrada) {
+      const g = $('#grupos');
+      g.innerHTML = perfil().grupos.map((gr, i) => `
+        <section class="grupo" style="--i:${i}" ${gr.privado ? 'data-privado' : ''} aria-label="${esc(gr.nombre)}">
+          <h2>${esc(gr.nombre)} <span class="n">${gr.servicios.length}</span>${gr.privado ? '<span class="privado">Privado</span>' : ''}</h2>
+          <div class="lista">
+            ${gr.servicios.map(s => `
+              <a class="servicio" href="#" data-sid="${s.id}" data-nombre="${esc(s.nombre)}">
+                <span class="asa editar-fila" aria-hidden="true">${ico('asa')}</span>
+                ${logo(s)}
+                <span class="servicio-txt"><span class="servicio-nombre">${esc(s.nombre)}</span><span class="servicio-host mono">${esc(host(s.url))}</span></span>
+                <span class="servicio-lat"><i class="punto"></i><span class="ms"></span></span>
+                <button class="icono-mini editar-fila quitar" type="button" aria-label="Quitar ${esc(s.nombre)}">${ico('cerrar')}</button>
+              </a>`).join('')}
+            <button class="anadir" type="button">${ico('mas')}Añadir enlace</button>
+          </div>
+        </section>`).join('');
+      Nova.actualizarLatencias(g);
+      if (entrada) animar(g);
+    }
+    function pintarResumen() {
+      const r = Nova.resumen();
+      $('#resumen').innerHTML = `<span><b>${r.ok} de ${r.total}</b> responden</span><span aria-hidden="true">·</span><span class="${r.grave ? 'grave' : ''}">${esc(r.hallazgo)}</span>`;
+    }
+    function pintarAccesos() {
+      $('#accesos').innerHTML = perfil().internet.map(s => `<a class="acceso" href="#" data-nombre="${esc(s.nombre)}">${logo(s)}<span>${esc(s.nombre)}</span></a>`).join('');
+    }
+    const miniPerfil = p => `<canvas data-mini="${p.semilla}" data-perfil="${p.id}"></canvas>`;
+
+    // ---------- Mando según la variante ----------
+
+    function pintarMando() {
+      const p = perfil();
+      if (V === '1') {
+        $('#t-servicios').innerHTML = `<button class="perfil-h" type="button" id="btn-perfil" aria-haspopup="menu" aria-expanded="${!pop.hidden && pop.dataset.tipo === 'perfiles'}" title="Cambiar de perfil (Alt+P)">${miniPerfil(p)}<span>${esc(p.nombre)}</span>${ico('abajo')}</button>`;
+        const b = (accion, icono, texto, pulsado, i, extra = '') => `<button class="herr-btn" type="button" data-accion="${accion}" style="--i:${i}" ${pulsado != null ? `aria-pressed="${pulsado}"` : ''}>${ico(icono)}<span>${texto}</span>${extra}</button>`;
+        const herr = $('#herr'), antes = herr.dataset.modo;
+        herr.innerHTML = estado.editando
+          ? b('grupo', 'mas', 'Grupo', null, 0) + b('widget', 'widget', 'Widget', null, 1) + b('deshacer', 'deshacer', 'Deshacer', null, 2) + `<button class="boton primario" type="button" data-accion="editar" style="--i:3">${ico('check')}Listo</button>`
+          : b('reunion', estado.reunion ? 'ojoNo' : 'ojo', 'Reunión', estado.reunion, 0) + b('editar', 'lapiz', 'Editar', false, 1) + b('ajustes', 'ajustes', 'Personalizar', !$('#hoja').hidden, 2) + b('paleta', 'comando', '', null, 3, '<kbd>Ctrl</kbd><kbd>K</kbd>');
+        herr.dataset.modo = estado.editando;
+        if (antes != null && antes !== herr.dataset.modo) animar(herr);
+        Nova.pintarMinis($('#t-servicios'));
+      } else {
+        $('#t-servicios').textContent = `Servicios de ${p.nombre}`;
+      }
+      if (V === '3') {
+        const e = $('#esquina'), antes = e.dataset.modo;
+        e.innerHTML = estado.editando
+          ? `<span class="editando-txt">Editando <b>${esc(p.nombre)}</b></span><span class="sep"></span><button class="boton fantasma" type="button" data-accion="grupo">${ico('mas')}Grupo</button><button class="boton fantasma" type="button" data-accion="widget">${ico('widget')}Widget</button><button class="boton fantasma" type="button" data-accion="deshacer">${ico('deshacer')}Deshacer</button><button class="boton primario" type="button" data-accion="editar">${ico('check')}Listo</button>`
+          : `<button class="chip" type="button" id="btn-perfil" aria-haspopup="menu" aria-expanded="${!pop.hidden && pop.dataset.tipo === 'perfiles'}" title="Cambiar de perfil (Alt+P)">${miniPerfil(p)}${esc(p.nombre)}${ico('abajo')}</button><button class="mas-btn" type="button" id="btn-mas" aria-haspopup="menu" aria-expanded="${!pop.hidden && pop.dataset.tipo === 'mas'}" aria-label="Más: reunión, editar, personalizar y comandos">${ico('puntos')}</button>`;
+        e.dataset.modo = estado.editando;
+        if (antes != null && antes !== e.dataset.modo) animar(e);
+        Nova.pintarMinis(e);
+      }
+      if (V === '2') pintarIsla();
+    }
+    function accion(nombre) {
+      if (nombre === 'reunion') Nova.cambiar({ reunion: !estado.reunion });
+      else if (nombre === 'editar') Nova.cambiar({ editando: !estado.editando });
+      else if (nombre === 'ajustes') alternarHoja();
+      else if (nombre === 'paleta') abrirPaleta();
+      else if (nombre) Nova.aviso({ grupo: 'Nuevo grupo al final', widget: 'Elige un widget', deshacer: 'Deshecho', nuevo: 'Nuevo perfil', duplicar: 'Perfil duplicado', renombrar: 'Renombrar perfil' }[nombre] || nombre);
+    }
+
+    // ---------- Menús emergentes (v1 y v3) ----------
+
+    const pop = $('#pop');
+    function abrirPop(tipo, ancla) {
+      if (!pop.hidden && pop.dataset.tipo === tipo) { cerrarPop(); return; }
+      pop.dataset.tipo = tipo;
+      pop.classList.toggle('mas', tipo === 'mas');
+      pop.innerHTML = tipo === 'perfiles'
+        ? `<h2>Perfiles · <kbd>Alt</kbd><kbd>P</kbd> siguiente</h2>${Nova.PERFILES.map(q => `
+            <button class="op" type="button" role="menuitemradio" aria-checked="${q.id === estado.perfil}" data-id="${q.id}">
+              <canvas data-mini="${q.semilla}" data-perfil="${q.id}" data-tema-mini="${q.tema}"></canvas>
+              <span><b>${esc(q.nombre)}</b><small>${Nova.contar(q)} servicios · ${Nova.TEMAS[q.tema].nombre} · ${ESTILOS.find(e => e[0] === q.estilo)[1]}</small></span>
+              ${q.id === estado.perfil ? ico('check') : ''}
+            </button>`).join('')}
+            <div class="pop-pie"><button class="boton fantasma" type="button" data-accion="nuevo">${ico('mas')}Nuevo</button><button class="boton fantasma" type="button" data-accion="duplicar">Duplicar</button><button class="boton fantasma" type="button" data-accion="renombrar">Renombrar</button></div>`
+        : `<button class="item" type="button" role="menuitemcheckbox" aria-checked="${estado.reunion}" data-accion="reunion">${ico(estado.reunion ? 'ojoNo' : 'ojo')}<span>Modo reunión</span>${estado.reunion ? '<span class="estado-item">Activo</span>' : ''}</button>
+           <button class="item" type="button" role="menuitem" data-accion="editar">${ico('lapiz')}<span>Editar grupos y enlaces</span></button>
+           <button class="item" type="button" role="menuitem" data-accion="ajustes">${ico('ajustes')}<span>Personalizar</span></button>
+           <div class="linea"></div>
+           <button class="item" type="button" role="menuitem" data-accion="paleta">${ico('comando')}<span>Comandos</span><kbd>Ctrl</kbd><kbd>K</kbd></button>`;
+      pop.hidden = false;
+      Nova.pintarMinis(pop);
+      const r = ancla.getBoundingClientRect(), w = pop.offsetWidth;
+      pop.style.top = `${r.bottom + 8}px`;
+      pop.style.left = `${Math.max(12, Math.min(V === '3' ? r.right - w : r.left, innerWidth - w - 12))}px`;
+      pop.style.transformOrigin = V === '3' ? 'top right' : 'top left';
+      Nova.abrir(pop);
+      ancla.setAttribute('aria-expanded', 'true');
+      pop.querySelector('[aria-checked="true"], button')?.focus();
+    }
+    function cerrarPop() {
+      if (pop.hidden) return;
+      Nova.cerrar(pop);
+      $$('[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    }
+    pop.addEventListener('click', e => {
+      const id = e.target.closest('[data-id]')?.dataset.id, a = e.target.closest('[data-accion]')?.dataset.accion;
+      if (!id && !a) return;
+      cerrarPop();
+      if (id) Nova.cambiarPerfil(id); else accion(a);
+    });
+    pop.addEventListener('keydown', e => {
+      if (!['ArrowDown', 'ArrowUp'].includes(e.key)) return;
+      e.preventDefault();
+      const bs = $$('button', pop), i = bs.indexOf(document.activeElement);
+      bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length].focus();
+    });
+
+    // ---------- Isla (v2) ----------
+
+    const isla = $('#isla'), capas = Object.fromEntries($$('[data-capa]', isla).map(c => [c.dataset.capa, c]));
+    let modo = null;
+    const medir = () => { if (modo) isla.style.height = `${capas[modo].offsetHeight}px`; };
+    // La isla va encima del panel de servicios, con su mismo ancho, y lo sigue al mover el separador.
+    function posicionarIsla() {
+      if (V !== '2' || raiz.classList.contains('estudio')) return;
+      const r = $('.servicios').getBoundingClientRect();
+      isla.style.left = `${r.left}px`;
+      isla.style.width = `${r.width}px`;
+    }
+    new ResizeObserver(posicionarIsla).observe($('.servicios'));
+    const ro = new ResizeObserver(medir);
+    Object.values(capas).forEach(c => ro.observe(c));
+    function ponerModo(m) {
+      modo = m;
+      for (const [n, c] of Object.entries(capas)) { c.classList.toggle('activa', n === m); c.inert = n !== m; }
+      document.body.classList.toggle('con-velo', m === 'perfiles' || m === 'paleta');
+      medir();
+    }
+    const reposo = () => { if (V === '2') ponerModo(estado.editando ? 'edicion' : 'barra'); };
+    function pintarIsla() {
+      const p = perfil(), b = (a, icono, texto, pulsado) => `<button class="ico-btn" type="button" data-accion="${a}" aria-label="${texto}" ${pulsado != null ? `aria-pressed="${pulsado}"` : ''}>${ico(icono)}</button>`;
+      capas.barra.innerHTML = `<button class="chip" type="button" data-accion="perfiles">${miniPerfil(p)}${esc(p.nombre)}${ico('abajo')}</button><span class="sep"></span>
+        <button class="buscar-btn" type="button" data-accion="paleta">${ico('comando')}<span>Buscar o mandar</span><kbd>Ctrl</kbd><kbd>K</kbd></button><span class="sep"></span>
+        ${b('reunion', estado.reunion ? 'ojoNo' : 'ojo', estado.reunion ? 'Salir de reunión' : 'Modo reunión', estado.reunion)}${b('editar', 'lapiz', 'Editar', null)}${b('ajustes', 'ajustes', 'Personalizar', null)}`;
+      capas.edicion.innerHTML = `<span class="editando-txt">Editando <b>${esc(p.nombre)}</b></span><span class="sep"></span><button class="boton fantasma" type="button" data-accion="grupo">${ico('mas')}Grupo</button><button class="boton fantasma" type="button" data-accion="widget">${ico('widget')}Widget</button><button class="boton fantasma" type="button" data-accion="deshacer">${ico('deshacer')}Deshacer</button><button class="boton primario" type="button" data-accion="editar">${ico('check')}Listo</button>`;
+      Nova.pintarMinis(capas.barra);
+      if (modo !== 'paleta' && modo !== 'perfiles') reposo(); else medir();
+    }
+    function pintarSalas() {
+      capas.perfiles.innerHTML = `<div class="salas-cab"><h2>Perfiles</h2><span><kbd>Alt</kbd><kbd>P</kbd> siguiente · <kbd>Esc</kbd> cerrar</span></div>
+        <div class="salas">${Nova.PERFILES.map(q => `
+          <button class="sala" type="button" data-id="${q.id}" aria-current="${q.id === estado.perfil}">
+            <span class="marco"><canvas data-mini="${q.semilla}" data-perfil="${q.id}" data-tema-mini="${q.tema}"></canvas></span>
+            <span><b>${esc(q.nombre)}</b><small>${Nova.contar(q)} servicios · ${ESTILOS.find(e => e[0] === q.estilo)[1]}</small></span>
+          </button>`).join('')}
+          <button class="sala sala-nueva" type="button" data-accion="nuevo"><span class="marco">${ico('mas')}</span><span><b>Nuevo perfil</b><small>Vacío o copia de este</small></span></button>
+        </div>`;
+      Nova.pintarMinis(capas.perfiles);
+    }
+    isla.addEventListener('click', e => {
+      const id = e.target.closest('[data-id]')?.dataset.id, a = e.target.closest('[data-accion]')?.dataset.accion;
+      if (id) { reposo(); Nova.cambiarPerfil(id); }
+      else if (a === 'perfiles') { pintarSalas(); ponerModo('perfiles'); capas.perfiles.querySelector('[aria-current="true"]').focus(); }
+      else if (a) { if (a !== 'paleta') reposo(); accion(a); }
+    });
+    $('#velo').addEventListener('click', reposo);
+
+    // ---------- Paleta ----------
+
+    const dlg = $('#dlg');
+    const paleta = V === '2' ? new Nova.Paleta(capas.paleta, { alCerrar: reposo }) : new Nova.Paleta($('#dlg-raiz'), { alCerrar: () => dlg.close() });
+    function abrirPaleta() {
+      if (raiz.classList.contains('estudio')) return;
+      cerrarPop();
+      if (V === '2') { ponerModo('paleta'); paleta.abrir(); }
+      else if (!dlg.open) { dlg.showModal(); paleta.abrir(); }
+    }
+    document.addEventListener('nova:paleta', abrirPaleta);
+    dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+
+    // ---------- Personalizar: hoja o estudio ----------
+
+    const hoja = $('#hoja'), ajustes = new Nova.Ajustes($('#ajustes'), { estilos: ESTILOS });
+    function alternarHoja(abrir = hoja.hidden) {
+      if (V === '2') {
+        raiz.style.setProperty('--k', ((innerWidth - 480 - 96) / innerWidth).toFixed(3));
+        raiz.classList.toggle('estudio', abrir);
+      } else document.body.classList.toggle('con-hoja', abrir);
+      if (abrir) { $('#hoja-sub').textContent = `Ajustes de ${perfil().nombre} y comunes`; hoja.hidden = false; ajustes.alMostrar(); Nova.abrir(hoja); }
+      else Nova.cerrar(hoja);
+      setTimeout(pintarMando, abrir ? 0 : 300);
+    }
+    $('#cerrar-hoja').addEventListener('click', () => alternarHoja(false));
+    $('#hecho').addEventListener('click', () => alternarHoja(false));
+    document.addEventListener('nova:ajustes', () => { reposo(); alternarHoja(true); });
+
+    // ---------- Global ----------
+
+    document.addEventListener('click', e => {
+      const a = e.target.closest('a[data-nombre]');
+      if (a) { e.preventDefault(); if (!estado.editando) Nova.aviso(`Abriendo ${a.dataset.nombre}…`); return; }
+      const perfilBtn = e.target.closest('#btn-perfil'), mas = e.target.closest('#btn-mas'), herr = e.target.closest('#herr [data-accion], #esquina [data-accion]');
+      if (perfilBtn) abrirPop('perfiles', perfilBtn);
+      else if (mas) abrirPop('mas', mas);
+      else if (herr) accion(herr.dataset.accion);
+      else if (!pop.contains(e.target)) cerrarPop();
+    });
+    addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || dlg.open || modo === 'paleta') return;
+      if (!pop.hidden) { cerrarPop(); $('#btn-perfil, #btn-mas')?.focus(); }
+      else if (modo === 'perfiles') reposo();
+      else if (!hoja.hidden) alternarHoja(false);
+      else if (estado.editando) Nova.cambiar({ editando: false });
+    });
+    let estiloAntes = perfil().estilo;
+    document.addEventListener('nova:latencias', () => { Nova.actualizarLatencias($('#grupos')); pintarResumen(); });
+    document.addEventListener('nova:perfil', () => {
+      const g = $('#grupos');
+      g.classList.remove('entra');
+      setTimeout(() => { pintarServicios(true); pintarAccesos(); }, Nova.reducido.matches ? 0 : 160);
+      pintarMando();
+      $('#hoja-sub').textContent = `Ajustes de ${perfil().nombre} y comunes`;
+      Nova.aviso(`Perfil ${perfil().nombre}`);
+    });
+    document.addEventListener('nova:cambio', () => {
+      pintarMando();
+      pintarResumen();
+      if (perfil().estilo !== estiloAntes) { estiloAntes = perfil().estilo; animar($('#lienzo')); }
+    });
+    addEventListener('resize', () => { if (raiz.classList.contains('estudio')) raiz.style.setProperty('--k', ((innerWidth - 576) / innerWidth).toFixed(3)); posicionarIsla(); });
+
+    // ---------- Separador ----------
+
+    const lienzo = $('#lienzo'), sep = $('#separador'), POR_DEFECTO = { mapa: 42, compacto: 26 };
+    const izqActual = () => perfil()[`izq_${perfil().estilo}`] ?? POR_DEFECTO[perfil().estilo] ?? 42;
+    function ponerIzq(v, guardar = true) {
+      v = Math.round(Math.max(25, Math.min(55, v)));
+      if (guardar) perfil()[`izq_${perfil().estilo}`] = v;
+      lienzo.style.setProperty('--izq', `${v}%`);
+      sep.setAttribute('aria-valuenow', v);
+      posicionarIsla();
+    }
+    sep.addEventListener('pointerdown', e => { e.preventDefault(); sep.setPointerCapture(e.pointerId); raiz.classList.add('arrastrando'); });
+    sep.addEventListener('pointermove', e => {
+      if (!sep.hasPointerCapture(e.pointerId)) return;
+      const r = lienzo.getBoundingClientRect(), cs = getComputedStyle(lienzo);
+      const izq = r.left + parseFloat(cs.paddingLeft), ancho = r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      ponerIzq((e.clientX - izq - 28) / ancho * 100);
+    });
+    const soltar = () => { raiz.classList.remove('arrastrando'); posicionarIsla(); };
+    sep.addEventListener('pointerup', soltar);
+    sep.addEventListener('pointercancel', soltar);
+    sep.addEventListener('dblclick', () => { ponerIzq(POR_DEFECTO[perfil().estilo] ?? 42); Nova.aviso('Reparto restaurado'); });
+    sep.addEventListener('keydown', e => {
+      const paso = { ArrowLeft: -2, ArrowRight: 2 }[e.key];
+      if (paso) { e.preventDefault(); ponerIzq(izqActual() + paso); }
+      else if (e.key === 'Home') { e.preventDefault(); ponerIzq(25); }
+      else if (e.key === 'End') { e.preventDefault(); ponerIzq(55); }
+    });
+    document.addEventListener('nova:perfil', () => ponerIzq(izqActual(), false));
+    document.addEventListener('nova:cambio', () => { ponerIzq(izqActual(), false); setTimeout(posicionarIsla, 600); });
+    ponerIzq(izqActual(), false);
+
+    if (V === '3') $('#esquina').hidden = false;
+    if (V === '2') isla.hidden = false;
+    pintarServicios(true);
+    pintarAccesos();
+    pintarResumen();
+    pintarMando();
+    reposo();
+    posicionarIsla();
+  </script>
+</body>
+</html>

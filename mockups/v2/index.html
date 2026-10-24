@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NovaTab · Propuestas v2</title>
+  <link rel="stylesheet" href="comun.css">
+  <style>
+    main { max-width: 1040px; margin: 0 auto; padding: 72px 24px; }
+    h1 { margin: 0 0 8px; font-size: 32px; font-weight: 650; letter-spacing: -.02em; }
+    main > p { margin: 0 0 40px; color: var(--suave); }
+    .lista { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    .lista a { display: flex; flex-direction: column; gap: 10px; padding: 22px; border: 1px solid var(--linea); border-radius: var(--r3); background: var(--s1); transition: transform .3s var(--ease), border-color .2s; }
+    .lista a:hover { transform: translateY(-4px); border-color: var(--acento); }
+    .lista b { font-size: 20px; }
+    .lista span { color: var(--suave); font-size: 14px; }
+    ul { margin: 40px 0 0; padding-left: 20px; color: var(--suave); }
+    li { margin-bottom: 6px; }
+    @media (max-width: 760px) { .lista { grid-template-columns: minmax(0, 1fr); } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>NovaTab · propuestas v2</h1>
+    <p>Tres formas de llevar el menú y la personalización. Las tres comparten el mismo motor.</p>
+    <div class="lista">
+      <a href="a-cartografia.html"><b>A · Cartografía</b><span>El terreno del perfil a pantalla completa. Barra de mando abajo como la leyenda de un mapa, con lectura de cota bajo el ratón.</span></a>
+      <a href="b-mando.html"><b>B · Puesto de mando</b><span>Para el teclado: buscador y paleta en una sola línea, carril de perfiles con su terreno, tabla de servicios con latencia en vivo.</span></a>
+      <a href="c-salas.html"><b>C · Salas</b><span>Cada perfil es una sala. Una isla arriba se convierte en selector, paleta o edición. Personalizar abre un estudio con la página encogida en vivo.</span></a>
+    </div>
+    <h2 style="margin:48px 0 8px;font-size:22px">Segunda ronda: A sin barra inferior</h2>
+    <p style="margin:0 0 20px;color:var(--suave)">El mando cambia de sitio. En las tres, Personalizar › Aspecto › Estilo cambia la composición (Mapa, Baldosas, Compacto) y cada perfil guarda la suya.</p>
+    <div class="lista">
+      <a href="a-variantes.html?v=1"><b>A1 · En la cabecera</b><span>El nombre del perfil es el título de los servicios y abre el selector. Reunión, Editar y Personalizar al lado, en texto pequeño.</span></a>
+      <a href="a-variantes.html?v=2"><b>A2 · Isla</b><span>La elegida. La isla va encima de los servicios, con su color y su ancho, y los sigue al mover el separador. Nueve fondos, entre ellos tu propia imagen.</span></a>
+      <a href="a-variantes.html?v=3"><b>A3 · Esquina mínima</b><span>Solo el perfil y un botón «más» arriba a la derecha. Todo lo demás en ese menú o con Ctrl K.</span></a>
+    </div>
+    <ul>
+      <li>Prueba en todas: <kbd>Ctrl</kbd><kbd>K</kbd>, <kbd>Alt</kbd><kbd>P</kbd>, mover el ratón por el fondo, cambiar de tema y «Crear tema».</li>
+      <li>Cada perfil tiene su propio terreno (generado de su nombre), tema, fondo, densidad y esquinas.</li>
+      <li>Los menús, hojas y diálogos se tiñen con el tema; el cambio de tema y de perfil es animado.</li>
+    </ul>
+  </main>
+  <script src="comun.js"></script>
+  <script>Nova.iniciar({ canvas: null });</script>
+</body>
+</html>

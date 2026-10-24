@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A · Cartografía</title>
+  <link rel="stylesheet" href="comun.css">
+  <style>
+    /* Propuesta A: el terreno del perfil es el protagonista y la barra de mando es su leyenda. */
+    body { --aviso-abajo: 104px; }
+    .a-lienzo {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 56px;
+      min-height: 100vh; padding: 56px 40px 120px;
+      transition: padding-right .5s var(--ease);
+    }
+    .con-hoja .a-lienzo { padding-right: 508px; grid-template-columns: minmax(0, 1fr); }
+
+    .a-inicio { display: flex; flex-direction: column; }
+    .sin-inicio .a-reloj, .sin-inicio .a-buscador { display: none; }
+    .sin-internet .a-internet { display: none; }
+    .sin-servicios .a-servicios { display: none; }
+    .a-reloj { margin: 0; font-size: clamp(96px, 10.5vw, 176px); font-weight: 250; line-height: .86; letter-spacing: -.045em; }
+    .a-reloj .dos-puntos { margin: 0 -.04em; opacity: .55; }
+    .a-fecha { margin: 18px 0 0 6px; color: var(--suave); font-size: 20px; }
+    .a-buscador {
+      display: flex; align-items: center; gap: 12px; height: 58px; margin-top: 44px; padding: 0 12px 0 18px;
+      border: 1px solid var(--linea-fuerte); border-radius: var(--r2); background: var(--velo); color: var(--suave);
+      transition: border-color .2s, background-color .2s;
+    }
+    .a-buscador:focus-within { border-color: var(--acento); background: var(--s1); }
+    .a-buscador input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; color: var(--ink); font-size: 17px; }
+    .a-buscador input::placeholder { color: var(--tenue); }
+    .a-buscador .pista { display: inline-flex; align-items: center; gap: 6px; color: var(--tenue); font-size: 12px; }
+
+    .a-internet { margin-top: 40px; }
+    .a-internet h2 { margin: 0 0 12px; color: var(--suave); font-size: 13px; font-weight: 600; }
+    .a-accesos { display: flex; flex-wrap: wrap; gap: 6px; }
+    .a-acceso { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 84px; padding: 12px 4px 10px; border-radius: var(--r2); font-size: 13px; transition: background-color .2s, transform .25s var(--ease); }
+    .a-acceso .logo { width: 30px; height: 30px; }
+    .a-acceso:hover { background: var(--s2); transform: translateY(-3px); }
+
+    .a-servicios { align-self: start; padding: 30px 32px 22px; border: 1px solid var(--linea); border-radius: var(--r3); background: var(--velo); }
+    .a-servicios h1 { margin: 0; font-size: 26px; font-weight: 650; letter-spacing: -.015em; }
+    .a-resumen { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 6px 0 26px; color: var(--suave); font-size: 15px; }
+    .a-resumen b { color: var(--ink); font-weight: 600; }
+    .a-resumen .grave { color: var(--peligro); }
+    .a-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px 44px; }
+    .a-grupo h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; color: var(--suave); font-size: 13px; font-weight: 600; }
+    .a-grupo h2 .n { color: var(--tenue); font-weight: 400; }
+    .privado { padding: 1px 8px; border-radius: 99px; background: var(--s3); color: var(--suave); font-size: 11px; font-weight: 500; }
+    .reunion [data-privado] { display: none; }
+    .a-grupos.entra > * { animation: entra .55s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
+    .a-grupos.sale > * { animation: sale .22s var(--ease) both; }
+
+    .servicio { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: calc(var(--fila) + 10px); margin: 0 -10px; padding: 4px 10px; border-radius: var(--r1); transition: background-color .15s; }
+    .servicio:hover { background: var(--s2); }
+    .servicio-txt { display: flex; flex-direction: column; min-width: 0; }
+    .servicio-nombre { overflow: hidden; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    .servicio-host { overflow: hidden; color: var(--tenue); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    [data-densidad="compacta"] .servicio-host { display: none; }
+    .servicio-lat { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 96px; color: var(--suave); font-size: 13px; }
+    .editar-fila { display: none; }
+    .editando .servicio { grid-template-columns: 16px 28px minmax(0, 1fr) 28px; }
+    .editando .servicio-lat { display: none; }
+    .editando .editar-fila { display: grid; }
+    .editando .a-grupo { margin: -8px; padding: 8px; border-radius: var(--r2); outline: 1px dashed var(--linea-fuerte); }
+    .asa { color: var(--tenue); cursor: grab; }
+    .asa .ico { width: 16px; height: 16px; }
+    .anadir-fila { display: none; align-items: center; gap: 12px; width: 100%; min-height: 40px; margin-top: 4px; padding: 0 10px; border: 0; border-radius: var(--r1); background: none; color: var(--suave); font-size: 14px; }
+    .anadir-fila:hover { background: var(--s2); color: var(--ink); }
+    .editando .anadir-fila { display: flex; animation: entra .35s var(--ease) both; }
+
+    /* ---------- Barra de mando ---------- */
+    .a-mando {
+      position: fixed; left: 40px; right: 40px; bottom: 20px; z-index: 20;
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
+      height: 64px; padding: 0 10px; border: 1px solid var(--linea); border-radius: var(--r2);
+      background: var(--s1); box-shadow: var(--sombra);
+    }
+    .a-perfil { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 12px 0 6px; border: 0; border-radius: var(--r1); background: none; text-align: left; transition: background-color .15s; }
+    .a-perfil:hover, .a-perfil[aria-expanded="true"] { background: var(--s2); }
+    .a-perfil canvas { width: 40px; height: 40px; border-radius: calc(var(--r1) - 2px); }
+    .a-perfil b { display: block; font-size: 15px; font-weight: 600; }
+    .a-perfil small { display: block; color: var(--tenue); font-size: 12px; }
+    .a-perfil .ico { color: var(--tenue); transition: transform .3s var(--ease); }
+    .a-perfil[aria-expanded="true"] .ico { transform: rotate(180deg); }
+    .a-acciones { display: flex; justify-content: center; gap: 4px; }
+    .a-acciones.entra > * { animation: entra .35s var(--ease) both; animation-delay: calc(var(--i) * 40ms); }
+    .a-accion { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; border: 0; border-radius: var(--r1); background: none; color: var(--suave); font-size: 14px; font-weight: 500; transition: background-color .15s, color .15s; }
+    .a-accion:hover { background: var(--s2); color: var(--ink); }
+    .a-accion[aria-pressed="true"] { background: var(--s3); color: var(--ink); }
+    .a-accion[aria-pressed="true"] .ico { color: var(--acento); }
+    .a-der { display: flex; align-items: center; gap: 16px; }
+    .a-cota { display: inline-flex; align-items: center; gap: 8px; min-width: 130px; color: var(--tenue); font-size: 13px; }
+    .a-cota b { color: var(--suave); font-weight: 500; }
+    .a-cmd { display: inline-flex; align-items: center; gap: 10px; height: 42px; padding: 0 8px 0 14px; border: 0; border-radius: var(--r1); background: var(--s3); color: var(--ink); font-size: 14px; font-weight: 500; transition: background-color .15s; }
+    .a-cmd:hover { background: var(--s4); }
+
+    .a-menu-perfiles {
+      position: fixed; left: 40px; bottom: 96px; z-index: 30; width: 400px; padding: 8px;
+      border: 1px solid var(--linea); border-radius: var(--r3); background: var(--s1); box-shadow: var(--sombra);
+      transform-origin: 30px 100%;
+    }
+    .a-menu-perfiles h2 { margin: 6px 10px 8px; color: var(--tenue); font-size: 12px; font-weight: 600; }
+    .a-op { display: grid; grid-template-columns: 84px 1fr auto; align-items: center; gap: 14px; width: 100%; padding: 8px; border: 0; border-radius: var(--r2); background: none; text-align: left; transition: background-color .15s; }
+    .a-op:hover, .a-op:focus-visible { background: var(--s2); }
+    .a-op[aria-checked="true"] { background: var(--s3); }
+    .a-op canvas { width: 84px; height: 54px; border-radius: var(--r1); }
+    .a-op b { display: block; font-size: 15px; font-weight: 600; }
+    .a-op small { display: block; color: var(--tenue); font-size: 12px; }
+    .a-op .ico { color: var(--acento); }
+    .a-menu-pie { display: flex; gap: 4px; margin-top: 6px; padding-top: 8px; border-top: 1px solid var(--linea); }
+
+    .a-hoja {
+      position: fixed; top: 20px; right: 40px; bottom: 100px; z-index: 25; display: flex; flex-direction: column; width: 448px;
+      border: 1px solid var(--linea); border-radius: var(--r3); background: var(--s1); box-shadow: var(--sombra);
+      opacity: 0; transform: translateX(40px); transition: opacity .25s, transform .5s var(--ease);
+    }
+    .a-hoja.abierto { opacity: 1; transform: none; }
+    .a-hoja-cab { display: flex; align-items: center; justify-content: space-between; padding: 18px 14px 6px 20px; }
+    .a-hoja-cab h2 { margin: 0; font-size: 20px; font-weight: 650; }
+    .a-hoja-cab small { display: block; color: var(--tenue); font-size: 13px; font-weight: 400; }
+    .a-hoja-cuerpo { flex: 1; min-height: 0; }
+
+    .a-paleta { width: min(640px, calc(100vw - 32px)); margin-top: 12vh; padding: 0; border: 1px solid var(--linea); border-radius: var(--r3); background: var(--s1); color: var(--ink); box-shadow: var(--sombra); }
+    .a-paleta[open] { animation: aparece .3s var(--ease); }
+    .a-paleta::backdrop { background: color-mix(in oklab, var(--bg) 55%, transparent); }
+    @keyframes aparece { from { opacity: 0; transform: translateY(-10px) scale(.98); } }
+
+    @media (max-width: 900px) {
+      .a-lienzo, .con-hoja .a-lienzo { grid-template-columns: minmax(0, 1fr); padding: 32px 16px 112px; gap: 40px; }
+      .a-mando { left: 12px; right: 12px; bottom: 12px; grid-template-columns: auto 1fr; }
+      .a-accion span, .a-cota, .a-cmd span, .a-cmd kbd, .a-perfil small { display: none; }
+      .a-der { display: none; }
+      .a-acciones { justify-content: flex-end; }
+      .a-hoja { inset: auto 0 0 0; top: 64px; width: auto; border-radius: var(--r3) var(--r3) 0 0; transform: translateY(40px); }
+      .a-menu-perfiles { left: 12px; right: 12px; bottom: 84px; width: auto; }
+      .a-servicios { padding: 22px 18px; }
+      .servicio-host { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas class="terreno" id="terreno" aria-hidden="true"></canvas>
+
+  <main class="a-lienzo">
+    <section class="a-inicio" aria-label="Inicio">
+      <p class="a-reloj" id="hora"></p>
+      <p class="a-fecha" id="fecha"></p>
+      <form class="a-buscador" role="search" onsubmit="event.preventDefault(); Nova.aviso('Buscando en ' + Nova.estado.motor + '…')">
+        <span id="ico-buscar"></span>
+        <input type="search" placeholder="Busca en Google o en tus servicios" aria-label="Buscar" autocomplete="off">
+        <span class="pista"><kbd>Ctrl</kbd><kbd>K</kbd> comandos</span>
+      </form>
+      <section class="a-internet" aria-labelledby="t-internet">
+        <h2 id="t-internet">Internet</h2>
+        <div class="a-accesos" id="accesos"></div>
+      </section>
+    </section>
+
+    <section class="a-servicios" aria-labelledby="t-servicios">
+      <h1 id="t-servicios"></h1>
+      <p class="a-resumen" id="resumen"></p>
+      <div class="a-grupos" id="grupos"></div>
+    </section>
+  </main>
+
+  <nav class="a-mando" aria-label="Barra de mando">
+    <button class="a-perfil" type="button" id="btn-perfil" aria-haspopup="menu" aria-expanded="false">
+      <canvas id="mini-perfil" aria-hidden="true"></canvas>
+      <span><b id="nombre-perfil"></b><small>Perfil · <kbd>Alt</kbd><kbd>P</kbd></small></span>
+      <span id="ico-perfil"></span>
+    </button>
+    <div class="a-acciones" id="acciones"></div>
+    <div class="a-der">
+      <span class="a-cota" id="cota" aria-hidden="true"></span>
+      <button class="a-cmd" type="button" id="btn-cmd"><span>Comandos</span><kbd>Ctrl</kbd><kbd>K</kbd></button>
+    </div>
+  </nav>
+
+  <div class="a-menu-perfiles flotante" id="menu-perfiles" role="menu" aria-label="Perfiles" hidden></div>
+
+  <aside class="a-hoja" id="hoja" aria-labelledby="t-hoja" hidden>
+    <header class="a-hoja-cab">
+      <h2 id="t-hoja">Personalizar<small id="hoja-sub"></small></h2>
+      <button class="icono-mini" type="button" id="cerrar-hoja" aria-label="Cerrar"></button>
+    </header>
+    <div class="a-hoja-cuerpo" id="ajustes"></div>
+  </aside>
+
+  <dialog class="a-paleta" id="paleta" aria-label="Paleta de comandos"><div id="paleta-raiz"></div></dialog>
+
+  <script src="comun.js"></script>
+  <script>
+    const { $, ico, esc, logo, host, estado, perfil } = Nova;
+    Nova.iniciar({ canvas: $('#terreno') });
+    Nova.reloj($('#hora'), $('#fecha'));
+    $('#ico-buscar').outerHTML = ico('buscar');
+    $('#ico-perfil').outerHTML = ico('arriba');
+    $('#cerrar-hoja').innerHTML = ico('cerrar');
+
+    // ---------- Contenido ----------
+
+    function pintarServicios(animar) {
+      const p = perfil(), g = $('#grupos');
+      $('#t-servicios').textContent = `Servicios de ${p.nombre}`;
+      g.innerHTML = p.grupos.map((gr, i) => `
+        <section class="a-grupo" style="--i:${i}" ${gr.privado ? 'data-privado' : ''} aria-label="${esc(gr.nombre)}">
+          <h2>${esc(gr.nombre)} <span class="n">${gr.servicios.length}</span>${gr.privado ? '<span class="privado">Privado</span>' : ''}</h2>
+          ${gr.servicios.map(s => `
+            <a class="servicio" href="#" data-sid="${s.id}" data-nombre="${esc(s.nombre)}">
+              <span class="asa editar-fila" aria-hidden="true">${ico('asa')}</span>
+              ${logo(s)}
+              <span class="servicio-txt"><span class="servicio-nombre">${esc(s.nombre)}</span><span class="servicio-host mono">${esc(host(s.url))}</span></span>
+              <span class="servicio-lat"><i class="punto"></i><span class="ms"></span></span>
+              <button class="icono-mini editar-fila" type="button" aria-label="Quitar ${esc(s.nombre)}">${ico('cerrar')}</button>
+            </a>`).join('')}
+          <button class="anadir-fila" type="button">${ico('mas')}Añadir enlace</button>
+        </section>`).join('');
+      Nova.actualizarLatencias(g);
+      pintarResumen();
+      if (animar) { g.classList.remove('entra'); void g.offsetWidth; g.classList.add('entra'); }
+    }
+    function pintarResumen() {
+      const r = Nova.resumen();
+      $('#resumen').innerHTML = `<span><b>${r.ok} de ${r.total}</b> responden</span><span aria-hidden="true">·</span><span class="${r.grave ? 'grave' : ''}">${esc(r.hallazgo)}</span>`;
+    }
+    function pintarAccesos() {
+      $('#accesos').innerHTML = perfil().internet.map(s => `<a class="a-acceso" href="#" data-nombre="${esc(s.nombre)}">${logo(s)}<span>${esc(s.nombre)}</span></a>`).join('');
+    }
+
+    // ---------- Barra de mando ----------
+
+    function pintarPerfil() {
+      const p = perfil(), c = $('#mini-perfil');
+      $('#nombre-perfil').textContent = p.nombre;
+      c.dataset.mini = p.semilla;
+      c.dataset.perfil = p.id;
+      Nova.pintarMinis($('#btn-perfil'));
+      $('#hoja-sub').textContent = `Ajustes de ${p.nombre} y comunes`;
+    }
+    let editandoAntes = null;
+    function pintarAcciones() {
+      const a = $('#acciones');
+      const boton = (accion, icono, texto, pulsado, i, clase = 'a-accion') => `<button class="${clase}" type="button" data-accion="${accion}" style="--i:${i}" ${pulsado !== null ? `aria-pressed="${pulsado}"` : ''}>${ico(icono)}<span>${texto}</span></button>`;
+      a.innerHTML = estado.editando
+        ? boton('grupo', 'mas', 'Añadir grupo', null, 0) + boton('widget', 'widget', 'Añadir widget', null, 1) + boton('deshacer', 'deshacer', 'Deshacer', null, 2)
+          + `<button class="boton primario" type="button" data-accion="editar" style="--i:3;height:42px;margin-left:8px">${ico('check')}<span>Listo</span></button>`
+        : boton('reunion', estado.reunion ? 'ojoNo' : 'ojo', estado.reunion ? 'Reunión activa' : 'Reunión', estado.reunion, 0)
+          + boton('editar', 'lapiz', 'Editar', false, 1)
+          + boton('ajustes', 'ajustes', 'Personalizar', !$('#hoja').hidden, 2);
+      if (editandoAntes !== null && editandoAntes !== estado.editando) { a.classList.remove('entra'); void a.offsetWidth; a.classList.add('entra'); }
+      editandoAntes = estado.editando;
+    }
+    $('#acciones').addEventListener('click', e => {
+      const b = e.target.closest('[data-accion]');
+      if (!b) return;
+      const accion = b.dataset.accion;
+      if (accion === 'reunion') Nova.cambiar({ reunion: !estado.reunion });
+      else if (accion === 'editar') Nova.cambiar({ editando: !estado.editando });
+      else if (accion === 'ajustes') alternarHoja();
+      else Nova.aviso({ grupo: 'Nuevo grupo al final', widget: 'Elige un widget', deshacer: 'Deshecho' }[accion]);
+    });
+
+    // Lectura de cota bajo el ratón: el terreno es un mapa de verdad.
+    addEventListener('pointermove', e => {
+      const m = Nova.terreno.cota(e.clientX, e.clientY);
+      if (m != null) $('#cota').innerHTML = `${ico('montana')}Cota <b>${m.toLocaleString('es-ES')} m</b>`;
+    });
+
+    // ---------- Menú de perfiles ----------
+
+    const menu = $('#menu-perfiles'), btnPerfil = $('#btn-perfil');
+    function pintarMenu() {
+      menu.innerHTML = `<h2>Perfiles</h2>${Nova.PERFILES.map(p => `
+        <button class="a-op" type="button" role="menuitemradio" aria-checked="${p.id === estado.perfil}" data-id="${p.id}">
+          <canvas data-mini="${p.semilla}" data-perfil="${p.id}" data-tema-mini="${p.tema}"></canvas>
+          <span><b>${esc(p.nombre)}</b><small>${Nova.contar(p)} servicios · ${Nova.TEMAS[p.tema].nombre}</small></span>
+          ${p.id === estado.perfil ? ico('check') : ''}
+        </button>`).join('')}
+        <div class="a-menu-pie">
+          <button class="boton fantasma" type="button" data-accion="nuevo">${ico('mas')}Nuevo</button>
+          <button class="boton fantasma" type="button" data-accion="duplicar">Duplicar</button>
+          <button class="boton fantasma" type="button" data-accion="renombrar">Renombrar</button>
+        </div>`;
+      Nova.pintarMinis(menu);
+    }
+    function alternarMenu(abrir = menu.hidden) {
+      btnPerfil.setAttribute('aria-expanded', abrir);
+      if (abrir) { menu.hidden = false; pintarMenu(); Nova.abrir(menu); menu.querySelector('[aria-checked="true"]').focus(); }
+      else Nova.cerrar(menu);
+    }
+    btnPerfil.addEventListener('click', () => alternarMenu());
+    menu.addEventListener('click', e => {
+      const op = e.target.closest('[data-id]'), acc = e.target.closest('[data-accion]');
+      if (op) { alternarMenu(false); Nova.cambiarPerfil(op.dataset.id); btnPerfil.focus(); }
+      else if (acc) { alternarMenu(false); Nova.aviso(`${acc.textContent.trim()} perfil…`); }
+    });
+    menu.addEventListener('keydown', e => {
+      if (!['ArrowDown', 'ArrowUp'].includes(e.key)) return;
+      e.preventDefault();
+      const ops = [...menu.querySelectorAll('button')], i = ops.indexOf(document.activeElement);
+      ops[(i + (e.key === 'ArrowDown' ? 1 : -1) + ops.length) % ops.length].focus();
+    });
+
+    // ---------- Personalizar ----------
+
+    const hoja = $('#hoja'), ajustes = new Nova.Ajustes($('#ajustes'));
+    function alternarHoja(abrir = hoja.hidden) {
+      document.body.classList.toggle('con-hoja', abrir);
+      if (abrir) { hoja.hidden = false; ajustes.alMostrar(); Nova.abrir(hoja); }
+      else Nova.cerrar(hoja);
+      setTimeout(pintarAcciones, abrir ? 0 : 280);
+    }
+    $('#cerrar-hoja').addEventListener('click', () => alternarHoja(false));
+    document.addEventListener('nova:ajustes', () => alternarHoja(true));
+
+    // ---------- Paleta ----------
+
+    const dlg = $('#paleta');
+    const paleta = new Nova.Paleta($('#paleta-raiz'), { alCerrar: () => dlg.close() });
+    const abrirPaleta = () => { if (!dlg.open) { dlg.showModal(); paleta.abrir(); } };
+    $('#btn-cmd').addEventListener('click', abrirPaleta);
+    document.addEventListener('nova:paleta', abrirPaleta);
+    dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+
+    // ---------- Global ----------
+
+    document.addEventListener('click', e => {
+      const enlace = e.target.closest('a[data-nombre]');
+      if (enlace) { e.preventDefault(); if (!estado.editando) Nova.aviso(`Abriendo ${enlace.dataset.nombre}…`); }
+      if (!menu.hidden && !menu.contains(e.target) && !btnPerfil.contains(e.target)) alternarMenu(false);
+    });
+    addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || dlg.open) return;
+      if (!menu.hidden) { alternarMenu(false); btnPerfil.focus(); }
+      else if (!hoja.hidden) alternarHoja(false);
+      else if (estado.editando) Nova.cambiar({ editando: false });
+    });
+    document.addEventListener('nova:latencias', () => { Nova.actualizarLatencias($('#grupos')); pintarResumen(); });
+    document.addEventListener('nova:perfil', () => {
+      const g = $('#grupos');
+      g.classList.remove('entra');
+      g.classList.add('sale');
+      setTimeout(() => { g.classList.remove('sale'); pintarServicios(true); pintarAccesos(); }, Nova.reducido.matches ? 0 : 200);
+      pintarPerfil();
+      Nova.aviso(`Perfil ${perfil().nombre}`);
+    });
+    document.addEventListener('nova:cambio', () => { pintarAcciones(); pintarResumen(); });
+
+    pintarServicios(true);
+    pintarAccesos();
+    pintarPerfil();
+    pintarAcciones();
+  </script>
+</body>
+</html>
