@@ -1,7 +1,7 @@
 // Tema, opciones, paneles, fondo y reloj.
 import { $, $$, avisar, crear, svg } from './util.js';
 import { alCambiar, escribir, recordar } from './almacen.js';
-import { claveAspecto, migracionFallida, perfilActivo } from './perfiles.js';
+import { claveAspecto, migracionFallida, perfilActivo, perfilesDeLaLista } from './perfiles.js';
 import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
@@ -36,7 +36,9 @@ export function pintarMuestras() {
     b.dataset.tema = t.id;
     b.style.setProperty('--m-bg', t.bg);
     b.style.setProperty('--m-acento', t.acento);
-    b.append(crear('i'), t.nombre);
+    const mini = crear('canvas', 'mini-tema');
+    mini.setAttribute('aria-hidden', 'true');
+    b.append(mini, crear('i'), t.nombre);
     b.addEventListener('click', () => {
       ponerTema(t.id);
       guardarOpciones();
@@ -59,6 +61,7 @@ export function pintarMuestras() {
   crearTema.addEventListener('click', () => editarTema(null));
   $('#muestras').replaceChildren(...piezas, crearTema);
   marcarMuestras();
+  requestAnimationFrame(pintarMinisTema);
 }
 const marcarMuestras = () => {
   const aplicado = buscarTema(temaActual).id;
@@ -305,7 +308,13 @@ $('#opt-fondo-grupos').addEventListener('change', ev => {
 
 export const panelTema = $('#panel-tema');
 
-// Pestañas Tema, Fondo y Diseño del panel.
+// Pestañas Aspecto, Disposición, Buscador y Datos del estudio; el indicador se desliza a la elegida.
+const moverIndicador = () => {
+  const b = $('#panel-tema [role="tab"][aria-selected="true"]');
+  const ind = $('#panel-tema .indicador-pestana');
+  ind.style.width = `${b.offsetWidth}px`;
+  ind.style.transform = `translateX(${b.offsetLeft}px)`;
+};
 for (const pestana of document.querySelectorAll('#panel-tema [role="tab"]')) {
   pestana.addEventListener('click', () => {
     for (const otra of document.querySelectorAll('#panel-tema [role="tab"]')) {
@@ -313,8 +322,43 @@ for (const pestana of document.querySelectorAll('#panel-tema [role="tab"]')) {
       otra.setAttribute('aria-selected', String(activa));
       $(`#pestana-${otra.dataset.pestana}`).hidden = !activa;
     }
+    moverIndicador();
   });
 }
+
+// Las miniaturas de las muestras: el terreno del perfil en los colores de cada tema.
+export function pintarMinisTema() {
+  if (panelTema.hidden) return;
+  for (const c of $$('#muestras canvas.mini-tema')) {
+    const t = buscarTema(c.parentElement.dataset.tema);
+    miniatura(c, { semilla: apariencia.semilla ?? perfilActivo(), estilo: apariencia.fondo in FONDOS ? apariencia.fondo : 'curvas', densidad: apariencia.densidadFondo, relieve: apariencia.relieve, tema: t });
+  }
+}
+
+// El estudio: abrirlo encoge la página a la izquierda (salvo en pantalla estrecha, donde es una hoja abajo).
+const ajustarEscala = () => {
+  document.documentElement.style.setProperty('--k', String(Math.max(0.3, (innerWidth - 480 - 96) / innerWidth)));
+};
+export function abrirEstudio() {
+  const nombre = perfilesDeLaLista().find(p => p.id === perfilActivo())?.nombre ?? 'este perfil';
+  for (const em of $$('#panel-tema .nombre-ambito')) em.textContent = nombre;
+  ajustarEscala();
+  panelTema.hidden = false;
+  document.documentElement.classList.add('estudio');
+  $('#btn-tema').setAttribute('aria-expanded', 'true');
+  requestAnimationFrame(() => { moverIndicador(); pintarMinisTema(); pintarMinisFondo(); });
+}
+export function cerrarEstudio() {
+  if (panelTema.hidden) return;
+  const volver = panelTema.contains(document.activeElement);
+  panelTema.hidden = true;
+  document.documentElement.classList.remove('estudio');
+  $('#btn-tema').setAttribute('aria-expanded', 'false');
+  if (volver) $('#btn-tema').focus();
+}
+addEventListener('resize', ajustarEscala);
+document.addEventListener('novatab:apariencia', () => requestAnimationFrame(pintarMinisTema));
+document.addEventListener('novatab:perfil', () => { if (!panelTema.hidden) abrirEstudio(); });
 
 $('#acento-libre').addEventListener('input', ev => cambiarApariencia({ acento: ev.target.value }, true));
 for (const b of document.querySelectorAll('[data-densidad]')) b.addEventListener('click', () => cambiarApariencia({ densidad: b.dataset.densidad }));
@@ -323,15 +367,14 @@ $('#opt-hora24').addEventListener('change', ev => cambiarApariencia({ hora24: ev
 $('#opt-segundos').addEventListener('change', ev => cambiarApariencia({ segundos: ev.target.checked }));
 $('#opt-fecha').addEventListener('change', ev => cambiarApariencia({ fecha: ev.target.checked }));
 $('#acento-restaurar').addEventListener('click', () => cambiarApariencia({ acento: null }));
-$('#btn-tema').addEventListener('click', () => {
-  panelTema.hidden = !panelTema.hidden;
-  $('#btn-tema').setAttribute('aria-expanded', String(!panelTema.hidden));
-});
+$('#btn-tema').addEventListener('click', () => (panelTema.hidden ? abrirEstudio() : cerrarEstudio()));
+$('#estudio-cerrar').addEventListener('click', cerrarEstudio);
+$('#estudio-hecho').addEventListener('click', cerrarEstudio);
 document.addEventListener('click', ev => {
-  if (!ev.target.closest('#isla, #panel-tema')) panelTema.hidden = true;
+  if (ev.target.isConnected && !ev.target.closest('#isla, #panel-tema, dialog')) cerrarEstudio();
 });
 document.addEventListener('keydown', ev => {
-  if (ev.key === 'Escape') panelTema.hidden = true;
+  if (ev.key === 'Escape' && !document.querySelector('dialog[open]')) cerrarEstudio();
 });
 
 // El fondo: el terreno del perfil dibujado en el canvas (o nada, con «liso») a la intensidad elegida.
@@ -415,8 +458,7 @@ export function pintarMinisFondo() {
     miniatura(c, { semilla: apariencia.semilla ?? perfilActivo(), estilo: c.parentElement.dataset.fondo, densidad: apariencia.densidadFondo, relieve: apariencia.relieve, tema });
   }
 }
-$('#btn-tema').addEventListener('click', () => requestAnimationFrame(pintarMinisFondo));
-$('#panel-tema [data-pestana="fondo"]').addEventListener('click', () => requestAnimationFrame(pintarMinisFondo));
+$('#panel-tema [data-pestana="tema"]').addEventListener('click', () => requestAnimationFrame(() => { pintarMinisTema(); pintarMinisFondo(); }));
 
 // Los ajustes del terreno, solo cuando se dibuja (no con «liso» ni con la imagen, que avisa de que no se mueve).
 function pintarAjustesTerreno() {

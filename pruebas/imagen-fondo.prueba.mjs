@@ -53,7 +53,7 @@ export default {
     // (c) Velo: con intensidad de imagen 40, opacidad 0.6; el deslizador a 100 la deja en 0.
     igual(await pg.ev(`getComputedStyle(document.querySelector('#fondo .velo')).opacity`), '0.6', 'velo con intensidad 40');
     await pg.clic('#btn-tema');
-    await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="tema"]').click()`);
     await pg.ev(`(() => { const e = document.getElementById('intensidad'); e.value = '100'; e.dispatchEvent(new Event('input', { bubbles: true })); })()`);
     await pg.esperar(450);
     igual(await pg.ev(`getComputedStyle(document.querySelector('#fondo .velo')).opacity`), '0', 'velo con intensidad 100');
@@ -95,7 +95,7 @@ export default {
     pg = await abrir({ chrome: {} });
     await pg.esperar(300);
     await pg.clic('#btn-tema');
-    await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="tema"]').click()`);
     await pg.ev(elegirRuido);
     await pg.esperar(300);
     await pg.ev(`document.querySelector('[data-fondo="trama"]').click()`);
@@ -109,7 +109,7 @@ export default {
     await pg.recargar();
     await pg.esperar(500);
     await pg.clic('#btn-tema');
-    await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="tema"]').click()`);
     await pg.ev(`document.querySelector('[data-fondo="trama"]').click()`);
     await pg.clic('#quitar-imagen');
     await pg.esperar(300);
@@ -145,7 +145,7 @@ export default {
     await pg.recargar();
     await pg.esperar(500);
     await pg.clic('#btn-tema');
-    await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
+    await pg.ev(`document.querySelector('#panel-tema [data-pestana="tema"]').click()`);
     await pg.ev(`window.__selectores = 0; document.getElementById('archivo-fondo').click = () => { window.__selectores++; }`);
     await pg.ev(`document.querySelector('[data-fondo="trama"]').click()`);
     await pg.ev(`document.querySelector('[data-fondo="imagen"]').click()`);

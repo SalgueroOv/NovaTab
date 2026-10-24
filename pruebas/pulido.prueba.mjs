@@ -67,11 +67,15 @@ export default {
     const controles = await pg.ev(`(() => {
       const sel = 'a[href], button, input, select, textarea, [role="button"], [tabindex="0"]';
       const salida = { pequenos: [], sinFoco: [] };
+      // Con el estudio abierto la página se ve encogida a propósito: se mide a su tamaño real.
+      const k = document.documentElement.classList.contains('estudio') ? parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--k')) : 1;
       for (const e of document.querySelectorAll(sel)) {
         const r = e.getBoundingClientRect();
         // El separador de paneles es un asa de arrastre con equivalente de teclado (flechas): queda fuera de la medida.
         if (!r.width || !r.height || e.closest('[hidden]') || e.disabled || e.type === 'hidden' || e.getAttribute('role') === 'separator') continue;
-        const caja = e.matches('input[type="checkbox"], input[type="radio"]') ? (e.closest('label') ?? e).getBoundingClientRect() : r;
+        const real = e.matches('input[type="checkbox"], input[type="radio"]') ? (e.closest('label') ?? e).getBoundingClientRect() : r;
+        const f = e.closest('.pagina') ? k : 1;
+        const caja = { width: real.width / f, height: real.height / f };
         const nombre = e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + (typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : '');
         if (caja.width < 24 || caja.height < 24) salida.pequenos.push(nombre + ' ' + Math.round(caja.width) + 'x' + Math.round(caja.height));
         e.focus({ focusVisible: true });

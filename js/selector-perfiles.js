@@ -4,7 +4,7 @@ import { $, avisar, crear, svg } from './util.js';
 import { abrirDialogo } from './edicion.js';
 import { MAX_PERFILES, claveAspecto, esDemo, perfilActivo, perfilesDeLaLista, perfilesListos } from './perfiles.js';
 import { leer } from './almacen.js';
-import { apariencia, normalizarApariencia, panelTema, temaActual } from './apariencia.js';
+import { apariencia, cerrarEstudio, normalizarApariencia, temaActual } from './apariencia.js';
 import { FONDOS } from './fondos.js';
 import { buscarTema } from './temas.js';
 import { miniatura } from './terreno.js';
@@ -82,8 +82,7 @@ function pintar() {
 
 // El menú es una capa de la isla: abrirlo y cerrarlo es cambiar de capa.
 function abrir() {
-  panelTema.hidden = true; // Personalizar y el menú no se pisan
-  $('#btn-tema').setAttribute('aria-expanded', 'false');
+  cerrarEstudio(); // Personalizar y el menú no se pisan
   ponerCapa('perfiles');
   pintarCartas();
   boton.setAttribute('aria-expanded', 'true');

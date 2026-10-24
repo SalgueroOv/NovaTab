@@ -4,7 +4,7 @@ import { borrar, cargarDatos, claves, escribir, guardarDatos } from './almacen.j
 import { ALTO_MAXIMO, ALTO_MINIMO, ANCHO_MINIMO, CLAVE, COLUMNAS, datos, fusionar, grupo, gruposDe, normalizar, ponerDatos } from './datos.js';
 import { REJILLAS, alto, bloque, colocarSinPosicion, panelDe, rejillaActiva, resolver } from './rejilla.js';
 import { pintar, plegar } from './pintado.js';
-import { opciones, panelTema } from './apariencia.js';
+import { cerrarEstudio, opciones } from './apariencia.js';
 import { accionDeWidget, campo, escribirNotas, leerNotas, memoriaNotas, notasGuardadas, nuevoWidget } from './widgets.js';
 import { leerIcono, refrescarCampoIcono } from './iconos.js';
 import { crearHistorial } from './historial.js';
@@ -400,7 +400,7 @@ export async function restablecerTodo() {
 }
 
 $('#btn-restablecer').addEventListener('click', () => {
-  panelTema.hidden = true;
+  cerrarEstudio();
   $('#texto-restablecer').value = '';
   $('#confirmar-restablecer').disabled = true;
   $('#dlg-restablecer').returnValue = '';

@@ -10,7 +10,7 @@ const poner = (id, valor) => `(() => { const e = document.getElementById('${id}'
 const dibujosEn = ms => `(async () => { const d0 = novatab.terreno.dibujos; await new Promise(r => setTimeout(r, ${ms})); return novatab.terreno.dibujos - d0; })()`;
 const abrirFondo = async pg => {
   await pg.clic('#btn-tema');
-  await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
+  await pg.ev(`document.querySelector('#panel-tema [data-pestana="tema"]').click()`);
   await pg.esperar(150);
 };
 const guardables = enlaces => enlaces.map(e => ({ ...e, icono: null }));
