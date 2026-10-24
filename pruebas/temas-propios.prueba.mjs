@@ -112,5 +112,70 @@ export default {
     await pg.ev(`__chromeFalso.remoto('sync', 'temas-propios', [${JSON.stringify(TEMA('propio-fuera1', 'De fuera', '#304050', '#ff8800'))}])`);
     await pg.esperar(300);
     igual(await pg.ev(propias), ['propio-fuera1'], 'el tema de otra pestaña aparece');
+
+    // (i) Colores que no son texto (un array, un número) no rompen el arranque ni el aviso de otra pestaña.
+    const conRaros = [TEMA('propio-arr001', 'Lista', ['#203040'], '#ffcc00'), TEMA('propio-num001', 'Número', '#203040', 255), TEMA('propio-bueno2', 'Bueno', '#203040', '#ffcc00')];
+    pg = await abrir({ chrome: {}, datos: null, guardados: DOS_PERFILES({ 'chrome.sync/temas-propios': conRaros }), reducirMovimiento: true });
+    await pg.esperar(500);
+    igual(pg.errores, [], 'sin errores con colores que no son texto');
+    igual(await pg.ev(propias), ['propio-bueno2'], 'solo el tema válido');
+    igual((await pg.datos()).grupos.length, DATOS_PRUEBA.grupos.length, 'los datos del perfil, no los de ejemplo');
+    afirmar(!(await pg.ev(`document.getElementById('btn-perfil').hidden`)), 'sin caer en el modo de migración fallida');
+    await pg.ev(`__chromeFalso.remoto('sync', 'temas-propios', ${JSON.stringify(conRaros)})`);
+    await pg.esperar(300);
+    igual(pg.errores, [], 'ni al llegar de otra pestaña');
+
+    // (j) Un nombre de solo espacios no se acepta: el diálogo sigue abierto y no se guarda nada.
+    pg = await abrir({ chrome: {}, datos: null, guardados: DOS_PERFILES(), reducirMovimiento: true });
+    await pg.esperar(500);
+    await pg.clic('#btn-tema');
+    await pg.clic('.crear-tema');
+    await pg.ev(campo('nombre', '   '));
+    await pg.clic('#dlg-tema [value="ok"]');
+    await pg.esperar(200);
+    afirmar(await pg.ev(`document.getElementById('dlg-tema').open`), 'el diálogo sigue abierto');
+    igual(await guardados(pg), null, 'sin guardar nada');
+    await pg.clic('#dlg-tema [data-cerrar]');
+
+    // (k) Un fondo de tono medio da tinta oscura (el cruce de contraste es 0,18) y el editor avisa.
+    await pg.clic('.crear-tema');
+    await pg.ev(campo('bg', '#2e86de'));
+    igual(await pg.ev(`document.documentElement.dataset.modo`), 'claro', 'un azul medio lleva tinta oscura');
+    afirmar(!(await pg.ev(`document.getElementById('aviso-contraste').hidden`)), 'y el editor avisa del tono medio');
+    await pg.ev(campo('bg', '#2b2a26'));
+    afirmar(await pg.ev(`document.getElementById('aviso-contraste').hidden`), 'sin aviso con un fondo oscuro');
+    await pg.clic('#dlg-tema [data-cerrar]');
+
+    // (l) Con un acento libre puesto, el tema guardado se ve con el acento que se eligió en el editor.
+    pg = await abrir({ chrome: {}, datos: null, guardados: DOS_PERFILES({ 'chrome.sync/perfil:principal:aspecto': { tema: 'bosque', apariencia: { acento: '#e0245e' } } }), reducirMovimiento: true });
+    await pg.esperar(500);
+    await pg.clic('#btn-tema');
+    await pg.clic('.crear-tema');
+    await pg.ev(campo('nombre', 'Arena'));
+    await pg.ev(campo('bg', '#2b2a26'));
+    await pg.ev(campo('acento', '#e8c547'));
+    await pg.clic('#dlg-tema [value="ok"]');
+    await pg.esperar(300);
+    igual((await pg.ev(colores))[1], '#e8c547', 'el acento del tema recién creado');
+    igual((await aspectoDe(pg, 'principal')).apariencia.acento, null, 'el acento libre se quita');
+
+    // (m) Con la migración fallida, los temas propios se ven pero crear uno no pisa la lista sincronizada.
+    const guardable = enlaces => enlaces.map(e => ({ ...e, icono: null }));
+    const lista = [TEMA('propio-viejo1', 'Viejo', '#203040', '#ffcc00')];
+    pg = await abrir({
+      chrome: {},
+      datos: estructura(DATOS_PRUEBA),
+      guardados: { ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/grupo:${g.id}`, guardable(g.enlaces)])), 'chrome.sync/tema': 'papel', 'chrome-falso/localFalla': 1, 'chrome.sync/temas-propios': lista },
+      reducirMovimiento: true,
+    });
+    await pg.esperar(900);
+    afirmar(await pg.ev(`document.getElementById('btn-perfil').hidden`), 'la migración ha fallado');
+    igual(await pg.ev(propias), ['propio-viejo1'], 'los temas propios se ven igual');
+    await pg.clic('#btn-tema');
+    await pg.clic('.crear-tema');
+    await pg.ev(campo('nombre', 'Nuevo'));
+    await pg.clic('#dlg-tema [value="ok"]');
+    await pg.esperar(300);
+    igual(await guardados(pg), lista, 'la lista sincronizada no se pisa');
   },
 };

@@ -73,12 +73,14 @@ let recarga;
     redimension = setTimeout(() => { pintarFondo(); if (editando) pintarLocal(); }, 120);
   });
 
+  // Los temas propios no dependen de la migración: se leen aparte y, si fallan, no hay ninguno.
+  await leerTemasPropios().catch(() => ponerTemasPropios([]));
   let aspecto = null;
   let guardados = null;
   let comunes = null;
   try {
     await migrar();
-    [guardados, aspecto, comunes] = await Promise.all([cargarDatos(perfilActivo()), leer(claveAspecto(perfilActivo())), leer(CLAVE_OPCIONES), leerTemasPropios()]);
+    [guardados, aspecto, comunes] = await Promise.all([cargarDatos(perfilActivo()), leer(claveAspecto(perfilActivo())), leer(CLAVE_OPCIONES)]);
   } catch (err) {
     // Sin migrar: se enseña lo de antes pero no se guarda nada en las claves nuevas hasta la próxima apertura.
     bloquearGuardado('Tus datos aún no se han actualizado al formato nuevo: se reintentará al abrir otra pestaña');

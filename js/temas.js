@@ -42,9 +42,12 @@ function mezclar(a, b, k) {
   return '#' + [1, 3, 5].map(i => Math.round(canal(a, i) * (1 - k) + canal(b, i) * k).toString(16).padStart(2, '0')).join('');
 }
 
+// Por encima de esta luminosidad el texto oscuro contrasta más que el claro (el mismo cruce que sobreAcento).
+export const CRUCE_LUMINOSIDAD = 0.18;
+
 // Un tema completo a partir de su fondo y su acento: el modo y la tinta salen del fondo.
 export function temaDesde(nombre, bg, acento, id) {
-  const modo = luminosidad(bg) > 0.3 ? 'claro' : 'oscuro';
+  const modo = luminosidad(bg) > CRUCE_LUMINOSIDAD ? 'claro' : 'oscuro';
   const ink = modo === 'claro' ? mezclar(bg, '#000000', 0.88) : mezclar(bg, '#ffffff', 0.9);
   return { id, nombre, modo, bg, ink, acento, propio: true };
 }
@@ -61,7 +64,8 @@ export function normalizarTemasPropios(lista) {
   for (const t of lista) {
     if (!t || typeof t !== 'object' || typeof t.id !== 'string' || !ID_PROPIO.test(t.id) || vistos.has(t.id)) continue;
     const nombre = typeof t.nombre === 'string' ? t.nombre.trim() : '';
-    if (!nombre || nombre.length > MAX_NOMBRE_TEMA || !HEX.test(t.bg) || !HEX.test(t.acento)) continue;
+    const color = c => typeof c === 'string' && HEX.test(c);
+    if (!nombre || nombre.length > MAX_NOMBRE_TEMA || !color(t.bg) || !color(t.acento)) continue;
     vistos.add(t.id);
     temas.push(temaDesde(nombre, t.bg.toLowerCase(), t.acento.toLowerCase(), t.id));
     if (temas.length === MAX_TEMAS_PROPIOS) break;
@@ -84,6 +88,9 @@ export async function guardarTemasPropios(lista) {
   recordar(CLAVE_TEMAS_PROPIOS, valor);
   await escribir(CLAVE_TEMAS_PROPIOS, valor);
 }
+
+// Un fondo de tono medio no deja buen contraste ni con texto claro ni con oscuro (sobre todo el secundario).
+export const fondoDeTonoMedio = bg => { const l = luminosidad(bg); return l > 0.08 && l < 0.35; };
 
 export const nuevoIdTema = () => `propio-${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
 
