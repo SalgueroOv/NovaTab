@@ -2,7 +2,7 @@
 import { $, $$, crear, direccion, svg } from './util.js';
 import { hayChrome } from './almacen.js';
 import { COLUMNAS, datos, gruposDe } from './datos.js';
-import { REJILLAS, alto, bloque, bloquesDe, iconosPorFila, panelDe, rejillaActiva, solapan, visible } from './rejilla.js';
+import { REJILLAS, alto, bloque, bloquesDe, iconosPorFila, panelDe, rejillaActiva, solapan, vistaEfectiva, visible } from './rejilla.js';
 import { caja } from './buscador.js';
 import { editando, guardarYPintar } from './edicion.js';
 import { pintarWidget } from './widgets.js';
@@ -155,7 +155,7 @@ export function pintarGrupoLocal(g) {
   cab.append(...botonesGrupo(), botonPlegar(g.plegado));
 
   const numeros = new Map(enlacesDeAtajo().map(({ enlace }, i) => [enlace.id, i + 1]));
-  const lista = crear('div', `enlaces vista-${g.vista}`);
+  const lista = crear('div', `enlaces vista-${vistaEfectiva(g)}`);
   lista.style.setProperty('--columnas-iconos', String(iconosPorFila(g.pos.w)));
   for (const e of g.enlaces) {
     const a = crear('a', 'fila enlace');
@@ -166,7 +166,7 @@ export function pintarGrupoLocal(g) {
     a.append(icono(e, g), crear('span', 'nombre', e.nombre), crear('span', 'dir mono', direccion(e.url)));
     if (numeros.has(e.id)) {
       // La cifra de Alt+número: discreta, solo al pasar el ratón o con el foco.
-      const num = crear('span', 'atajo-num mono', String(numeros.get(e.id)));
+      const num = crear('span', 'atajo-num', String(numeros.get(e.id)));
       num.title = `Alt+${numeros.get(e.id)}`;
       num.setAttribute('aria-hidden', 'true');
       a.append(num);

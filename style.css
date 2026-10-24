@@ -1063,3 +1063,43 @@ dialog menu button {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
+
+/* ---------- Estilos de página (Mapa, Baldosas, Compacto) ---------- */
+/* No mueven los bloques: cambian el reloj y cómo se ven las filas de los grupos. */
+.estilo-baldosas .hora { font-size: 136px; }
+.estilo-compacto .hora { font-size: 84px; }
+@media (max-width: 1000px) { .estilo-baldosas .hora, .estilo-compacto .hora { font-size: 80px; } }
+
+/* Mapa: filas de dos líneas, el nombre arriba y la dirección debajo en pequeño. */
+.estilo-mapa .vista-lista .fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-rows: auto auto; align-content: center; column-gap: 12px; }
+.estilo-mapa .vista-lista .fila > * { grid-row: 1 / 3; }
+.estilo-mapa .vista-lista .fila .icono { grid-column: 1; }
+.estilo-mapa .vista-lista .fila .nombre { grid-column: 2; grid-row: 1; line-height: 1.2; }
+.estilo-mapa .vista-lista .fila .dir { grid-column: 2; grid-row: 2; overflow: hidden; font-size: 10.5px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Compacto: filas de una línea sin dirección. */
+.estilo-compacto .vista-lista .dir { display: none; }
+
+/* Baldosas: fichas con el logo grande, el nombre y la dirección. */
+.estilo-baldosas .vista-iconos .fila .icono { width: calc(var(--alto-fila) * .72); height: calc(var(--alto-fila) * .72); }
+.estilo-baldosas .vista-iconos .dir { display: block; max-width: 100%; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.estilo-baldosas .vista-iconos .fila { gap: 2px; }
+
+/* La elección del estilo, con una vista previa dibujada. */
+.estilos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.estilos button {
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 8px; border: 1px solid var(--borde); border-radius: 12px;
+  background: transparent; color: var(--texto); font: inherit; font-size: 13px; cursor: pointer;
+}
+.estilos button:hover { background: var(--hover); }
+.estilos button[aria-pressed="true"] { border-color: var(--acento); box-shadow: inset 0 0 0 1px var(--acento); }
+.vista-previa { height: 48px; border-radius: 8px; background-color: var(--superficie-2); }
+.vp-mapa { background-image: repeating-linear-gradient(to bottom, transparent 0 6px, var(--borde-fuerte) 6px 9px, transparent 9px 11px, var(--borde) 11px 13px, transparent 13px 16px); background-size: 70% 100%; background-position: 10px 2px; background-repeat: no-repeat; }
+.vp-baldosas { background-image: radial-gradient(circle, var(--borde-fuerte) 0 5px, transparent 6px); background-size: 33.3% 50%; }
+.vp-compacto { background-image: repeating-linear-gradient(to bottom, transparent 0 4px, var(--borde-fuerte) 4px 6px, transparent 6px 8px); background-size: 70% 100%; background-position: 10px 2px; background-repeat: no-repeat; }
+
+/* El reloj: cada dígito que cambia cae desde arriba. */
+.hora .digito { display: inline-block; }
+.hora .cae { animation: cae-digito .6s cubic-bezier(.2, .8, .2, 1); }
+@keyframes cae-digito { from { transform: translateY(-40%); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .hora .cae { animation: none; } }

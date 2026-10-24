@@ -4,6 +4,7 @@ import { alCambiar, escribir, recordar } from './almacen.js';
 import { claveAspecto, migracionFallida, perfilActivo, perfilesDeLaLista } from './perfiles.js';
 import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
+import { resolver } from './rejilla.js';
 import { editando } from './edicion.js';
 import { FONDOS } from './fondos.js';
 import { Terreno, miniatura } from './terreno.js';
@@ -19,6 +20,8 @@ export const APARIENCIA = {
   esquinas: 'medio', hora24: true, segundos: false, fecha: true,
   // El terreno del fondo: semilla (null = el id del perfil), densidad y relieve de 0 a 1, movimiento y luz bajo el ratón.
   semilla: null, densidadFondo: 0.55, relieve: 0.45, movimiento: 'lento', brillo: true,
+  // El estilo de la página: no mueve los bloques, cambia el reloj y cómo se ven los grupos con vista «auto».
+  estilo: 'mapa',
 };
 export const IDS_FONDO = [...Object.keys(FONDOS), 'liso', 'imagen'];
 // Los dibujos de la versión 5.2 que ya no existen pasan al nuevo más parecido.
@@ -113,6 +116,8 @@ const uno = (v, validos, defecto) => validos.includes(v) ? v : defecto;
 const booleano = (v, defecto) => typeof v === 'boolean' ? v : defecto;
 const fraccion = (v, defecto) => typeof v === 'number' && Number.isFinite(v) ? Math.round(Math.min(1, Math.max(0, v)) * 100) / 100 : defecto;
 
+export const ESTILOS = ['mapa', 'baldosas', 'compacto'];
+
 export function normalizarApariencia(a) {
   const x = a && typeof a === 'object' ? a : {};
   return {
@@ -130,16 +135,23 @@ export function normalizarApariencia(a) {
     relieve: fraccion(x.relieve, APARIENCIA.relieve),
     movimiento: uno(x.movimiento, ['quieto', 'lento', 'vivo'], APARIENCIA.movimiento),
     brillo: booleano(x.brillo, APARIENCIA.brillo),
+    estilo: uno(x.estilo, ESTILOS, APARIENCIA.estilo),
   };
 }
 
 // Aplica los ajustes al documento: variables en :root y clases en body.
 export let apariencia = { ...APARIENCIA };
 export function ponerApariencia(a) {
+  const estiloAntes = apariencia.estilo;
   apariencia = normalizarApariencia(a);
   aplicarColores(buscarTema(temaActual));
   const clases = document.body.classList;
-  clases.toggle('compacta', apariencia.densidad === 'compacta');
+  // Compacto lleva la densidad compacta sin tocar el ajuste guardado.
+  clases.toggle('compacta', apariencia.densidad === 'compacta' || apariencia.estilo === 'compacto');
+  for (const e of ESTILOS) clases.toggle(`estilo-${e}`, apariencia.estilo === e);
+  for (const b of $$('[data-estilo]')) b.setAttribute('aria-pressed', String(b.dataset.estilo === apariencia.estilo));
+  // Con otro estilo los grupos «auto» cambian de vista (y de alto): lo que se pise baja y se repinta.
+  if (estiloAntes !== apariencia.estilo && datos?.grupos) { resolver(); pintar(); }
   document.dispatchEvent(new Event('novatab:apariencia')); // los widgets con hora (reloj mundial) se repintan
   for (const e of ['recto', 'medio', 'redondo']) clases.toggle(`esquinas-${e}`, apariencia.esquinas === e);
   for (const d of ['comoda', 'compacta']) $(`#densidad-${d}`).setAttribute('aria-pressed', String(apariencia.densidad === d));
@@ -363,6 +375,7 @@ document.addEventListener('novatab:perfil', () => { if (!panelTema.hidden) abrir
 $('#acento-libre').addEventListener('input', ev => cambiarApariencia({ acento: ev.target.value }, true));
 for (const b of document.querySelectorAll('[data-densidad]')) b.addEventListener('click', () => cambiarApariencia({ densidad: b.dataset.densidad }));
 for (const b of document.querySelectorAll('[data-esquinas]')) b.addEventListener('click', () => cambiarApariencia({ esquinas: b.dataset.esquinas }));
+for (const b of document.querySelectorAll('[data-estilo]')) b.addEventListener('click', () => cambiarApariencia({ estilo: b.dataset.estilo }));
 $('#opt-hora24').addEventListener('change', ev => cambiarApariencia({ hora24: ev.target.checked }));
 $('#opt-segundos').addEventListener('change', ev => cambiarApariencia({ segundos: ev.target.checked }));
 $('#opt-fecha').addEventListener('change', ev => cambiarApariencia({ fecha: ev.target.checked }));
@@ -520,11 +533,20 @@ $('#quitar-imagen').addEventListener('click', async () => {
   else pintarFondo();
 });
 
+// La hora, un span por carácter: los dígitos que cambian caen desde arriba (sin movimiento reducido no se anima,
+// ver style.css). El texto del reloj sigue siendo la hora entera.
+function ponerHora(texto) {
+  const hora = $('#hora');
+  const antes = hora.textContent;
+  if (antes === texto) return;
+  hora.replaceChildren(...[...texto].map((c, i) => crear('span', antes && antes[i] !== c ? 'digito cae' : 'digito', c)));
+}
+
 export function reloj() {
   const d = new Date();
   const formato = { hour: '2-digit', minute: '2-digit', hour12: !apariencia.hora24 };
   if (apariencia.segundos) formato.second = '2-digit';
-  $('#hora').textContent = d.toLocaleTimeString('es-ES', formato);
+  ponerHora(d.toLocaleTimeString('es-ES', formato));
   $('#fecha').textContent = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   $('#fecha').hidden = !apariencia.fecha;
 }

@@ -255,7 +255,7 @@ export async function borrarEnlace(gid, eid) {
 }
 
 export async function nuevoGrupo(zona) {
-  const r = await dialogoGrupo('Nuevo grupo', { nombre: '', zona, color: '#8a8c92', vista: 'lista', privado: false });
+  const r = await dialogoGrupo('Nuevo grupo', { nombre: '', zona, color: '#8a8c92', vista: 'auto', privado: false });
   if (!r) return;
   datos.grupos.push({ id: nuevoId(), nombre: r.nombre.trim(), zona: r.zona, color: r.color, privado: r.privado === 'on', vista: r.vista, pos: null, enlaces: [] });
   colocarSinPosicion(datos);

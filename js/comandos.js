@@ -90,6 +90,9 @@ export function comandos() {
     ...[['quieto', 'Quieto'], ['lento', 'Lento'], ['vivo', 'Vivo']].map(([m, nombre]) => ({
       id: `movimiento:${m}`, grupo: 'Aspecto', titulo: `Movimiento del fondo: ${nombre}`, ejecutar: () => cambiarApariencia({ movimiento: m }),
     })),
+    ...[['mapa', 'Mapa'], ['baldosas', 'Baldosas'], ['compacto', 'Compacto']].map(([e, nombre]) => ({
+      id: `estilo:${e}`, grupo: 'Aspecto', titulo: `Estilo de página: ${nombre}`, ejecutar: () => cambiarApariencia({ estilo: e }),
+    })),
     { id: 'otro-terreno', grupo: 'Aspecto', titulo: 'Generar otro terreno', ejecutar: () => $('#otro-terreno').click() },
     { id: 'exportar', grupo: 'Datos', titulo: 'Exportar copia', ejecutar: () => $('#btn-exportar').click() },
     { id: 'importar', grupo: 'Datos', titulo: 'Importar copia', ejecutar: () => $('#btn-importar').click() },

@@ -1,7 +1,7 @@
 // La rejilla: bloques (grupos locales y widgets), alturas, huecos y colisiones.
 import { $ } from './util.js';
 import { ANCHO_NUEVO, COLUMNAS, datos, grupo, gruposDe } from './datos.js';
-import { opciones } from './apariencia.js';
+import { apariencia, opciones } from './apariencia.js';
 import { esDemo } from './perfiles.js';
 import { WIDGETS } from './widgets.js';
 
@@ -19,10 +19,14 @@ export const bloquesDe = (panel, d = datos) => bloques(d).filter(b => panelDe(b)
 // Plegado, un bloque ocupa solo la fila del título.
 // Las filas de contenido de un grupo según su vista (sin la fila del título): lista, una por enlace; compacta,
 // dos enlaces por fila; iconos, un icono por cada 2 columnas de ancho y dos filas por fila de iconos.
+// La vista con la que se ve un grupo: la suya, o con «auto» la del estilo (fichas en Baldosas, lista en los demás).
+export const vistaEfectiva = g => g.vista && g.vista !== 'auto' ? g.vista : apariencia.estilo === 'baldosas' ? 'iconos' : 'lista';
+
 export function filasDe(g) {
   const n = g.enlaces.length;
-  if (g.vista === 'compacta') return Math.max(1, Math.ceil(n / 2));
-  if (g.vista === 'iconos') return Math.max(1, Math.ceil(n / iconosPorFila(g.pos?.w ?? 6))) * 2;
+  const vista = vistaEfectiva(g);
+  if (vista === 'compacta') return Math.max(1, Math.ceil(n / 2));
+  if (vista === 'iconos') return Math.max(1, Math.ceil(n / iconosPorFila(g.pos?.w ?? 6))) * 2;
   return Math.max(1, n);
 }
 export const iconosPorFila = w => Math.max(1, Math.floor(w / 2));
