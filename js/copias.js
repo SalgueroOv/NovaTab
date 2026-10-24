@@ -3,6 +3,7 @@ import { $, avisarConAccion, crear } from './util.js';
 import { borrar, claves, escribirLocal, leerLocal } from './almacen.js';
 import { deshacerUltimo, reemplazarEstado, tomarFoto } from './edicion.js';
 import { migracionFallida, perfilActivo } from './perfiles.js';
+import { archivoDeCopia, carpetaDeCopias, elegirCarpeta, escribirEnCarpeta, hayCarpetas, ponerCarpeta, textoDeCopia } from './carpeta-copias.js';
 
 const prefijo = (perfil = perfilActivo()) => `copia:${perfil}:`;
 const MAXIMO = 7;
@@ -32,6 +33,8 @@ export async function hacerCopiaDelDia() {
   await escribirLocal(prefijo(perfil) + hoy, { fecha: hoy, datos: foto.datos, notas: foto.notas, tareas: foto.tareas });
   const todas = (await clavesDeCopia()).sort();
   await borrar(todas.slice(0, Math.max(0, todas.length - MAXIMO)));
+  // Y en la carpeta de copias, si hay una y Chrome mantiene el permiso: el archivo de ayer se sobrescribe.
+  escribirEnCarpeta(archivoDeCopia(perfil), textoDeCopia(foto)).catch(() => { /* lo intentará Exportar */ });
   return true;
 }
 
@@ -66,3 +69,20 @@ async function pintarLista() {
 }
 
 $('#btn-tema').addEventListener('click', pintarLista);
+
+// La carpeta de copias en la pestaña Datos.
+async function pintarCarpeta() {
+  const c = await carpetaDeCopias();
+  $('#carpeta-estado').textContent = c
+    ? `Exportar y la copia diaria escriben «${archivoDeCopia(perfilActivo())}» en «${c.name}» y lo sobrescriben.`
+    : 'Ninguna: Exportar descarga un archivo nuevo en Descargas cada vez.';
+  $('#btn-carpeta').textContent = c ? 'Cambiar carpeta…' : 'Elegir carpeta…';
+  $('#btn-quitar-carpeta').hidden = !c;
+}
+if (hayCarpetas) {
+  $('#carpeta-copias').hidden = false;
+  $('#btn-tema').addEventListener('click', pintarCarpeta);
+  document.addEventListener('novatab:carpeta', pintarCarpeta);
+  $('#btn-carpeta').addEventListener('click', () => elegirCarpeta().catch(() => { /* cancelado */ }));
+  $('#btn-quitar-carpeta').addEventListener('click', () => ponerCarpeta(null));
+}

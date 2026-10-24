@@ -44,6 +44,22 @@ export default {
     await pg.esperar(200);
     afirmar(await pg.ev(`document.getElementById('panel-tema').hidden`), 'Esc cierra');
 
+    // (g) Con carpeta de copias, Exportar escribe siempre el mismo archivo ahí (lo sobrescribe) y no descarga.
+    await pg.ev(`(() => {
+      window.__escritos = [];
+      const carpeta = { name: 'NovaTab', queryPermission: async () => 'granted', getFileHandle: async (n, o) => ({ createWritable: async () => { let t = ''; return { write: async x => { t += x; }, close: async () => { window.__escritos.push([n, o.create, JSON.parse(t).grupos.length > 0]); } }; } }) };
+      return import('/js/carpeta-copias.js').then(m => m.ponerCarpeta(carpeta));
+    })()`);
+    await pg.clic('#btn-tema');
+    await pg.clic('#panel-tema [data-pestana="datos"]');
+    await pg.esperar(300);
+    afirmar((await pg.ev(`document.getElementById('carpeta-estado').textContent`)).includes('«NovaTab»'), 'la pestaña Datos dice qué carpeta se usa');
+    await pg.clic('#btn-exportar');
+    await pg.esperar(300);
+    await pg.clic('#btn-exportar');
+    await pg.esperar(300);
+    igual(await pg.ev(`window.__escritos`), [['novatab-principal.json', true, true], ['novatab-principal.json', true, true]], 'dos exportaciones, el mismo archivo');
+
     // (f) A 800 px es una hoja abajo, a todo el ancho, y la página no se encoge.
     pg = await abrir({ ancho: 800, alto: 800, reducirMovimiento: true });
     await pg.esperar(400);
