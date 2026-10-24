@@ -310,6 +310,7 @@ export function ponerEdicion(activo) {
   document.body.classList.toggle('editando', activo);
   $('#btn-editar').setAttribute('aria-pressed', String(activo));
   pintar();
+  document.dispatchEvent(new CustomEvent('novatab:edicion', { detail: { activo } })); // la isla cambia de capa
 }
 
 $('#btn-editar').addEventListener('click', () => ponerEdicion(!editando));

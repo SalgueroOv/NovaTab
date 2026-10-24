@@ -26,6 +26,7 @@ import { hacerCopiaDelDia } from './copias.js';
 import './importar.js';
 import './perfiles-ops.js';
 import './selector-perfiles.js';
+import './isla.js';
 
 // Cambios hechos en otra pestaña u otro equipo sincronizado.
 alCambiar(cambios => {
@@ -60,8 +61,6 @@ let recarga;
 
 (async () => {
   $('#btn-editar').innerHTML = svg('lapiz');
-  $('#btn-panel-izq').innerHTML = svg('panelIzq');
-  $('#btn-panel-der').innerHTML = svg('panelDer');
   $('#btn-tema').innerHTML = svg('paleta');
   $('#ico-buscar').innerHTML = svg('buscar');
   $('#modo-ia').innerHTML = `${svg('ia')}Modo IA`;

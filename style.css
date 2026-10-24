@@ -170,7 +170,6 @@ body {
   cursor: text;
 }
 .editando .titulo-editable:focus { outline: 2px solid var(--acento); }
-.ayuda { margin: -12px 0 16px; color: var(--texto-2); font-size: 13px; }
 .vacio { color: var(--texto-2); font-size: 14px; }
 
 /* ---------- Botones ---------- */
@@ -188,34 +187,51 @@ button { font: inherit; color: inherit; }
 }
 .boton-texto:hover { background: var(--hover); }
 .boton-texto.primario, dialog .primario { border-color: var(--acento); background: var(--acento); color: var(--sobre-acento, var(--bg)); }
-/* En edición, la fila de botones va debajo del título para no chocar con los de la esquina. */
-.barra-edicion { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+/* ---------- La isla: el mando encima del panel derecho ---------- */
 
-/* Los botones van dentro del panel derecho, a la altura del título y alineados con su margen interior
-   (24px de la página + 40px del panel). La cabecera les reserva el hueco. */
-.esquina { position: absolute; top: 60px; right: 64px; z-index: 30; display: flex; gap: 8px; }
-.derecha-cab { padding-right: 240px; }
-/* Sin panel derecho no hay nada que pisar: a la esquina de la ventana. */
-.sin-der .esquina { position: fixed; top: 16px; right: 16px; }
-.icono-boton {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--superficie);
-  box-shadow: var(--sombra);
-  color: var(--texto);
-  cursor: pointer;
+/* La columna derecha lleva la isla y debajo el panel. La isla vive en un hueco fijo de 56 px y crece hacia
+   abajo por encima del contenido (sus capas: barra, menú de perfiles y barra de edición; ver isla.js). Su
+   ancho es el de la columna, así que sigue al separador sin más. */
+.columna-der { position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.isla-hueco { position: sticky; top: 24px; z-index: 30; height: 56px; }
+.isla {
+  position: absolute; inset: 0 0 auto; height: 56px; overflow: hidden;
+  border-radius: min(var(--radio-panel), 22px); background: var(--panel);
+  transition: height .4s cubic-bezier(.34, 1.3, .64, 1);
 }
-.icono-boton:hover { background: var(--superficie-2); }
-.icono-boton[aria-pressed="true"] { background: var(--acento); color: var(--sobre-acento, var(--bg)); }
-/* Los de los paneles marcan lo contrario: apagados cuando el panel está oculto. */
-.boton-panel[aria-pressed="true"] { background: var(--superficie); color: var(--texto); }
-.boton-panel[aria-pressed="false"] { color: var(--texto-2); opacity: .7; }
-/* Modo reunión: discreto a propósito; el ojo tachado basta para saber que está activo. */
-#btn-reunion[aria-pressed="true"] { background: var(--superficie); color: var(--texto); }
+.capa[hidden] { display: none; }
+.capa-barra { display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 8px; }
+.chip-perfil {
+  display: inline-flex; align-items: center; gap: 9px; flex: none; min-width: 0; max-width: 40%; height: 42px; padding: 0 10px 0 6px;
+  border: 0; border-radius: 12px; background: none; color: var(--texto); font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.chip-perfil .nombre-perfil { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip-perfil:hover, .chip-perfil[aria-expanded="true"] { background: var(--hover); }
+.isla-sep { flex: none; width: 1px; height: 24px; margin: 0 4px; background: var(--borde-fuerte); }
+.buscar-mandar {
+  display: flex; flex: 1; align-items: center; gap: 10px; min-width: 0; height: 40px; padding: 0 8px 0 12px;
+  border: 0; border-radius: 12px; background: var(--hover); color: var(--texto-2); font-size: 14px; text-align: left; cursor: pointer;
+}
+.buscar-mandar:hover { background: var(--borde); color: var(--texto); }
+.buscar-mandar .ico { width: 18px; height: 18px; flex: none; }
+.buscar-texto { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.isla kbd {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 6px;
+  background: var(--borde); color: var(--texto-2); font: 600 11px/1 "Public Sans", sans-serif;
+}
+.isla-boton {
+  display: grid; place-items: center; flex: none; width: 40px; height: 40px;
+  border: 0; border-radius: 12px; background: none; color: var(--texto-2); cursor: pointer;
+}
+.isla-boton:hover { background: var(--hover); color: var(--texto); }
+.isla-boton[aria-pressed="true"] { background: var(--hover); color: var(--acento); }
+.capa-edicion { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 56px; padding: 8px 10px 8px 16px; }
+.editando-txt { margin-right: auto; color: var(--texto-2); font-size: 14px; }
+.editando-txt b { color: var(--texto); }
+.botones-datos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+/* Sin panel derecho, la isla va encima del izquierdo (la columna se deshace y la isla sube a la primera fila). */
+.sin-der .columna-der { display: contents; }
+.sin-der .isla-hueco { order: -1; }
 
 /* ---------- Paneles ocultos ---------- */
 
@@ -225,7 +241,7 @@ button { font: inherit; color: inherit; }
 .sin-der .izquierda { padding-right: 40px; }
 .panel-tema {
   position: absolute;
-  top: 48px;
+  top: 64px;
   right: 0;
   width: 300px;
   max-height: calc(100vh - 140px);
@@ -947,33 +963,12 @@ dialog menu button {
 @keyframes parpadeo { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .led[data-estado="comprobando"] { animation: none; } }
 
-/* Selector de perfiles */
-.selector-perfil { position: relative; min-width: 0; }
-#btn-perfil::after { content: " ▾" / ""; }
-#btn-perfil { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.menu-perfiles {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  width: max-content;
-  min-width: 200px;
-  max-width: min(300px, calc(100vw - 32px));
-  max-height: 60vh;
-  padding: 6px;
-  overflow-y: auto;
-  border-radius: var(--radio-menu);
-  background: var(--superficie);
-  box-shadow: var(--sombra-fuerte);
-}
-.menu-perfiles[hidden] { display: none; }
-.menu-perfiles button { padding: 8px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--texto); font: inherit; font-size: 13px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.menu-perfiles button:hover, .menu-perfiles button:focus-visible { background: var(--superficie-2); }
-.menu-perfiles [aria-checked="true"] { font-weight: 600; }
-.menu-perfiles [aria-checked="true"]::before { content: "✓ "; color: var(--acento); }
-.menu-perfiles .separador { margin: 4px 0; }
+/* Menú de perfiles: la capa de la isla con los perfiles y sus acciones. */
+.capa-perfiles { display: flex; flex-direction: column; max-height: 70vh; padding: 8px; overflow-y: auto; }
+.capa-perfiles button { padding: 8px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--texto); font: inherit; font-size: 13px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.capa-perfiles button:hover, .capa-perfiles button:focus-visible { background: var(--hover); }
+.capa-perfiles [aria-checked="true"] { font-weight: 600; }
+.capa-perfiles .separador { margin: 4px 0; }
 
 /* Texto solo para lectores de pantalla (títulos que dan estructura sin cambiar el aspecto). */
 .solo-lectores { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -986,8 +981,9 @@ dialog menu button {
   .izquierda { position: static; height: auto; padding: 56px 8px 8px; }
   .hora { font-size: 80px; }
   .rejilla { display: flex; flex-direction: column; gap: 16px; }
-  .esquina { position: fixed; top: 16px; right: 16px; }
-  .derecha-cab { padding-right: 0; }
+  .columna-der { display: contents; }
+  .isla-hueco { order: -1; top: 8px; }
+  .panel-tema { position: fixed; top: 72px; right: 8px; left: 8px; width: auto; }
   .asa-ancho, .celda { display: none; }
 }
 

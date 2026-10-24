@@ -102,7 +102,7 @@ function pintarPaleta() {
   listaPaleta.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
 }
 
-function abrirPaleta() {
+export function abrirPaleta() {
   focoAnterior = document.activeElement;
   disponibles = comandos();
   entrada.value = '';

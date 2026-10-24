@@ -147,8 +147,10 @@ export default {
     // (g) Con 900 px de ancho el botón es visible y el menú cabe.
     pg = await nueva({}, { ancho: 900 });
     await pg.esperar(800);
+    // El menú sustituye a la barra de la isla: el botón se mide antes de abrirlo.
+    const boton = await pg.ev(`(() => { const b = document.getElementById('btn-perfil').getBoundingClientRect(); return b.width > 0 && b.right <= innerWidth; })()`);
     await abrirMenu(pg);
-    const cabe = await pg.ev(`(() => { const b = document.getElementById('btn-perfil').getBoundingClientRect(); const m = document.getElementById('menu-perfiles').getBoundingClientRect(); return [b.width > 0 && b.right <= innerWidth, m.left >= 0 && m.right <= innerWidth, document.documentElement.scrollWidth <= innerWidth]; })()`);
-    igual(cabe, [true, true, true], 'botón visible, menú dentro de la ventana y sin desplazamiento horizontal');
+    const cabe = await pg.ev(`(() => { const m = document.getElementById('menu-perfiles').getBoundingClientRect(); return [m.left >= 0 && m.right <= innerWidth, document.documentElement.scrollWidth <= innerWidth]; })()`);
+    igual([boton, ...cabe], [true, true, true], 'botón visible, menú dentro de la ventana y sin desplazamiento horizontal');
   },
 };

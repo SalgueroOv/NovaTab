@@ -327,7 +327,7 @@ $('#btn-tema').addEventListener('click', () => {
   $('#btn-tema').setAttribute('aria-expanded', String(!panelTema.hidden));
 });
 document.addEventListener('click', ev => {
-  if (!ev.target.closest('.esquina')) panelTema.hidden = true;
+  if (!ev.target.closest('#isla, #panel-tema')) panelTema.hidden = true;
 });
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape') panelTema.hidden = true;

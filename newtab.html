@@ -33,118 +33,131 @@
       <div class="rejilla rejilla-izq" id="rejilla-izq" data-panel="izq" style="--columnas: 6" aria-label="Widgets"></div>
     </section>
 
+    <div class="columna-der">
+      <div class="isla-hueco">
+        <nav class="isla" id="isla" aria-label="Mando">
+          <div class="capa capa-barra">
+            <button class="chip-perfil" type="button" id="btn-perfil" aria-haspopup="menu" aria-expanded="false"></button>
+            <span class="isla-sep" aria-hidden="true"></span>
+            <button class="buscar-mandar" type="button" id="btn-paleta"><span id="ico-paleta"></span><span class="buscar-texto">Buscar o mandar</span><kbd>Ctrl</kbd><kbd>K</kbd></button>
+            <span class="isla-sep" aria-hidden="true"></span>
+            <button class="isla-boton" type="button" id="btn-reunion" aria-pressed="false"></button>
+            <button class="isla-boton" type="button" id="btn-editar" aria-label="Editar grupos y enlaces" title="Editar grupos y enlaces" aria-pressed="false"></button>
+            <button class="isla-boton" type="button" id="btn-tema" aria-label="Personalizar" title="Personalizar" aria-expanded="false"></button>
+          </div>
+          <div class="capa capa-perfiles menu-perfiles" id="menu-perfiles" role="menu" aria-label="Perfiles" hidden></div>
+          <div class="capa capa-edicion" hidden>
+            <span class="editando-txt" id="editando-txt"></span>
+            <button class="boton-texto" type="button" data-nuevo-grupo="local">Añadir grupo</button>
+            <button class="boton-texto" type="button" id="btn-nuevo-widget">Añadir widget</button>
+            <button class="boton-texto" type="button" id="btn-deshacer" disabled>Deshacer</button>
+            <button class="boton-texto primario" type="button" id="btn-listo">Listo</button>
+          </div>
+        </nav>
+        <div class="panel-tema" id="panel-tema" hidden>
+          <div class="pestanas-panel" role="tablist" aria-label="Personalizar">
+            <button type="button" role="tab" data-pestana="tema" aria-selected="true">Tema</button>
+            <button type="button" role="tab" data-pestana="fondo" aria-selected="false">Fondo</button>
+            <button type="button" role="tab" data-pestana="diseno" aria-selected="false">Diseño</button>
+            <button type="button" role="tab" data-pestana="buscador" aria-selected="false">Buscador</button>
+          </div>
+          <div role="tabpanel" id="pestana-tema">
+          <div class="muestras" id="muestras"></div>
+          <div class="acento">
+            <label for="acento-libre">Color de acento</label>
+            <input type="color" id="acento-libre" value="#1a73e8">
+            <button class="boton-texto" type="button" id="acento-restaurar">Restaurar</button>
+          </div>
+          <h2 class="opciones-titulo">Opciones</h2>
+          <label class="opcion"><input type="checkbox" id="opt-fondo-grupos" checked> Fondo de color en los grupos</label>
+          <label class="opcion"><input type="checkbox" id="opt-sobrio"> Modo sobrio: iconos y colores en el tono del tema</label>
+          <h2 class="opciones-titulo">Copias automáticas</h2>
+          <ul class="lista-copias" id="lista-copias"></ul>
+          <h2 class="opciones-titulo">Datos</h2>
+          <div class="botones-datos">
+            <button class="boton-texto" type="button" id="btn-exportar" title="Descargar copia en JSON">Exportar</button>
+            <button class="boton-texto" type="button" id="btn-importar" title="Cargar copia en JSON">Importar</button>
+            <button class="boton-texto" type="button" id="btn-importar-marcadores" title="Crear grupos con tus marcadores de Chrome">Importar marcadores</button>
+            <input id="archivo" type="file" accept=".json,application/json" hidden>
+          </div>
+          <button class="boton-texto peligro" type="button" id="btn-restablecer">Restablecer todo…</button>
+          </div>
+          <div role="tabpanel" id="pestana-fondo" hidden>
+            <div class="fondos" id="muestras-fondo"></div>
+            <div class="imagen-propia">
+              <button class="boton-texto" type="button" id="quitar-imagen" hidden>Quitar imagen</button>
+              <input type="file" id="archivo-fondo" accept="image/png,image/jpeg,image/webp" hidden>
+            </div>
+            <div class="intensidad">
+              <label for="intensidad">Intensidad</label>
+              <input type="range" id="intensidad" min="0" max="100" step="1" value="100">
+            </div>
+            <p class="ayuda-panel nota-imagen" id="nota-imagen" hidden>Con una imagen el fondo no se mueve ni se ilumina con el ratón.</p>
+            <div class="ajustes-terreno" id="ajustes-terreno">
+              <div class="intensidad">
+                <label for="densidad-fondo">Densidad</label>
+                <input type="range" id="densidad-fondo" min="0" max="100" step="1" value="55">
+              </div>
+              <div class="intensidad">
+                <label for="relieve">Relieve</label>
+                <input type="range" id="relieve" min="0" max="100" step="1" value="45">
+              </div>
+              <h2 class="opciones-titulo">Movimiento</h2>
+              <div class="eleccion" role="group" aria-label="Movimiento">
+                <button type="button" data-movimiento="quieto">Quieto</button>
+                <button type="button" data-movimiento="lento">Lento</button>
+                <button type="button" data-movimiento="vivo">Vivo</button>
+              </div>
+              <label class="opcion opcion-brillo"><input type="checkbox" id="opt-brillo" checked> Iluminar bajo el ratón</label>
+              <button class="boton-texto" type="button" id="otro-terreno" title="Cada perfil tiene su propio relieve: esto le da otro">Generar otro terreno</button>
+            </div>
+          </div>
+          <div role="tabpanel" id="pestana-buscador" hidden>
+            <h2>Motor de búsqueda</h2>
+            <select id="motor-buscador" aria-label="Motor de búsqueda"></select>
+            <h2 class="opciones-titulo">Atajos</h2>
+            <p class="ayuda-panel">Escribe «!clave texto» en el buscador. Pon %s donde va el texto.</p>
+            <ul class="lista-atajos" id="lista-atajos"></ul>
+            <div class="acciones-atajos">
+              <button class="boton-texto" type="button" id="atajo-nuevo">Añadir atajo</button>
+              <button class="boton-texto" type="button" id="atajos-restaurar">Restaurar atajos</button>
+            </div>
+            <h2 class="opciones-titulo">Sugerencias</h2>
+            <label class="opcion"><input type="checkbox" id="opt-sugerencias"> Sugerencias de Google mientras escribes (envía lo que escribes a Google)</label>
+          </div>
+          <div role="tabpanel" id="pestana-diseno" hidden>
+            <h2>Paneles</h2>
+            <div class="eleccion" role="group" aria-label="Paneles">
+              <button type="button" id="btn-panel-izq" aria-pressed="true">Panel izquierdo</button>
+              <button type="button" id="btn-panel-der" aria-pressed="true">Panel derecho</button>
+            </div>
+            <h2 class="opciones-titulo">Densidad</h2>
+            <div class="eleccion" role="group" aria-label="Densidad">
+              <button type="button" id="densidad-comoda" data-densidad="comoda">Cómoda</button>
+              <button type="button" id="densidad-compacta" data-densidad="compacta">Compacta</button>
+            </div>
+            <h2 class="opciones-titulo">Esquinas</h2>
+            <div class="eleccion" role="group" aria-label="Esquinas">
+              <button type="button" id="esquinas-recto" data-esquinas="recto">Recto</button>
+              <button type="button" id="esquinas-medio" data-esquinas="medio">Medio</button>
+              <button type="button" id="esquinas-redondo" data-esquinas="redondo">Redondo</button>
+            </div>
+            <h2 class="opciones-titulo">Reloj</h2>
+            <label class="opcion"><input type="checkbox" id="opt-hora24"> Reloj de 24 horas</label>
+            <label class="opcion"><input type="checkbox" id="opt-segundos"> Mostrar segundos</label>
+            <label class="opcion"><input type="checkbox" id="opt-fecha"> Mostrar la fecha</label>
+          </div>
+        </div>
+      </div>
     <section class="derecha" aria-labelledby="t-local">
       <header class="derecha-cab">
         <h1 id="t-local" class="titulo-editable" data-titulo="local" spellcheck="false">Red local</h1>
-        <div class="selector-perfil">
-          <button class="boton-texto" type="button" id="btn-perfil" aria-haspopup="menu" aria-expanded="false"></button>
-          <div class="menu-perfiles" id="menu-perfiles" role="menu" aria-label="Perfiles" hidden></div>
-        </div>
         <span class="etiqueta-zona mono" id="resumen-local"></span>
-        <div class="barra-edicion solo-edicion">
-          <button class="boton-texto" type="button" data-nuevo-grupo="local">Añadir grupo</button>
-          <button class="boton-texto" type="button" id="btn-nuevo-widget">Añadir widget</button>
-          <button class="boton-texto" type="button" id="btn-exportar" title="Descargar copia en JSON">Exportar</button>
-          <button class="boton-texto" type="button" id="btn-importar" title="Cargar copia en JSON">Importar</button>
-          <button class="boton-texto" type="button" id="btn-importar-marcadores" title="Crear grupos con tus marcadores de Chrome">Importar marcadores</button>
-          <button class="boton-texto primario" type="button" id="btn-listo">Listo</button>
-          <input id="archivo" type="file" accept=".json,application/json" hidden>
-        </div>
       </header>
-      <p class="ayuda solo-edicion">Arrastra un grupo o widget por su título para colocarlo; el borde derecho cambia su ancho y la esquina de un widget, su tamaño. Clic en un enlace para editarlo y en el título de un panel para renombrarlo.</p>
       <h2 class="solo-lectores">Tus servicios</h2>
       <div class="rejilla" id="rejilla" data-panel="der" style="--columnas: 12"></div>
       <p class="vacio" id="vacio-local" hidden>No hay grupos locales. Pulsa el lápiz y «Añadir grupo».</p>
-    </section>
-    <!-- Botones de paneles, edición y tema: en la cabecera del panel derecho (ver style.css). -->
-    <div class="esquina">
-      <button class="icono-boton" type="button" id="btn-reunion" aria-pressed="false"></button>
-      <button class="icono-boton boton-panel" type="button" id="btn-panel-izq" aria-pressed="true"></button>
-      <button class="icono-boton boton-panel" type="button" id="btn-panel-der" aria-pressed="true"></button>
-      <button class="icono-boton" type="button" id="btn-editar" title="Editar enlaces" aria-pressed="false"></button>
-      <button class="icono-boton" type="button" id="btn-tema" title="Personalizar" aria-expanded="false"></button>
-      <div class="panel-tema" id="panel-tema" hidden>
-        <div class="pestanas-panel" role="tablist" aria-label="Personalizar">
-          <button type="button" role="tab" data-pestana="tema" aria-selected="true">Tema</button>
-          <button type="button" role="tab" data-pestana="fondo" aria-selected="false">Fondo</button>
-          <button type="button" role="tab" data-pestana="diseno" aria-selected="false">Diseño</button>
-          <button type="button" role="tab" data-pestana="buscador" aria-selected="false">Buscador</button>
-        </div>
-        <div role="tabpanel" id="pestana-tema">
-        <div class="muestras" id="muestras"></div>
-        <div class="acento">
-          <label for="acento-libre">Color de acento</label>
-          <input type="color" id="acento-libre" value="#1a73e8">
-          <button class="boton-texto" type="button" id="acento-restaurar">Restaurar</button>
-        </div>
-        <h2 class="opciones-titulo">Opciones</h2>
-        <label class="opcion"><input type="checkbox" id="opt-fondo-grupos" checked> Fondo de color en los grupos</label>
-        <label class="opcion"><input type="checkbox" id="opt-sobrio"> Modo sobrio: iconos y colores en el tono del tema</label>
-        <h2 class="opciones-titulo">Copias automáticas</h2>
-        <ul class="lista-copias" id="lista-copias"></ul>
-        <button class="boton-texto peligro" type="button" id="btn-restablecer">Restablecer todo…</button>
-        </div>
-        <div role="tabpanel" id="pestana-fondo" hidden>
-          <div class="fondos" id="muestras-fondo"></div>
-          <div class="imagen-propia">
-            <button class="boton-texto" type="button" id="quitar-imagen" hidden>Quitar imagen</button>
-            <input type="file" id="archivo-fondo" accept="image/png,image/jpeg,image/webp" hidden>
-          </div>
-          <div class="intensidad">
-            <label for="intensidad">Intensidad</label>
-            <input type="range" id="intensidad" min="0" max="100" step="1" value="100">
-          </div>
-          <p class="ayuda-panel nota-imagen" id="nota-imagen" hidden>Con una imagen el fondo no se mueve ni se ilumina con el ratón.</p>
-          <div class="ajustes-terreno" id="ajustes-terreno">
-            <div class="intensidad">
-              <label for="densidad-fondo">Densidad</label>
-              <input type="range" id="densidad-fondo" min="0" max="100" step="1" value="55">
-            </div>
-            <div class="intensidad">
-              <label for="relieve">Relieve</label>
-              <input type="range" id="relieve" min="0" max="100" step="1" value="45">
-            </div>
-            <h2 class="opciones-titulo">Movimiento</h2>
-            <div class="eleccion" role="group" aria-label="Movimiento">
-              <button type="button" data-movimiento="quieto">Quieto</button>
-              <button type="button" data-movimiento="lento">Lento</button>
-              <button type="button" data-movimiento="vivo">Vivo</button>
-            </div>
-            <label class="opcion opcion-brillo"><input type="checkbox" id="opt-brillo" checked> Iluminar bajo el ratón</label>
-            <button class="boton-texto" type="button" id="otro-terreno" title="Cada perfil tiene su propio relieve: esto le da otro">Generar otro terreno</button>
-          </div>
-        </div>
-        <div role="tabpanel" id="pestana-buscador" hidden>
-          <h2>Motor de búsqueda</h2>
-          <select id="motor-buscador" aria-label="Motor de búsqueda"></select>
-          <h2 class="opciones-titulo">Atajos</h2>
-          <p class="ayuda-panel">Escribe «!clave texto» en el buscador. Pon %s donde va el texto.</p>
-          <ul class="lista-atajos" id="lista-atajos"></ul>
-          <div class="acciones-atajos">
-            <button class="boton-texto" type="button" id="atajo-nuevo">Añadir atajo</button>
-            <button class="boton-texto" type="button" id="atajos-restaurar">Restaurar atajos</button>
-          </div>
-          <h2 class="opciones-titulo">Sugerencias</h2>
-          <label class="opcion"><input type="checkbox" id="opt-sugerencias"> Sugerencias de Google mientras escribes (envía lo que escribes a Google)</label>
-        </div>
-        <div role="tabpanel" id="pestana-diseno" hidden>
-          <h2>Densidad</h2>
-          <div class="eleccion" role="group" aria-label="Densidad">
-            <button type="button" id="densidad-comoda" data-densidad="comoda">Cómoda</button>
-            <button type="button" id="densidad-compacta" data-densidad="compacta">Compacta</button>
-          </div>
-          <h2 class="opciones-titulo">Esquinas</h2>
-          <div class="eleccion" role="group" aria-label="Esquinas">
-            <button type="button" id="esquinas-recto" data-esquinas="recto">Recto</button>
-            <button type="button" id="esquinas-medio" data-esquinas="medio">Medio</button>
-            <button type="button" id="esquinas-redondo" data-esquinas="redondo">Redondo</button>
-          </div>
-          <h2 class="opciones-titulo">Reloj</h2>
-          <label class="opcion"><input type="checkbox" id="opt-hora24"> Reloj de 24 horas</label>
-          <label class="opcion"><input type="checkbox" id="opt-segundos"> Mostrar segundos</label>
-          <label class="opcion"><input type="checkbox" id="opt-fecha"> Mostrar la fecha</label>
-        </div>
-      </div>
+      </section>
     </div>
     <div class="separador-paneles" id="separador-paneles" role="separator" aria-orientation="vertical" aria-label="Ancho del panel izquierdo" aria-valuemin="25" aria-valuemax="50" aria-valuenow="36" tabindex="0" title="Arrastra para cambiar el ancho; doble clic para restaurar"></div>
   </main>

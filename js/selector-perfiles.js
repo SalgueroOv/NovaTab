@@ -3,6 +3,7 @@ import { $, avisar, crear, svg } from './util.js';
 import { abrirDialogo } from './edicion.js';
 import { MAX_PERFILES, esDemo, perfilActivo, perfilesDeLaLista, perfilesListos } from './perfiles.js';
 import { alternarDemo, borrarPerfil, cambiarPerfil, crearPerfil, renombrarPerfil } from './perfiles-ops.js';
+import { capaActual, ponerCapa } from './isla.js';
 
 const boton = $('#btn-perfil');
 const menu = $('#menu-perfiles');
@@ -52,14 +53,15 @@ function pintar() {
   menu.replaceChildren(...filas, crear('div', 'separador'), ...acciones);
 }
 
+// El menú es una capa de la isla: abrirlo y cerrarlo es cambiar de capa.
 function abrir() {
-  menu.hidden = false;
+  ponerCapa('perfiles');
   boton.setAttribute('aria-expanded', 'true');
   (menu.querySelector('[aria-checked="true"]') ?? elementos()[0])?.focus();
 }
 
 function cerrar(devolverFoco = false) {
-  menu.hidden = true;
+  if (capaActual() === 'perfiles') ponerCapa('barra');
   boton.setAttribute('aria-expanded', 'false');
   if (devolverFoco) boton.focus();
 }
@@ -88,7 +90,7 @@ menu.addEventListener('keydown', ev => {
   }
 });
 document.addEventListener('click', ev => {
-  if (!menu.hidden && !ev.target.closest('.selector-perfil')) cerrar();
+  if (!menu.hidden && !ev.target.closest('#isla')) cerrar();
 });
 
 // ---------- Acciones ----------

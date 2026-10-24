@@ -112,7 +112,7 @@ export default {
       pg = await abrir(conApariencia({ esquinas: valor }));
       await pg.esperar(300);
       igual(await pg.ev(radio('#rejilla .grupo')), px, `radio del grupo con esquinas ${valor}`);
-      igual(await pg.ev(radio('#btn-editar')), '50%', `el icono redondo no cambia con ${valor}`);
+      igual(await pg.ev(radio('#btn-editar')), '12px', `los botones de la isla no cambian con ${valor}`);
     }
 
     // (h) Reloj: 12/24 h, segundos y fecha.
