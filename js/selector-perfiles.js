@@ -4,7 +4,7 @@ import { $, avisar, crear, svg } from './util.js';
 import { abrirDialogo } from './edicion.js';
 import { MAX_PERFILES, claveAspecto, esDemo, perfilActivo, perfilesDeLaLista, perfilesListos } from './perfiles.js';
 import { leer } from './almacen.js';
-import { apariencia, normalizarApariencia, temaActual } from './apariencia.js';
+import { apariencia, normalizarApariencia, panelTema, temaActual } from './apariencia.js';
 import { FONDOS } from './fondos.js';
 import { buscarTema } from './temas.js';
 import { miniatura } from './terreno.js';
@@ -31,6 +31,7 @@ function pintarOjo() {
 ojo.addEventListener('click', () => alternarDemo().catch(err => avisar(err.message)));
 
 function pintar() {
+  const focoEnMenu = menu.contains(document.activeElement);
   pintarOjo();
   boton.hidden = !perfilesListos();
   const lista = perfilesDeLaLista();
@@ -72,11 +73,17 @@ function pintar() {
   const pie = crear('div', 'acciones-perfil');
   pie.append(...acciones);
   menu.replaceChildren(crear('p', 'perfiles-cab', 'Perfiles'), cartas, pie);
-  if (capaActual() === 'perfiles') pintarCartas();
+  if (capaActual() === 'perfiles') {
+    pintarCartas();
+    // Las cartas se acaban de rehacer (otro perfil, por Alt+P o desde otra pestaña): el foco no se pierde.
+    if (focoEnMenu) menu.querySelector('[aria-checked="true"]')?.focus();
+  }
 }
 
 // El menú es una capa de la isla: abrirlo y cerrarlo es cambiar de capa.
 function abrir() {
+  panelTema.hidden = true; // Personalizar y el menú no se pisan
+  $('#btn-tema').setAttribute('aria-expanded', 'false');
   ponerCapa('perfiles');
   pintarCartas();
   boton.setAttribute('aria-expanded', 'true');
@@ -142,7 +149,22 @@ function pintarCartas() {
   });
 }
 
-$('#velo-isla').addEventListener('click', () => cerrar());
+$('#velo-isla').addEventListener('click', () => cerrar(true));
+
+// La miniatura del chip: se repinta al volver a la barra (oculta no mide nada) y cuando cambia el aspecto.
+const pintarChip = () => { const c = boton.querySelector('canvas.mini-perfil'); if (c) requestAnimationFrame(() => pintarMini(c, perfilActivo())); };
+document.addEventListener('novatab:capa', ev => { if (ev.detail.capa === 'barra') pintarChip(); });
+document.addEventListener('novatab:apariencia', pintarChip);
+document.addEventListener('novatab:tema', pintarChip);
+
+// Esc cierra el menú aunque el foco no esté en él; abrir la paleta, también.
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && capaActual() === 'perfiles' && !document.querySelector('dialog[open]')) {
+    ev.preventDefault();
+    cerrar(true);
+  }
+});
+document.addEventListener('novatab:paleta', () => { if (capaActual() === 'perfiles') cerrar(); });
 
 // ---------- Acciones ----------
 

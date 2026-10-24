@@ -11,13 +11,15 @@ let actual = 'barra';
 
 export const capaActual = () => actual;
 
-const ajustarAlto = () => { isla.style.height = `${capas[actual].scrollHeight}px`; };
+// El alto de la capa tal como se ve (el menú de perfiles tiene un tope y se desplaza por dentro).
+const ajustarAlto = () => { isla.style.height = `${capas[actual].offsetHeight}px`; };
 
 export function ponerCapa(capa) {
   actual = capa;
   for (const [nombre, el] of Object.entries(capas)) el.hidden = nombre !== capa;
   document.body.classList.toggle('con-velo', capa === 'perfiles');
   ajustarAlto();
+  document.dispatchEvent(new CustomEvent('novatab:capa', { detail: { capa } }));
 }
 
 const observador = new ResizeObserver(ajustarAlto);

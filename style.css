@@ -128,6 +128,7 @@ body {
   z-index: 1;
   display: grid;
   grid-template-columns: minmax(400px, 36%) 1fr;
+  align-content: start; /* con la isla en su propia fila (panel derecho oculto o pantalla estrecha), sin estirar */
   gap: 24px;
   min-height: 100vh;
   padding: 24px;
@@ -1010,7 +1011,7 @@ dialog menu button {
 @media (max-width: 1000px) {
   .separador-paneles { display: none; }
   .pagina { grid-template-columns: 1fr; }
-  .izquierda { position: static; height: auto; padding: 56px 8px 8px; }
+  .izquierda { position: static; height: auto; padding: 8px; }
   .hora { font-size: 80px; }
   .rejilla { display: flex; flex-direction: column; gap: 16px; }
   .columna-der { display: contents; }

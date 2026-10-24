@@ -103,6 +103,7 @@ function pintarPaleta() {
 }
 
 export function abrirPaleta() {
+  document.dispatchEvent(new Event('novatab:paleta')); // la isla cierra su menú de perfiles
   focoAnterior = document.activeElement;
   disponibles = comandos();
   entrada.value = '';

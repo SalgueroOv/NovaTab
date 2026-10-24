@@ -73,6 +73,7 @@ export function ponerTema(id, { animar = true } = {}) {
   if (!animar) sinTransicion();
   aplicarColores(buscarTema(temaActual));
   marcarMuestras();
+  document.dispatchEvent(new Event('novatab:tema')); // las miniaturas con el terreno del perfil se repintan
   pintarMinisFondo();
 }
 

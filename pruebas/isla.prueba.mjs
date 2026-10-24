@@ -128,6 +128,81 @@ export default {
     afirmar(!(await pg.ev(`document.querySelector('#isla .capa-barra').hidden`)), 'Listo vuelve a la barra');
     afirmar(!(await pg.ev(`document.body.classList.contains('editando')`)), 'y sale de la edición');
 
+    // (p) Revisión: con el menú abierto y un cambio de perfil por fuera (Alt+P), el foco sigue en el menú y Esc cierra.
+    pg = await abrir({ chrome: {}, datos: null, guardados: DOS_PERFILES, reducirMovimiento: true });
+    await pg.esperar(600);
+    await pg.clic('#btn-perfil');
+    await pg.esperar(300);
+    await pg.ev(`document.querySelector('#menu-perfiles [aria-checked="true"]').focus()`);
+    await pg.ev(`import('/js/perfiles-ops.js').then(m => m.cambiarPerfil('otro'))`);
+    await pg.esperar(600);
+    igual(await pg.ev(`(() => { const a = document.activeElement; return a.classList.contains('carta-perfil') ? [a.getAttribute('aria-checked'), a.textContent.trim()] : [a.tagName, a.id]; })()`), ['true', 'Otro'], 'el foco pasa a la carta del perfil activo');
+    await pg.ev(`document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
+    await pg.esperar(200);
+    afirmar(await pg.ev(`document.getElementById('menu-perfiles').hidden`), 'y Esc cierra');
+    // Con el foco fuera del menú, Esc también cierra.
+    await pg.clic('#btn-perfil');
+    await pg.esperar(200);
+    await pg.ev(`document.body.focus(); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
+    await pg.esperar(200);
+    afirmar(await pg.ev(`document.getElementById('menu-perfiles').hidden`), 'Esc cierra el menú aunque el foco no esté en él');
+
+    // (q) La miniatura del chip se repinta al volver a la barra y al cambiar el fondo o el tema.
+    const chip = `document.querySelector('#btn-perfil canvas.mini-perfil')`;
+    const huellaChip = `(() => { const c = ${chip}; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0; for (let i = 0; i < d.length; i++) h = (h * 31 + d[i]) | 0; return h; })()`;
+    await pg.clic('#btn-editar');
+    await pg.ev(`import('/js/perfiles-ops.js').then(m => m.cambiarPerfil('principal'))`);
+    await pg.esperar(600);
+    await pg.clic('#btn-listo');
+    await pg.esperar(300);
+    afirmar(await pg.ev(distintos(chip)) > 20, 'tras cambiar de perfil editando, el chip lleva su terreno');
+    let antes = await pg.ev(huellaChip);
+    await pg.ev(`import('/js/apariencia.js').then(m => m.cambiarApariencia({ fondo: 'rayas' }))`);
+    await pg.esperar(300);
+    afirmar(await pg.ev(huellaChip) !== antes, 'el chip sigue al fondo');
+    antes = await pg.ev(huellaChip);
+    await pg.ev(`import('/js/apariencia.js').then(m => m.ponerTema('papel'))`);
+    await pg.esperar(300);
+    afirmar(await pg.ev(huellaChip) !== antes, 'y al tema');
+
+    // (r) Abrir el menú de perfiles cierra Personalizar (no se pisan).
+    await pg.clic('#btn-tema');
+    afirmar(!(await pg.ev(`document.getElementById('panel-tema').hidden`)), 'Personalizar abierto');
+    await pg.clic('#btn-perfil');
+    afirmar(await pg.ev(`document.getElementById('panel-tema').hidden`), 'al abrir los perfiles se cierra Personalizar');
+
+    // (s) Abrir la paleta con el teclado cierra el menú de perfiles.
+    await pg.p.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'k', code: 'KeyK', windowsVirtualKeyCode: 75, modifiers: 2 });
+    await pg.p.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'k', code: 'KeyK', windowsVirtualKeyCode: 75, modifiers: 2 });
+    await pg.esperar(300);
+    afirmar(await pg.ev(`document.getElementById('menu-perfiles').hidden`), 'la paleta cierra el menú de perfiles');
+    await pg.ev(`document.getElementById('paleta').close()`);
+
+    // (t) Con muchos perfiles, la isla mide lo que su menú (sin franja vacía) y no se sale de la ventana.
+    const siete = { ...DOS_PERFILES, 'chrome.sync/perfiles': { version: 5, lista: ['principal', 'otro', 'p3', 'p4', 'p5', 'p6', 'p7'].map(id => ({ id, nombre: id })) } };
+    for (const id of ['p3', 'p4', 'p5', 'p6', 'p7']) siete[`chrome.sync/perfil:${id}:datos`] = { ...estructura(DATOS_PRUEBA), grupos: [] };
+    pg = await abrir({ chrome: {}, datos: null, guardados: siete, ancho: 400, alto: 700, reducirMovimiento: true });
+    await pg.esperar(600);
+    await pg.clic('#btn-perfil');
+    await pg.esperar(400);
+    const [altoIsla, altoMenu, abajo] = await pg.ev(`[document.getElementById('isla').getBoundingClientRect().height, document.getElementById('menu-perfiles').getBoundingClientRect().height, document.getElementById('isla').getBoundingClientRect().bottom]`);
+    afirmar(Math.abs(altoIsla - altoMenu) <= 2, `la isla mide lo que su menú (${altoIsla} y ${altoMenu})`);
+    afirmar(abajo <= 700, `y cabe en la ventana (acaba en ${abajo})`);
+
+    // (u) Sin panel derecho no queda un hueco grande entre la isla y el panel izquierdo.
+    pg = await abrir({ reducirMovimiento: true });
+    await pg.esperar(400);
+    await pg.clic('#btn-panel-der');
+    await pg.esperar(300);
+    const hueco = await pg.ev(`document.querySelector('.izquierda').getBoundingClientRect().top - document.getElementById('isla').getBoundingClientRect().bottom`);
+    afirmar(hueco <= 40, `hueco entre la isla y el panel izquierdo de ${Math.round(hueco)} px`);
+
+    // (v) A 800 px no sobra el hueco de arriba que dejaba sitio a los botones antiguos.
+    pg = await abrir({ ancho: 800, reducirMovimiento: true });
+    await pg.esperar(400);
+    const arriba = await pg.ev(`document.querySelector('.hora').getBoundingClientRect().top - document.getElementById('isla').getBoundingClientRect().bottom`);
+    afirmar(arriba <= 40, `del final de la isla a la hora hay ${Math.round(arriba)} px`);
+
     // (d) A 800 px la isla va arriba del todo y cabe en la ventana.
     pg = await abrir({ ancho: 800, reducirMovimiento: true });
     await pg.esperar(400);
