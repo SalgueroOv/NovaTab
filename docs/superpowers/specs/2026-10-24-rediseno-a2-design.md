@@ -154,7 +154,7 @@ estudio es una hoja que sube desde abajo y la página no se escala. Esc o Hecho 
 Tres valores en `apariencia.estilo`: `mapa` (por defecto), `baldosas` y `compacto`. **No cambian la rejilla ni
 dónde están los bloques.** Cambian:
 
-- **Mapa**: reloj grande (como ahora) y grupos con filas de dos líneas (nombre arriba, IP en monoespaciada pequeña debajo, estado a la derecha si está activo).
+- **Mapa**: reloj grande (como ahora) y grupos con filas de una línea, la dirección a la derecha (el usuario prefirió esto a las dos líneas, 6.0.2).
 - **Baldosas**: reloj aún mayor y la vista por defecto de los grupos es en fichas (logo grande, nombre, IP y estado), basada en la vista `iconos` actual.
 - **Compacto**: reloj de 84 px, densidad compacta y filas de una línea sin IP.
 

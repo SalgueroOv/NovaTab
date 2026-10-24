@@ -10,7 +10,7 @@ Extensión de Chrome que sustituye la pestaña nueva por una página de inicio p
 - Un solo mando, la isla, encima del panel derecho: el perfil (con su terreno), «Buscar o mandar» (Ctrl+K), reunión, editar y personalizar; se convierte en el menú de perfiles o en la barra de edición.
 - Paleta Ctrl+K sobre la isla: búsqueda difusa por grupos (perfiles, vista, servicios, Internet, aspecto, datos) que también encuentra los enlaces de tus otros perfiles.
 - Personalizar es un estudio a la derecha (Aspecto, Disposición, Buscador y Datos) que dice qué ajustes son del perfil y cuáles comunes.
-- Tres estilos de página por perfil: Mapa (filas con la dirección debajo), Baldosas (fichas) y Compacto. Los grupos en vista «Automática» lo siguen.
+- Tres estilos de página por perfil: Mapa (filas con la dirección a la derecha), Baldosas (fichas) y Compacto. Los grupos en vista «Automática» lo siguen.
 - Opcional por grupo: «Comprobar si responden» pone un punto de estado y los milisegundos en cada enlace, y un resumen en la cabecera.
 - Carpeta de copias: elige una carpeta (por ejemplo Documentos\NovaTab) y Exportar y la copia diaria sobrescriben ahí un solo archivo por perfil.
 - Modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
