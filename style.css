@@ -226,8 +226,10 @@ button { font: inherit; color: inherit; }
 }
 .isla-boton:hover { background: var(--hover); color: var(--texto); }
 .isla-boton[aria-pressed="true"] { background: var(--hover); color: var(--acento); }
-.capa-edicion { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 56px; padding: 8px 10px 8px 16px; }
-.editando-txt { margin-right: auto; color: var(--texto-2); font-size: 14px; }
+.capa-edicion { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; min-height: 56px; padding: 8px 10px 8px 16px; }
+.editando-txt { min-width: 0; margin-right: auto; overflow: hidden; color: var(--texto-2); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.capa-edicion .boton-texto { flex: none; }
+@media (max-width: 600px) { .capa-edicion { flex-wrap: wrap; } }
 .editando-txt b { color: var(--texto); }
 .botones-datos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
 /* En una pantalla estrecha, «Buscar o mandar» se queda en la lupa (el atajo Ctrl+K sigue valiendo). */

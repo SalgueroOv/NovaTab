@@ -3,6 +3,7 @@
 //   node pruebas/ejecutar.mjs              todas
 //   node pruebas/ejecutar.mjs rejilla      solo las que contienen «rejilla» en el nombre del archivo
 //   node pruebas/ejecutar.mjs --sin-red    salta las que necesitan Internet
+//   node pruebas/ejecutar.mjs --hilos=1    una a una (por defecto, 4 a la vez, cada una en su propio Chrome)
 //
 // Cada pruebas/*.prueba.mjs exporta { nombre, red?, ejecutar(abrir) } y lanza un Error si algo falla.
 // Una prueba también falla si la página lanza excepciones. Sale con código 1 si alguna falla.
@@ -17,52 +18,64 @@ const dir = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const sinRed = args.includes('--sin-red');
 const filtro = args.find(a => !a.startsWith('--'));
+const hilos = Math.max(1, Number(args.find(a => a.startsWith('--hilos='))?.slice(8)) || 4);
 const archivos = readdirSync(dir)
   .filter(f => f.endsWith('.prueba.mjs') && (!filtro || f.includes(filtro)))
   .sort();
 
 const servidor = await iniciarServidor(RAIZ);
-const navegador = await Browser.launch();
-const abrirEn = crearAbrir(navegador, servidor.url);
 let fallos = 0;
 let pasadas = 0;
 let saltadas = 0;
+const cola = [...archivos];
 
-try {
-  for (const archivo of archivos) {
-    const { default: prueba } = await import(pathToFileURL(join(dir, archivo)).href);
-    if (prueba.red && sinRed) {
-      saltadas++;
-      console.log(`- ${prueba.nombre} (saltada: necesita Internet)`);
-      continue;
-    }
-    const abiertas = [];
-    const abrir = async opciones => {
-      const pagina = await abrirEn(opciones);
-      abiertas.push(pagina);
-      return pagina;
-    };
-    try {
-      const resultado = await prueba.ejecutar(abrir);
-      // Una prueba puede devolver «saltada: motivo» (por ejemplo, si faltan herramientas que no son obligatorias).
-      if (typeof resultado === 'string' && resultado.startsWith('saltada')) {
+// Cada hilo tiene su Chrome (el foco y los tiempos de una prueba no dependen de las demás) y va tomando pruebas
+// de la cola. Cada resultado se escribe entero de una vez para que no se mezcle con los de otro hilo.
+async function hilo() {
+  const navegador = await Browser.launch();
+  const abrirEn = crearAbrir(navegador, servidor.url);
+  try {
+    let archivo;
+    while ((archivo = cola.shift())) {
+      const { default: prueba } = await import(pathToFileURL(join(dir, archivo)).href);
+      if (prueba.red && sinRed) {
         saltadas++;
-        console.log(`- ${prueba.nombre} (${resultado})`);
+        console.log(`- ${prueba.nombre} (saltada: necesita Internet)`);
         continue;
       }
-      const errores = abiertas.flatMap(a => a.errores);
-      if (errores.length) throw new Error(`errores en la consola de la página: ${errores.join(' | ')}`);
-      pasadas++;
-      console.log(`✔ ${prueba.nombre}`);
-    } catch (err) {
-      fallos++;
-      console.log(`✘ ${prueba.nombre}\n    ${err.message}`);
-    } finally {
-      for (const a of abiertas) await a.cerrar().catch(() => {});
+      const abiertas = [];
+      const abrir = async opciones => {
+        const pagina = await abrirEn(opciones);
+        abiertas.push(pagina);
+        return pagina;
+      };
+      try {
+        const resultado = await prueba.ejecutar(abrir);
+        // Una prueba puede devolver «saltada: motivo» (por ejemplo, si faltan herramientas que no son obligatorias).
+        if (typeof resultado === 'string' && resultado.startsWith('saltada')) {
+          saltadas++;
+          console.log(`- ${prueba.nombre} (${resultado})`);
+          continue;
+        }
+        const errores = abiertas.flatMap(a => a.errores);
+        if (errores.length) throw new Error(`errores en la consola de la página: ${errores.join(' | ')}`);
+        pasadas++;
+        console.log(`✔ ${prueba.nombre}`);
+      } catch (err) {
+        fallos++;
+        console.log(`✘ ${prueba.nombre}  [${archivo}]\n    ${err.message}`);
+      } finally {
+        for (const a of abiertas) await a.cerrar().catch(() => {});
+      }
     }
+  } finally {
+    await navegador.close();
   }
+}
+
+try {
+  await Promise.all(Array.from({ length: Math.min(hilos, archivos.length) }, hilo));
 } finally {
-  await navegador.close();
   await servidor.cerrar();
 }
 

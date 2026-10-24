@@ -8,6 +8,11 @@ Extensión de Chrome que sustituye la pestaña nueva por una página de inicio p
 - Fondos animados: el relieve de cada perfil dibujado de nueve formas (curvas, cotas, rayas, galaxia…), que se mueve despacio y se ilumina bajo el ratón, o tu imagen.
 - Temas: once incluidos y los tuyos propios (fondo y acento), comunes a todos los perfiles; menús y paneles se tiñen con el tema.
 - Un solo mando, la isla, encima del panel derecho: el perfil (con su terreno), «Buscar o mandar» (Ctrl+K), reunión, editar y personalizar; se convierte en el menú de perfiles o en la barra de edición.
+- Paleta Ctrl+K sobre la isla: búsqueda difusa por grupos (perfiles, vista, servicios, Internet, aspecto, datos) que también encuentra los enlaces de tus otros perfiles.
+- Personalizar es un estudio a la derecha (Aspecto, Disposición, Buscador y Datos) que dice qué ajustes son del perfil y cuáles comunes.
+- Tres estilos de página por perfil: Mapa (filas con la dirección debajo), Baldosas (fichas) y Compacto. Los grupos en vista «Automática» lo siguen.
+- Opcional por grupo: «Comprobar si responden» pone un punto de estado y los milisegundos en cada enlace, y un resumen en la cabecera.
+- Carpeta de copias: elige una carpeta (por ejemplo Documentos\NovaTab) y Exportar y la copia diaria sobrescriben ahí un solo archivo por perfil.
 - Modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 - Todo se guarda en tu cuenta de Chrome (`chrome.storage.sync`, cada grupo en su propia clave): no hay servidor propio. Si otra pestaña cambia algo mientras editas, se aplica al terminar sin pisar lo tuyo.
 
@@ -34,6 +39,7 @@ Necesitan Node 22 o superior y Chrome instalado; no hay que instalar nada más.
 node pruebas/ejecutar.mjs              # todas
 node pruebas/ejecutar.mjs rejilla      # solo las que contienen «rejilla» en el nombre
 node pruebas/ejecutar.mjs --sin-red    # sin las que necesitan Internet
+node pruebas/ejecutar.mjs --hilos=1    # una a una (por defecto van 4 a la vez, cada una en su Chrome)
 ```
 
 Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pruebas/lib/datos-prueba.mjs`).
@@ -44,7 +50,7 @@ Cada prueba abre `newtab.html` en Chrome sin ventana con sus propios datos (`pru
 
 ```bash
 cd herramientas && npm install     # una vez
-node ../pruebas/ejecutar.mjs accesibilidad   # axe-core en los diez temas y cada estado (se salta si falta npm install)
+node ../pruebas/ejecutar.mjs accesibilidad   # axe-core en los once temas y cada estado (se salta si falta npm install)
 node lighthouse.mjs                # informe de Lighthouse
 ```
 

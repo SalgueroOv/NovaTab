@@ -34,7 +34,13 @@ export const ocupado = () => !!arrastre || moviendo || !!$('dialog[open]') || !!
 // se empuja dentro de guardar(), por donde pasa todo cambio de datos.
 const historial = crearHistorial(20);
 // El botón Deshacer de la isla, activo solo si hay algo que deshacer.
-const marcarDeshacer = () => { $('#btn-deshacer').disabled = !historial.puedeDeshacer(); };
+const marcarDeshacer = () => {
+  const boton = $('#btn-deshacer');
+  const teniaFoco = document.activeElement === boton;
+  boton.disabled = !historial.puedeDeshacer();
+  // Tras el último paso el botón se desactiva: el foco pasa a Listo en vez de perderse.
+  if (boton.disabled && teniaFoco) $('#btn-listo').focus();
+};
 export const limpiarHistorial = () => { historial.limpiar(); ocultarAvisoAccion(); marcarDeshacer(); };
 let notasUltimas = {}; // las notas tal como estaban en la última carga o guardado, y lo escrito desde entonces
 let tareasUltimas = {}; // lo mismo con las listas de tareas
