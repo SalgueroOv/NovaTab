@@ -1,7 +1,13 @@
-// El selector de perfiles junto al título del panel derecho: cambiar, crear, duplicar, renombrar y borrar.
+// El selector de perfiles de la isla: el chip con el perfil activo y su terreno, y la capa con una carta por
+// perfil (su terreno en su tema) para cambiar, crear, duplicar, renombrar y borrar.
 import { $, avisar, crear, svg } from './util.js';
 import { abrirDialogo } from './edicion.js';
-import { MAX_PERFILES, esDemo, perfilActivo, perfilesDeLaLista, perfilesListos } from './perfiles.js';
+import { MAX_PERFILES, claveAspecto, esDemo, perfilActivo, perfilesDeLaLista, perfilesListos } from './perfiles.js';
+import { leer } from './almacen.js';
+import { apariencia, normalizarApariencia, temaActual } from './apariencia.js';
+import { FONDOS } from './fondos.js';
+import { buscarTema } from './temas.js';
+import { miniatura } from './terreno.js';
 import { alternarDemo, borrarPerfil, cambiarPerfil, crearPerfil, renombrarPerfil } from './perfiles-ops.js';
 import { capaActual, ponerCapa } from './isla.js';
 
@@ -29,14 +35,25 @@ function pintar() {
   boton.hidden = !perfilesListos();
   const lista = perfilesDeLaLista();
   const act = actual();
-  boton.replaceChildren(crear('span', 'nombre-perfil', act?.nombre ?? ''));
-  boton.title = `Perfil: ${act?.nombre ?? ''}`;
+  const mini = crear('canvas', 'mini-perfil');
+  mini.setAttribute('aria-hidden', 'true');
+  const flecha = crear('span', 'flecha-perfil');
+  flecha.setAttribute('aria-hidden', 'true');
+  flecha.innerHTML = svg('desplegar');
+  boton.replaceChildren(mini, crear('span', 'nombre-perfil', act?.nombre ?? ''), flecha);
+  boton.title = `Perfil: ${act?.nombre ?? ''} (Alt+P, el siguiente)`;
+  requestAnimationFrame(() => pintarMini(mini, perfilActivo()));
+  // Cada carta: su terreno en miniatura y su nombre (el tema y el fondo, en data-info, los pinta el CSS).
   const filas = lista.map(p => {
-    const b = crear('button', null, p.nombre);
+    const b = crear('button', 'carta-perfil');
     b.type = 'button';
     b.setAttribute('role', 'menuitemradio');
     b.setAttribute('aria-checked', String(p.id === perfilActivo()));
     b.title = p.nombre;
+    b.dataset.perfil = p.id;
+    const lienzo = crear('canvas', 'mini-terreno');
+    lienzo.setAttribute('aria-hidden', 'true');
+    b.append(lienzo, crear('span', 'nombre', p.nombre));
     b.addEventListener('click', () => { cerrar(); cambiarPerfil(p.id).catch(err => avisar(err.message)); });
     return b;
   });
@@ -50,12 +67,18 @@ function pintar() {
   };
   const acciones = [accion('nuevo', 'Nuevo perfil…', nuevo), accion('duplicar', 'Duplicar este perfil…', duplicar), accion('renombrar', 'Renombrar…', renombrar)];
   if (lista.length > 1) acciones.push(accion('borrar', 'Borrar…', borrar));
-  menu.replaceChildren(...filas, crear('div', 'separador'), ...acciones);
+  const cartas = crear('div', 'cartas-perfil');
+  cartas.append(...filas);
+  const pie = crear('div', 'acciones-perfil');
+  pie.append(...acciones);
+  menu.replaceChildren(crear('p', 'perfiles-cab', 'Perfiles'), cartas, pie);
+  if (capaActual() === 'perfiles') pintarCartas();
 }
 
 // El menú es una capa de la isla: abrirlo y cerrarlo es cambiar de capa.
 function abrir() {
   ponerCapa('perfiles');
+  pintarCartas();
   boton.setAttribute('aria-expanded', 'true');
   (menu.querySelector('[aria-checked="true"]') ?? elementos()[0])?.focus();
 }
@@ -92,6 +115,34 @@ menu.addEventListener('keydown', ev => {
 document.addEventListener('click', ev => {
   if (!menu.hidden && !ev.target.closest('#isla')) cerrar();
 });
+
+// ---------- Miniaturas del terreno ----------
+
+// El aspecto de un perfil: el activo, el que hay en memoria; los demás, el guardado (normalizado).
+async function aspectoDe(id) {
+  if (id === perfilActivo()) return { tema: temaActual, apariencia };
+  const guardado = await leer(claveAspecto(id)).catch(() => null);
+  return { tema: guardado?.tema, apariencia: normalizarApariencia(guardado?.apariencia) };
+}
+
+async function pintarMini(lienzo, id) {
+  const { tema: idTema, apariencia: a } = await aspectoDe(id);
+  const t = buscarTema(idTema);
+  lienzo.closest('.carta-perfil')?.setAttribute('data-info', `${t.nombre} · ${FONDOS[a.fondo]?.nombre ?? (a.fondo === 'imagen' ? 'Imagen' : 'Liso')}`);
+  miniatura(lienzo, {
+    semilla: a.semilla ?? id, estilo: FONDOS[a.fondo] ? a.fondo : 'curvas', densidad: a.densidadFondo, relieve: a.relieve,
+    tema: { bg: t.bg, ink: t.ink, acento: a.acento ?? t.acento, modo: t.modo },
+  });
+}
+
+// Se pintan cuando la capa ya se ve (antes no miden nada).
+function pintarCartas() {
+  requestAnimationFrame(() => {
+    for (const b of menu.querySelectorAll('.carta-perfil')) pintarMini(b.querySelector('canvas'), b.dataset.perfil);
+  });
+}
+
+$('#velo-isla').addEventListener('click', () => cerrar());
 
 // ---------- Acciones ----------
 

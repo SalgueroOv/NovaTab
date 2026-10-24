@@ -1,4 +1,20 @@
 import { afirmar, igual } from './lib/util.mjs';
+import { DATOS_PRUEBA } from './lib/datos-prueba.mjs';
+
+const guardables = enlaces => enlaces.map(e => ({ ...e, icono: null }));
+const estructura = d => ({ ...structuredClone(d), version: 4, grupos: d.grupos.map(({ enlaces, ...g }) => g) });
+const DOS_PERFILES = {
+  'chrome.sync/perfiles': { version: 5, lista: [{ id: 'principal', nombre: 'Principal' }, { id: 'otro', nombre: 'Otro' }] },
+  'chrome.sync/perfil:principal:datos': estructura(DATOS_PRUEBA),
+  'chrome.sync/perfil:otro:datos': { ...estructura(DATOS_PRUEBA), grupos: [] },
+  ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/enlaces:${g.id}`, guardables(g.enlaces)])),
+  'chrome.sync/perfil:principal:aspecto': { tema: 'bosque', apariencia: { fondo: 'curvas' } },
+  'chrome.sync/perfil:otro:aspecto': { tema: 'papel', apariencia: { fondo: 'rayas' } },
+  'chrome.local/perfil-activo': 'principal',
+};
+// Píxeles de un canvas distintos del primero: una miniatura con dibujo no es un color liso.
+const distintos = el => `(() => { const c = ${el}; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 4; i < d.length; i += 4) if (d[i] !== d[0] || d[i + 1] !== d[1] || d[i + 2] !== d[2]) n++; return n; })()`;
+const alto = `Math.round(document.getElementById('isla').getBoundingClientRect().height)`;
 
 // Posición y ancho de un elemento, redondeados.
 const caja = sel => `(() => { const r = document.querySelector('${sel}').getBoundingClientRect(); return { left: Math.round(r.left), width: Math.round(r.width), top: Math.round(r.top), right: Math.round(r.right) }; })()`;
@@ -49,6 +65,42 @@ export default {
     // (g) Nombres accesibles en la barra, y el chip con el nombre del perfil.
     igual(await pg.ev(`[...document.querySelectorAll('#isla .capa-barra button')].filter(b => !(b.getAttribute('aria-label') || b.textContent.trim())).map(b => b.id)`), [], 'todos los botones con nombre accesible');
     igual(await pg.ev(`document.getElementById('btn-perfil').textContent.trim()`), 'Principal', 'el chip lleva el nombre del perfil');
+
+    // (h) El menú de perfiles: una carta por perfil con su terreno, la isla crece y aparece el velo.
+    pg = await abrir({ chrome: {}, datos: null, guardados: DOS_PERFILES, reducirMovimiento: true });
+    await pg.esperar(600);
+    afirmar(await pg.ev(distintos(`document.querySelector('#btn-perfil canvas.mini-perfil')`)) > 20, 'el chip lleva el terreno del perfil');
+    await pg.clic('#btn-perfil');
+    await pg.esperar(400);
+    afirmar(!(await pg.ev(`document.getElementById('menu-perfiles').hidden`)), 'el menú se ve');
+    igual(await pg.ev(`document.querySelectorAll('#menu-perfiles .carta-perfil').length`), 2, 'una carta por perfil');
+    for (const i of [0, 1]) afirmar(await pg.ev(distintos(`document.querySelectorAll('#menu-perfiles canvas.mini-terreno')[${i}]`)) > 50, `la carta ${i} lleva su terreno`);
+    afirmar(await pg.ev(alto) > 120, 'la isla crece');
+    afirmar(await pg.ev(`document.body.classList.contains('con-velo')`), 'con velo detrás');
+    const fondoAbierta = await pg.ev(fondoDe('#isla'));
+    afirmar(!/rgba|\/\s*0?\.\d/.test(fondoAbierta), `abierta es opaca: no se ve el contenido de detrás (${fondoAbierta})`);
+
+    // (i) Esc cierra, la isla vuelve a su alto y el foco al chip.
+    await pg.ev(`document.querySelector('#menu-perfiles [aria-checked="true"]').focus()`);
+    await pg.ev(`document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))`);
+    await pg.esperar(300);
+    afirmar(await pg.ev(`document.getElementById('menu-perfiles').hidden`), 'Esc cierra el menú');
+    afirmar(Math.abs(await pg.ev(alto) - 56) <= 2, 'la isla vuelve a 56 px');
+    igual(await pg.ev(`document.activeElement.id`), 'btn-perfil', 'el foco vuelve al chip');
+    afirmar(!(await pg.ev(`document.body.classList.contains('con-velo')`)), 'sin velo');
+
+    // (j) Con el menú abierto, un cambio de perfil por fuera lo repinta con la marca en el activo.
+    await pg.clic('#btn-perfil');
+    await pg.esperar(300);
+    await pg.ev(`import('/js/perfiles-ops.js').then(m => m.cambiarPerfil('otro'))`);
+    await pg.esperar(600);
+    igual(await pg.ev(`document.querySelector('#menu-perfiles [aria-checked="true"]')?.textContent.trim()`), 'Otro', 'la marca pasa al perfil activo');
+    igual(pg.errores, [], 'sin errores');
+
+    // (k) Un nombre larguísimo cabe en el chip.
+    await pg.ev(`import('/js/perfiles-ops.js').then(async m => { const { id } = await m.crearPerfil('${'x'.repeat(30)}', {}); await m.cambiarPerfil(id); })`);
+    await pg.esperar(700);
+    afirmar(await pg.ev(`document.getElementById('btn-perfil').getBoundingClientRect().right <= document.getElementById('isla').getBoundingClientRect().right`), 'el chip no se sale de la isla');
 
     // (d) A 800 px la isla va arriba del todo y cabe en la ventana.
     pg = await abrir({ ancho: 800, reducirMovimiento: true });

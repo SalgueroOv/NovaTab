@@ -963,12 +963,35 @@ dialog menu button {
 @keyframes parpadeo { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .led[data-estado="comprobando"] { animation: none; } }
 
-/* Menú de perfiles: la capa de la isla con los perfiles y sus acciones. */
-.capa-perfiles { display: flex; flex-direction: column; max-height: 70vh; padding: 8px; overflow-y: auto; }
-.capa-perfiles button { padding: 8px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--texto); font: inherit; font-size: 13px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.capa-perfiles button:hover, .capa-perfiles button:focus-visible { background: var(--hover); }
-.capa-perfiles [aria-checked="true"] { font-weight: 600; }
-.capa-perfiles .separador { margin: 4px 0; }
+/* Menú de perfiles: la capa de la isla con una carta por perfil (su terreno en su tema) y las acciones. */
+.mini-perfil { flex: none; width: 30px; height: 30px; border-radius: 8px; }
+.flecha-perfil { display: grid; flex: none; color: var(--texto-2); }
+.flecha-perfil .ico { width: 16px; height: 16px; }
+.capa-perfiles { display: flex; flex-direction: column; gap: 10px; max-height: 70vh; padding: 14px; overflow-y: auto; }
+.perfiles-cab { margin: 0 4px; font-size: 15px; font-weight: 600; }
+.cartas-perfil { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.carta-perfil {
+  display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 0; border: 0;
+  background: none; color: var(--texto); font: inherit; text-align: left; cursor: pointer;
+}
+.carta-perfil .mini-terreno {
+  display: block; width: 100%; aspect-ratio: 8 / 5; border-radius: 12px;
+  outline: 1px solid var(--borde); outline-offset: -1px; transition: transform .25s;
+}
+.carta-perfil:hover .mini-terreno { transform: translateY(-2px); }
+.carta-perfil[aria-checked="true"] .mini-terreno { outline: 2px solid var(--acento); outline-offset: 2px; }
+.carta-perfil .nombre { overflow: hidden; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.carta-perfil::after { content: attr(data-info); margin-top: -4px; color: var(--texto-2); font-size: 12px; }
+.carta-perfil:focus-visible { outline: none; }
+.carta-perfil:focus-visible .mini-terreno { outline: 2px solid var(--acento); outline-offset: 2px; }
+.acciones-perfil { display: flex; flex-wrap: wrap; gap: 4px; padding-top: 10px; border-top: 1px solid var(--borde); }
+.acciones-perfil button { padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--texto); font: inherit; font-size: 13px; cursor: pointer; }
+.acciones-perfil button:hover, .acciones-perfil button:focus-visible { background: var(--hover); }
+/* Detrás de la isla abierta, un velo: un clic en él la cierra. */
+.velo-isla { position: fixed; inset: 0; z-index: 25; background: color-mix(in oklab, var(--bg) 50%, transparent); opacity: 0; pointer-events: none; transition: opacity .25s; }
+.con-velo .velo-isla { opacity: 1; pointer-events: auto; }
+/* Abierta, la isla es opaca: si no, el contenido de detrás se leería a través de ella. */
+.con-velo .isla { background: var(--superficie); box-shadow: var(--sombra-fuerte); }
 
 /* Texto solo para lectores de pantalla (títulos que dan estructura sin cambiar el aspecto). */
 .solo-lectores { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
