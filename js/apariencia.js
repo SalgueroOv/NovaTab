@@ -22,6 +22,7 @@ export const APARIENCIA = {
   semilla: null, densidadFondo: 0.55, relieve: 0.45, movimiento: 'lento', brillo: true,
   // El estilo de la página: no mueve los bloques, cambia el reloj y cómo se ven los grupos con vista «auto».
   estilo: 'mapa',
+  direcciones: true, // la dirección bajo cada enlace (Mapa y Baldosas)
 };
 export const IDS_FONDO = [...Object.keys(FONDOS), 'liso', 'imagen'];
 // Los dibujos de la versión 5.2 que ya no existen pasan al nuevo más parecido.
@@ -136,6 +137,7 @@ export function normalizarApariencia(a) {
     movimiento: uno(x.movimiento, ['quieto', 'lento', 'vivo'], APARIENCIA.movimiento),
     brillo: booleano(x.brillo, APARIENCIA.brillo),
     estilo: uno(x.estilo, ESTILOS, APARIENCIA.estilo),
+    direcciones: booleano(x.direcciones, APARIENCIA.direcciones),
   };
 }
 
@@ -149,6 +151,7 @@ export function ponerApariencia(a) {
   // Compacto lleva la densidad compacta sin tocar el ajuste guardado.
   clases.toggle('compacta', apariencia.densidad === 'compacta' || apariencia.estilo === 'compacto');
   for (const e of ESTILOS) clases.toggle(`estilo-${e}`, apariencia.estilo === e);
+  clases.toggle('sin-direcciones', !apariencia.direcciones);
   for (const b of $$('[data-estilo]')) b.setAttribute('aria-pressed', String(b.dataset.estilo === apariencia.estilo));
   // Con otro estilo los grupos «auto» cambian de vista (y de alto): lo que se pise baja y se repinta.
   if (estiloAntes !== apariencia.estilo && datos?.grupos) { resolver(); pintar(); }
@@ -159,6 +162,7 @@ export function ponerApariencia(a) {
   $('#opt-hora24').checked = apariencia.hora24;
   $('#opt-segundos').checked = apariencia.segundos;
   $('#opt-fecha').checked = apariencia.fecha;
+  $('#opt-direcciones').checked = apariencia.direcciones;
   muestrasFondo.forEach(m => m.setAttribute('aria-pressed', String(m.dataset.fondo === apariencia.fondo)));
   $('#intensidad').value = String(usaImagen() ? apariencia.intensidadImagen : apariencia.intensidad);
   pintarAjustesTerreno();
@@ -379,6 +383,7 @@ for (const b of document.querySelectorAll('[data-estilo]')) b.addEventListener('
 $('#opt-hora24').addEventListener('change', ev => cambiarApariencia({ hora24: ev.target.checked }));
 $('#opt-segundos').addEventListener('change', ev => cambiarApariencia({ segundos: ev.target.checked }));
 $('#opt-fecha').addEventListener('change', ev => cambiarApariencia({ fecha: ev.target.checked }));
+$('#opt-direcciones').addEventListener('change', ev => cambiarApariencia({ direcciones: ev.target.checked }));
 $('#acento-restaurar').addEventListener('click', () => cambiarApariencia({ acento: null }));
 $('#btn-tema').addEventListener('click', () => (panelTema.hidden ? abrirEstudio() : cerrarEstudio()));
 $('#estudio-cerrar').addEventListener('click', cerrarEstudio);

@@ -1072,11 +1072,15 @@ dialog menu button {
 .estilo-compacto .hora { font-size: 84px; }
 @media (max-width: 1000px) { .estilo-baldosas .hora, .estilo-compacto .hora { font-size: 80px; } }
 
-/* Mapa: filas de dos líneas, el nombre arriba y la dirección debajo en pequeño. */
-.estilo-mapa .vista-lista .fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-rows: auto auto; align-content: center; column-gap: 12px; }
+/* Mapa: filas de dos líneas, el nombre arriba y la dirección debajo en pequeño; necesitan más alto (la rejilla
+   entera usa ese alto de fila, así que los bloques no se pisan). */
+body.estilo-mapa:not(.sin-direcciones) { --alto-fila: 48px; }
+body.estilo-mapa.compacta:not(.sin-direcciones) { --alto-fila: 42px; }
+.estilo-mapa .vista-lista .fila { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-rows: auto auto; align-content: center; column-gap: 12px; row-gap: 2px; }
 .estilo-mapa .vista-lista .fila > * { grid-row: 1 / 3; }
 .estilo-mapa .vista-lista .fila .icono { grid-column: 1; }
 .estilo-mapa .vista-lista .fila .nombre { grid-column: 2; grid-row: 1; line-height: 1.2; }
+.estilo-mapa.sin-direcciones .vista-lista .fila .nombre { grid-row: 1 / 3; }
 .estilo-mapa .vista-lista .fila .dir { grid-column: 2; grid-row: 2; overflow: hidden; font-size: 10.5px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Compacto: filas de una línea sin dirección. */
@@ -1086,6 +1090,9 @@ dialog menu button {
 .estilo-baldosas .vista-iconos .fila .icono { width: calc(var(--alto-fila) * .72); height: calc(var(--alto-fila) * .72); }
 .estilo-baldosas .vista-iconos .dir { display: block; max-width: 100%; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .estilo-baldosas .vista-iconos .fila { gap: 2px; }
+/* Sin direcciones (Personalizar › Disposición). */
+.sin-direcciones .rejilla .fila .dir { display: none; }
+.opcion-direcciones { margin-top: 10px; }
 
 /* La elección del estilo, con una vista previa dibujada. */
 .estilos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
