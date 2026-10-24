@@ -5,7 +5,7 @@ import { WIDGETS } from './widgets.js';
 import { iconoValido } from './iconos.js';
 
 export const CLAVE = 'datos';
-export const VERSION = 4;
+export const VERSION = 5;
 // Dos rejillas: la derecha (red local: grupos y widgets) y la izquierda (solo widgets).
 export const COLUMNAS = { der: 12, izq: 6 };
 export const ANCHO_MINIMO = { der: 4, izq: 2 };
@@ -13,7 +13,8 @@ export const ANCHO_NUEVO = 6;
 export const ALTO_MINIMO = 3;
 export const ALTO_MAXIMO = 40;
 // Cómo se muestran los enlaces de un grupo de la red local.
-export const VISTAS = ['lista', 'iconos', 'compacta'];
+// «auto» sigue al estilo de la página (ver vistaEfectiva en rejilla.js).
+export const VISTAS = ['auto', 'lista', 'iconos', 'compacta'];
 export const TITULOS = { local: 'Red local', online: 'Internet' };
 
 export let datos = null;
@@ -47,7 +48,9 @@ export function normalizar(d) {
     pos: g.zona === 'online' ? null : posValida(g.pos),
     plegado: !!g.plegado,
     privado: !!g.privado,
-    vista: VISTAS.includes(g.vista) ? g.vista : 'lista',
+    // Hasta la versión 4 «lista» era el valor por defecto: pasa a «auto». Desde la 5 es una elección a mano.
+    vista: (d.version || 1) < 5 && g.vista === 'lista' ? 'auto' : VISTAS.includes(g.vista) ? g.vista : 'auto',
+    comprobar: !!g.comprobar,
     // Solo enlaces http y https: un javascript: o data: importado o guardado se descarta.
     enlaces: (g.enlaces || []).filter(e => urlSegura(String(e?.url || ''))).map(e => ({
       id: e.id || nuevoId(),

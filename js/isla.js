@@ -52,6 +52,7 @@ document.addEventListener('novatab:edicion', ev => {
   ponerCapa(ev.detail.activo ? 'edicion' : 'barra');
 });
 document.addEventListener('novatab:perfil', pintarEditando);
+document.addEventListener('novatab:perfiles', pintarEditando); // renombrado aquí o desde otra pestaña
 
 $('#ico-paleta').outerHTML = svg('buscar');
 $('#btn-paleta').addEventListener('click', () => abrirPaleta());

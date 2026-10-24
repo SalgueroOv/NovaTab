@@ -35,7 +35,7 @@ export default {
     let s = await sync(pg);
     let l = await local(pg);
     igual(s.perfiles, { version: 5, lista: [{ id: 'principal', nombre: 'Principal' }] }, 'registro con un solo perfil');
-    igual([s['perfil:principal:datos'].version, s['perfil:principal:datos'].grupos.map(g => g.nombre)], [4, NOMBRES], 'estructura del perfil principal');
+    igual([s['perfil:principal:datos'].version, s['perfil:principal:datos'].grupos.map(g => g.nombre)], [5, NOMBRES], 'estructura del perfil principal');
     const a = s['perfil:principal:aspecto'];
     igual([a.tema, a.sobrio, a.ocultos.izq, a.apariencia.acento, 'reunion' in a], ['papel', true, true, '#e0245e', false], 'aspecto del perfil principal');
     igual(Object.keys(s.opciones), ['buscador'], '«opciones» queda solo con lo común');
@@ -115,12 +115,12 @@ export default {
     pg = await abrir({ chrome: {}, datos: DATOS_V3 });
     await pg.esperar(900);
     s = await sync(pg);
-    igual(s['perfil:principal:datos'].version, 4, 'v3 migrado a v4 dentro del perfil');
+    igual(s['perfil:principal:datos'].version, 5, 'v3 migrado a la versión actual dentro del perfil');
     igual(resumen(await pg.datos()), resumen(DATOS_V3), 'la página muestra lo mismo que antes');
     pg = await abrir({ chrome: {}, datos: { grupos: [{ id: 'a', nombre: 'Viejo', color: '#8a8c92', enlaces: [{ id: 'e', nombre: 'x', url: 'http://192.168.1.2/' }] }] } });
     await pg.esperar(900);
     s = await sync(pg);
-    igual(s['perfil:principal:datos'].version, 4, 'v1 migrado a v4 dentro del perfil');
+    igual(s['perfil:principal:datos'].version, 5, 'v1 migrado a la versión actual dentro del perfil');
     afirmar((await pg.datos()).grupos.some(g => g.nombre === 'Viejo'), 'con su grupo');
 
     // ---- Revisión final ----

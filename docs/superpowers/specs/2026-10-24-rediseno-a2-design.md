@@ -222,9 +222,9 @@ Cada una con su plan en `docs/superpowers/plans/` antes de ejecutarse:
 3. **La isla** (hecha, versión 5.4.0): sustituye esquina, selector de perfil y barra de edición; menú de perfiles con miniaturas; sigue al panel y al separador.
 4. **Estudio de Personalizar** (hecha, versión 5.5.0; el fondo no se encoge, sigue a pantalla completa): las cuatro pestañas, ámbitos, cartas con miniatura, Crear tema, Datos con lo movido.
 5. **Paleta renovada** (hecha, versión 5.6.0; sigue siendo un `<dialog>` colocado sobre la isla, sin estilos de página todavía) con búsqueda en otros perfiles.
-6. **Estilos y aspecto de los grupos**: `estilo`, vista `auto`, filas de dos líneas, fichas, reloj de dígitos y migración de `vista`.
-7. **Estado en los grupos** (5.7).
-8. **Pulido**: axe y Lighthouse en todos los temas y estados nuevos, móvil, movimiento reducido, rendimiento medido, `README`, versión 6.0.0.
+6. **Estilos y aspecto de los grupos** (hecha, versión 5.7.0; datos en `version` 5, que ya incluye `g.comprobar`): `estilo`, vista `auto`, filas de dos líneas, fichas, reloj de dígitos y migración de `vista`.
+7. **Estado en los grupos** (5.7) (hecha, versión 5.8.0).
+8. **Pulido** (hecha, versión 6.0.0): axe y Lighthouse en todos los temas y estados nuevos, móvil, movimiento reducido, rendimiento medido, `README`, versión 6.0.0.
 
 ## 8. Lo que queda al constructor
 

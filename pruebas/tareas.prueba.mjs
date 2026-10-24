@@ -8,7 +8,8 @@ const enSync = `chrome.storage.sync.get('tareas:w-tareas').then(r => r['tareas:w
 const clavesSync = `chrome.storage.sync.get(null).then(t => Object.keys(t).filter(k => k.startsWith('tareas:')))`;
 const textos = pg => pg.ev(`[...document.querySelectorAll('.widget-tareas .tarea .texto')].map(t => t.textContent)`);
 const anadir = async (pg, texto) => {
-  await pg.ev(`document.querySelector('.widget-tareas .tareas-nueva').focus()`);
+  // Con las pruebas en paralelo el widget puede tardar en pintarse: se espera a su campo.
+  await pg.ev(`new Promise(ok => { const t0 = Date.now(); (function mira() { const i = document.querySelector('.widget-tareas .tareas-nueva'); if (i || Date.now() - t0 > 3000) ok(i?.focus()); else setTimeout(mira, 50); })(); })`);
   await pg.escribir(texto);
   await pg.tecla('Enter');
   await pg.esperar(100);

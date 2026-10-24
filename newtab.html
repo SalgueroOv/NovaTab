@@ -59,7 +59,8 @@
     <section class="derecha" aria-labelledby="t-local">
       <header class="derecha-cab">
         <h1 id="t-local" class="titulo-editable" data-titulo="local" spellcheck="false">Red local</h1>
-        <span class="etiqueta-zona mono" id="resumen-local"></span>
+        <span class="etiqueta-zona" id="resumen-local"></span>
+        <span class="resumen-estado" id="resumen-estado" role="status" hidden></span>
       </header>
       <h2 class="solo-lectores">Tus servicios</h2>
       <div class="rejilla" id="rejilla" data-panel="der" style="--columnas: 12"></div>
@@ -135,7 +136,13 @@
             <label class="opcion"><input type="checkbox" id="opt-sugerencias"> Sugerencias de Google mientras escribes (envía lo que escribes a Google)</label>
           </div>
     <div role="tabpanel" id="pestana-diseno" hidden>
-            <h2>Paneles <span class="ambito">Solo <em class="nombre-ambito"></em></span></h2>
+            <h2>Estilo de página <span class="ambito">Solo <em class="nombre-ambito"></em></span></h2>
+            <div class="estilos" role="group" aria-label="Estilo de página">
+              <button type="button" data-estilo="mapa"><span class="vista-previa vp-mapa" aria-hidden="true"></span>Mapa</button>
+              <button type="button" data-estilo="baldosas"><span class="vista-previa vp-baldosas" aria-hidden="true"></span>Baldosas</button>
+              <button type="button" data-estilo="compacto"><span class="vista-previa vp-compacto" aria-hidden="true"></span>Compacto</button>
+            </div>
+            <h2 class="opciones-titulo">Paneles</h2>
             <div class="eleccion" role="group" aria-label="Paneles">
               <button type="button" id="btn-panel-izq" aria-pressed="true">Panel izquierdo</button>
               <button type="button" id="btn-panel-der" aria-pressed="true">Panel derecho</button>
@@ -221,12 +228,14 @@
       <label>Color <input name="color" type="color"></label>
       <label>Vista (en la red local)
         <select name="vista">
+          <option value="auto">Automática (sigue al estilo)</option>
           <option value="lista">Lista</option>
           <option value="iconos">Iconos</option>
           <option value="compacta">Compacta</option>
         </select>
       </label>
       <label class="opcion opcion-dialogo"><input type="checkbox" name="privado"> Privado: se oculta en modo reunión</label>
+      <label class="opcion opcion-dialogo"><input type="checkbox" name="comprobar"> Comprobar si responden (en la red local; pide permiso para sus direcciones)</label>
       <menu>
         <button type="button" value="cancelar" data-cerrar>Cancelar</button>
         <button value="ok" class="primario">Guardar</button>
