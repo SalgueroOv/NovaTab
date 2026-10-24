@@ -35,6 +35,9 @@ export function ruido(semilla) {
 }
 
 export const plana = () => 0.5;
+const reducido = matchMedia('(prefers-reduced-motion: reduce)');
+// Cuánto avanza el tiempo del relieve por segundo según el movimiento elegido.
+export const VELOCIDAD = { quieto: 0, lento: 0.45, vivo: 1.5 };
 export const suave = k => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2);
 
 export class Terreno {
@@ -54,9 +57,48 @@ export class Terreno {
     this.raton = null;
     this.dibujos = 0;
     this.estadistica = { luz: 0 };
+    this.pendiente = false;
+    this.ultimo = 0;
     if (estatico) return;
     this.medir();
     addEventListener('resize', () => { this.medir(); this.pedir(); });
+    // La luz sigue al ratón; sin luz, moverlo no obliga a dibujar.
+    addEventListener('pointermove', e => {
+      const r = this.c.getBoundingClientRect();
+      if (!r.width) return;
+      this.raton = { x: (e.clientX - r.left) * this.w / r.width, y: (e.clientY - r.top) * this.h / r.height };
+      if (this.op.brillo) this.pedir();
+    });
+    document.addEventListener('pointerleave', () => { this.raton = null; this.pedir(); });
+    this.bucle = this.bucle.bind(this);
+    requestAnimationFrame(this.bucle);
+  }
+
+  // Cada fotograma: con la pestaña oculta no hace nada; durante una transformación dibuja siempre; si no,
+  // como mucho cada 33 ms y solo si el relieve se mueve o hay un cambio pendiente.
+  bucle(ahora) {
+    requestAnimationFrame(this.bucle);
+    const dt = this.prev ? Math.min(0.1, (ahora - this.prev) / 1000) : 0;
+    this.prev = ahora;
+    if (document.hidden || !this.w) return;
+    const vel = reducido.matches ? 0 : VELOCIDAD[this.op.movimiento] ?? 0;
+    this.t += dt * vel;
+    if (this.campoB) {
+      this.k = Math.min(1, this.k + dt / 1.3);
+      if (this.k >= 1) {
+        this.campoA = this.campoB;
+        this.campoB = null;
+      }
+      this.ultimo = ahora;
+      this.pendiente = false;
+      this.dibujar();
+      return;
+    }
+    if ((this.pendiente || vel) && ahora - this.ultimo > 33) {
+      this.ultimo = ahora;
+      this.pendiente = false;
+      this.dibujar();
+    }
   }
 
   medir() {
@@ -67,22 +109,22 @@ export class Terreno {
     this.c.height = Math.round(this.h * this.dpr);
   }
 
-  // Un dibujo en el siguiente fotograma (varios cambios seguidos dan uno solo).
+  // Un dibujo en cuanto lo permita el bucle (varios cambios seguidos dan uno solo).
   pedir() {
-    if (this.pendiente) return;
     this.pendiente = true;
-    requestAnimationFrame(() => {
-      this.pendiente = false;
-      this.dibujar();
-    });
   }
 
+  // Una semilla nueva (otro perfil u otro terreno) transforma el relieve durante 1,3 s; si llega en mitad de
+  // otra transformación, se parte de donde iba aquella. Al abrir, el relieve «sube» desde el llano.
   config(op) {
-    const nueva = op.semilla && op.semilla !== this.op.semilla;
+    const antes = this.op.semilla;
+    const nueva = op.semilla && op.semilla !== antes;
     Object.assign(this.op, op);
     if (nueva) {
-      this.campoA = ruido(op.semilla);
-      this.campoB = null;
+      if (this.campoB) this.campoA = this.campoB;
+      this.campoB = ruido(op.semilla);
+      this.semAnt = antes;
+      this.k = reducido.matches ? 1 : 0;
     }
     this.pedir();
   }
