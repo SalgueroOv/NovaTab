@@ -1,7 +1,7 @@
 import { DATOS_PRUEBA } from './lib/datos-prueba.mjs';
 import { auditar, axeDisponible, describir } from './lib/axe.mjs';
 
-const TEMAS = ['bosque', 'noche', 'medianoche', 'grafito', 'carbon', 'papel', 'glaciar', 'niebla', 'menta', 'rosa'];
+const TEMAS = ['bosque', 'noche', 'medianoche', 'grafito', 'carbon', 'abismo', 'papel', 'glaciar', 'niebla', 'menta', 'rosa'];
 const w = (id, tipo, y, config = {}, panel = 'izq') => ({ id, tipo, panel, pos: { x: 1, y, w: 6, h: 6 }, config });
 const URL_FEED = 'https://feeds.example.com/x.xml';
 const FEED = `<?xml version="1.0"?><rss version="2.0"><channel><title>Noticias</title>${[1, 2, 3].map(i => `<item><title>Titular ${i}</title><link>https://n.example.com/${i}</link><pubDate>Mon, 20 Oct 2026 0${i}:00:00 GMT</pubDate></item>`).join('')}</channel></rss>`;
@@ -21,13 +21,13 @@ const tema = async (pg, id) => {
 };
 
 export default {
-  nombre: 'accesibilidad: axe-core sin violaciones graves en los diez temas y en cada estado',
+  nombre: 'accesibilidad: axe-core sin violaciones graves en los once temas y en cada estado',
   async ejecutar(abrir) {
     if (!axeDisponible()) return 'saltada: falta «npm install» en herramientas/';
     const fallos = [];
     const revisar = async (estado, pg, opciones) => fallos.push(...describir(estado, (await auditar(pg, opciones)).violaciones));
 
-    const pg = await abrir({ chrome: {}, datos: DATOS, rss: { [URL_FEED]: FEED }, servicios: ORIGENES });
+    const pg = await abrir({ chrome: {}, datos: DATOS, rss: { [URL_FEED]: FEED }, servicios: ORIGENES, reducirMovimiento: true });
     await pg.esperar(1500);
 
     // Página principal con cada tema (claros y oscuros).

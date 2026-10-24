@@ -28,7 +28,7 @@ export default {
     // (b) Opciones de antes de esta fase: la página arranca igual.
     pg = await abrir({ guardados: { opciones: { sobrio: true } } });
     await pg.esperar(300);
-    igual(await pg.ev(acentoActual), '#8ab4f8', 'acento del tema sin apariencia guardada');
+    igual(await pg.ev(acentoActual), '#a8d672', 'acento del tema sin apariencia guardada (Bosque)');
     afirmar(await pg.ev(`document.body.classList.contains('sobrio')`), 'el modo sobrio sigue activo');
 
     // (c) Tres pestañas.
@@ -54,7 +54,7 @@ export default {
     igual(await pg.ev(acentoActual), '#e0245e', 'el acento sobrevive al cambio de tema');
     await pg.clic('#acento-restaurar');
     await pg.esperar(200);
-    igual(await pg.ev(acentoActual), '#1a73e8', 'Restaurar vuelve al acento del tema Papel');
+    igual(await pg.ev(acentoActual), '#2a4fb0', 'Restaurar vuelve al acento del tema Papel');
     igual((await pg.ev(opcionesGuardadas)).apariencia.acento, null, 'acento guardado como null');
 
     // (e) Texto sobre el acento: oscuro con un acento claro, claro con uno oscuro.

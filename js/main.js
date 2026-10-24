@@ -81,7 +81,7 @@ let recarga;
       comunes = legado.opciones;
     } catch { /* sin datos guardados */ }
   }
-  ponerTema(aspecto?.tema);
+  ponerTema(aspecto?.tema, { animar: false });
   ponerOpciones({ ...aspecto, buscador: comunes?.buscador });
   try {
     ponerDatos(normalizar(guardados || DATOS_DEFECTO));

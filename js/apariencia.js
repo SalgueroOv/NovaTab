@@ -1,5 +1,5 @@
 // Tema, opciones, paneles, fondo y reloj.
-import { $, avisar, crear, svg } from './util.js';
+import { $, $$, avisar, crear, svg } from './util.js';
 import { alCambiar, escribir, recordar } from './almacen.js';
 import { claveAspecto, migracionFallida, perfilActivo } from './perfiles.js';
 import { datos } from './datos.js';
@@ -7,6 +7,7 @@ import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
 import { FONDOS } from './fondos.js';
 import { BUSCADOR, normalizarBuscador } from './motores.js';
+import { TEMAS, buscarTema, sobreAcento, todosLosTemas } from './temas.js';
 import { CLAVE_FONDO_IMAGEN, borrarImagenFondo, guardarImagenFondo, leerImagenFondo, reducirImagen } from './imagen-fondo.js';
 
 export const CLAVE_TEMA = 'tema';
@@ -20,41 +21,55 @@ export const IDS_FONDO = ['curvas', 'grafo', 'teselas', 'ondas', 'puntos', 'raya
 
 export const OPCIONES = { fondoGrupos: true, sobrio: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA, buscador: BUSCADOR, anchoIzq: null };
 
-export const TEMAS = [
-  { id: 'bosque', nombre: 'Bosque', modo: 'oscuro', muestra: ['#18221d', '#2f4438'] },
-  { id: 'noche', nombre: 'Noche', modo: 'oscuro', muestra: ['#111316', '#29303a'] },
-  { id: 'medianoche', nombre: 'Medianoche', modo: 'oscuro', muestra: ['#14171c', '#3e5a75'] },
-  { id: 'grafito', nombre: 'Grafito', modo: 'oscuro', muestra: ['#1b1b1d', '#55555b'] },
-  { id: 'carbon', nombre: 'Carbón', modo: 'oscuro', muestra: ['#18181b', '#4a4a52'] },
-  { id: 'papel', nombre: 'Papel', modo: 'claro', muestra: ['#f5f0e6', '#d8c9ab'] },
-  { id: 'glaciar', nombre: 'Glaciar', modo: 'claro', muestra: ['#eaf2f6', '#b9d1e1'] },
-  { id: 'niebla', nombre: 'Niebla', modo: 'claro', muestra: ['#eef1f5', '#a6bdd6'] },
-  { id: 'menta', nombre: 'Menta', modo: 'claro', muestra: ['#eef6f2', '#94c7aa'] },
-  { id: 'rosa', nombre: 'Rosa', modo: 'claro', muestra: ['#fbf1f2', '#e4a9b4'] },
-];
+// Las muestras de la pestaña Tema: un círculo con el fondo del tema y un punto con su acento.
+export function pintarMuestras() {
+  $('#muestras').replaceChildren(...todosLosTemas().map(t => {
+    const b = crear('button', 'muestra');
+    b.type = 'button';
+    b.dataset.tema = t.id;
+    b.style.setProperty('--m-bg', t.bg);
+    b.style.setProperty('--m-acento', t.acento);
+    b.append(crear('i'), t.nombre);
+    b.addEventListener('click', () => {
+      ponerTema(t.id);
+      guardarOpciones();
+    });
+    return b;
+  }));
+  marcarMuestras();
+}
+const marcarMuestras = () => {
+  const aplicado = buscarTema(temaActual).id;
+  for (const m of $$('#muestras .muestra')) m.setAttribute('aria-pressed', String(m.dataset.tema === aplicado));
+};
 
-export const muestras = TEMAS.map(t => {
-  const b = crear('button', 'muestra');
-  b.type = 'button';
-  b.dataset.tema = t.id;
-  b.style.setProperty('--m1', t.muestra[0]);
-  b.style.setProperty('--m2', t.muestra[1]);
-  b.append(crear('i'), t.nombre);
-  b.addEventListener('click', () => {
-    ponerTema(t.id);
-    guardarOpciones();
-  });
-  return b;
-});
-$('#muestras').append(...muestras);
-
+// El tema guardado en el perfil, aunque no exista (un tema propio borrado en otro equipo): así no se
+// reescribe su aspecto; lo que se ve es buscarTema(temaActual), que en ese caso es Bosque.
 export let temaActual = TEMAS[0].id;
-export function ponerTema(id) {
-  const t = TEMAS.find(x => x.id === id) || TEMAS[0];
-  temaActual = t.id;
-  document.documentElement.dataset.tema = t.id;
-  document.documentElement.dataset.modo = t.modo;
-  muestras.forEach(m => m.setAttribute('aria-pressed', String(m.dataset.tema === t.id)));
+export function ponerTema(id, { animar = true } = {}) {
+  temaActual = typeof id === 'string' && id ? id : TEMAS[0].id;
+  if (!animar) sinTransicion();
+  aplicarColores(buscarTema(temaActual));
+  marcarMuestras();
+}
+
+// Pone los tres colores del tema (y el acento libre, si lo hay) en :root; lo demás se deriva en style.css.
+export function aplicarColores(t, acento = apariencia.acento ?? t.acento) {
+  const raiz = document.documentElement;
+  raiz.style.setProperty('--bg', t.bg);
+  raiz.style.setProperty('--ink', t.ink);
+  raiz.style.setProperty('--acento', acento);
+  raiz.style.setProperty('--sobre-acento', sobreAcento(acento));
+  raiz.dataset.tema = t.id;
+  raiz.dataset.modo = t.modo;
+  $('#acento-libre').value = acento;
+}
+
+// Sin la transición de colores durante un instante (al arrancar no debe verse el paso desde Bosque).
+function sinTransicion() {
+  const raiz = document.documentElement;
+  raiz.classList.add('sin-transicion');
+  requestAnimationFrame(() => requestAnimationFrame(() => raiz.classList.remove('sin-transicion')));
 }
 
 export let opciones = { ...OPCIONES };
@@ -78,30 +93,11 @@ export function normalizarApariencia(a) {
   };
 }
 
-// Luminosidad relativa de un color #rrggbb (0 negro, 1 blanco).
-function luminosidad(hex) {
-  const [r, g, b] = [1, 3, 5].map(i => {
-    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
 // Aplica los ajustes al documento: variables en :root y clases en body.
 export let apariencia = { ...APARIENCIA };
 export function ponerApariencia(a) {
   apariencia = normalizarApariencia(a);
-  const raiz = document.documentElement.style;
-  if (apariencia.acento) {
-    raiz.setProperty('--acento', apariencia.acento);
-    // Texto oscuro o claro, el que dé más contraste con el acento (luminosidad del #1f1f1f: 0,0137).
-    const l = luminosidad(apariencia.acento);
-    raiz.setProperty('--sobre-acento', (l + 0.05) / 0.0637 > 1.05 / (l + 0.05) ? '#1f1f1f' : '#ffffff');
-    $('#acento-libre').value = apariencia.acento;
-  } else {
-    raiz.removeProperty('--acento');
-    raiz.removeProperty('--sobre-acento');
-  }
+  aplicarColores(buscarTema(temaActual));
   const clases = document.body.classList;
   clases.toggle('compacta', apariencia.densidad === 'compacta');
   document.dispatchEvent(new Event('novatab:apariencia')); // los widgets con hora (reloj mundial) se repintan
@@ -413,3 +409,5 @@ export function programarReloj() {
   const espera = apariencia.segundos ? 1000 - Date.now() % 1000 + 5 : 10000;
   temporizadorReloj = setTimeout(() => { reloj(); programarReloj(); }, espera);
 }
+
+pintarMuestras();

@@ -42,8 +42,8 @@ export function igual(real, esperado, mensaje) {
 export function crearAbrir(navegador, urlBase) {
   const URL_PAGINA = `${urlBase}/newtab.html`;
   // guardados: entradas extra de localStorage (o del simulador, «chrome.sync/clave») antes de cargar.
-  return async function abrir({ ancho = 1440, alto = 900, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', sugerenciasGoogle = null, permisoSugerencias = 'concedido', rss = null, permisoRss = 'concedido', servicios = null, permisoServicios = 'concedido', chrome = null, guardados = {} } = {}) {
-    const p = await navegador.newPage({ width: ancho, height: alto });
+  return async function abrir({ ancho = 1440, alto = 900, reducirMovimiento = false, datos = DATOS_PRUEBA, topSites = null, marcadores = null, permisoMarcadores = 'concedido', sugerenciasGoogle = null, permisoSugerencias = 'concedido', rss = null, permisoRss = 'concedido', servicios = null, permisoServicios = 'concedido', chrome = null, guardados = {} } = {}) {
+    const p = await navegador.newPage({ width: ancho, height: alto, reducedMotion: reducirMovimiento });
     const errores = [];
     await p.send('Runtime.enable');
     navegador.on(p.sessionId, 'Runtime.exceptionThrown', e =>

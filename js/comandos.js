@@ -4,7 +4,8 @@ import { enlacesDeAtajo, ir } from './atajos.js';
 import { arrastre, editando, nuevoEnlace, nuevoGrupo, ponerEdicion } from './edicion.js';
 import { datos } from './datos.js';
 import { visible } from './rejilla.js';
-import { CLAVE_OPCIONES, TEMAS, muestras, opciones } from './apariencia.js';
+import { CLAVE_OPCIONES, guardarOpciones, opciones, ponerTema } from './apariencia.js';
+import { todosLosTemas } from './temas.js';
 import { alCambiar } from './almacen.js';
 import { sinTildes } from './iconos.js';
 import { nuevoWidget } from './widgets.js';
@@ -47,7 +48,7 @@ export function comandos() {
   const lista = [
     ...enlaces,
     { id: 'reunion', titulo: `Modo reunión: ${esDemo() ? 'desactivar' : 'activar'}`, ejecutar: () => $('#btn-reunion').click() },
-    ...TEMAS.map(t => ({ id: `tema:${t.id}`, titulo: `Tema: ${t.nombre}`, ejecutar: () => muestras.find(m => m.dataset.tema === t.id).click() })),
+    ...todosLosTemas().map(t => ({ id: `tema:${t.id}`, titulo: `Tema: ${t.nombre}`, ejecutar: () => { ponerTema(t.id); guardarOpciones(); } })),
     ...perfilesDeLaLista().map(p => ({
       id: `perfil:${p.id}`,
       titulo: `Perfil: ${p.nombre}${p.id === perfilActivo() ? ' (actual)' : ''}`,

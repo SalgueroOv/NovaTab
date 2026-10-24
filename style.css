@@ -16,18 +16,43 @@
 
 /* ---------- Temas ---------- */
 
+/* Cada tema son tres colores que pone js/apariencia.js en :root (--bg, --ink y --acento, ver js/temas.js);
+   todo lo demás se deriva aquí con color-mix, así menús, paneles y diálogos se tiñen con el tema.
+   --bg y --ink se registran para que el cambio de tema (y de perfil) se anime; --acento no, y su valor
+   calculado sigue siendo el hex guardado. Los valores iniciales son los de Bosque. */
+@property --bg { syntax: "<color>"; inherits: true; initial-value: #18221d; }
+@property --ink { syntax: "<color>"; inherits: true; initial-value: #e3ece5; }
+:root {
+  --acento: #a8d672;
+  --sobre-acento: #1f1f1f;
+  --s1: color-mix(in oklab, var(--ink) 5%, var(--bg));
+  --s2: color-mix(in oklab, var(--ink) 9%, var(--bg));
+  --s3: color-mix(in oklab, var(--ink) 14%, var(--bg));
+  --s4: color-mix(in oklab, var(--ink) 21%, var(--bg));
+  --linea: color-mix(in oklab, var(--ink) 11%, transparent);
+  --linea-fuerte: color-mix(in oklab, var(--ink) 24%, transparent);
+  --suave: color-mix(in oklab, var(--ink) 70%, var(--bg));
+  --tenue: color-mix(in oklab, var(--ink) 56%, var(--bg));
+  --velo: color-mix(in oklab, var(--bg) 84%, transparent);
+  /* Los nombres de siempre, como alias de lo derivado. */
+  --texto: var(--ink);
+  --texto-2: var(--suave);
+  --hover: color-mix(in oklab, var(--ink) 6%, transparent);
+  --borde: color-mix(in oklab, var(--ink) 9%, transparent);
+  --borde-fuerte: color-mix(in oklab, var(--ink) 22%, transparent);
+  --l: color-mix(in oklab, var(--ink) 8%, var(--bg));
+  --l2: color-mix(in oklab, var(--ink) 16%, var(--bg));
+  transition: --bg .8s cubic-bezier(.2, .8, .2, 1), --ink .8s cubic-bezier(.2, .8, .2, 1);
+}
+.sin-transicion, .sin-transicion * { transition: none !important; }
+
 [data-modo="claro"] {
   color-scheme: light;
-  --texto: #1f1f1f;
-  --texto-2: #5f6368;
   --peligro: #c0213c;
   --peligro-fondo: #c0213c;
-  --superficie: #ffffff;
-  --superficie-2: #f1f3f4;
-  --hover: rgba(0, 0, 0, .05);
-  --borde: rgba(0, 0, 0, .08);
-  --borde-fuerte: rgba(0, 0, 0, .18);
-  --acento: #1a73e8;
+  --superficie: color-mix(in oklab, #ffffff 70%, var(--bg));
+  --superficie-2: var(--s2);
+  --panel: color-mix(in oklab, color-mix(in oklab, #ffffff 55%, var(--bg)) 84%, transparent);
   --sombra: 0 1px 6px rgba(32, 33, 36, .16);
   --sombra-fuerte: 0 2px 14px rgba(32, 33, 36, .24);
 }
@@ -42,29 +67,14 @@ body.esquinas-redondo { --radio-bloque: 24px; --radio-widget: 24px; --radio-menu
 
 [data-modo="oscuro"] {
   color-scheme: dark;
-  --texto: #e8eaed;
-  --texto-2: #b0b6bc;
   --peligro: #ff8da0;
   --peligro-fondo: #c0213c;
-  --superficie: #2a2d33;
-  --superficie-2: #363a41;
-  --hover: rgba(255, 255, 255, .06);
-  --borde: rgba(255, 255, 255, .08);
-  --borde-fuerte: rgba(255, 255, 255, .2);
-  --acento: #8ab4f8;
+  --superficie: var(--s2);
+  --superficie-2: var(--s3);
+  --panel: color-mix(in oklab, var(--s1) 86%, transparent);
   --sombra: 0 1px 6px rgba(0, 0, 0, .35);
   --sombra-fuerte: 0 4px 18px rgba(0, 0, 0, .5);
 }
-[data-tema="bosque"]  { --bg: #18221d; --l: #23322a; --l2: #2f4438; --panel: rgba(31, 44, 37, .86); }
-[data-tema="noche"]   { --bg: #111316; --l: #1c2026; --l2: #29303a; --panel: rgba(27, 30, 35, .88); }
-[data-tema="papel"]   { --bg: #f5f0e6; --l: #e7decb; --l2: #d8c9ab; --panel: rgba(255, 253, 248, .84); }
-[data-tema="glaciar"] { --bg: #eaf2f6; --l: #d5e4ed; --l2: #b9d1e1; --panel: rgba(255, 255, 255, .82); }
-[data-tema="medianoche"] { --bg: #14171c; --l: #222932; --l2: #2c3743; --panel: rgba(30, 35, 43, .86); }
-[data-tema="grafito"] { --bg: #1b1b1d; --l: #28282b; --l2: #343438; --panel: rgba(37, 37, 40, .86); }
-[data-tema="carbon"] { --bg: #18181b; --l: #222226; --l2: #2e2e33; --panel: rgba(35, 35, 39, .9); }
-[data-tema="niebla"] { --bg: #eef1f5; --l: #dde3ea; --l2: #cdd6e0; --panel: rgba(255, 255, 255, .8); }
-[data-tema="menta"] { --bg: #eef6f2; --l: #d8eadf; --l2: #c4dfcf; --panel: rgba(255, 255, 255, .8); }
-[data-tema="rosa"] { --bg: #fbf1f2; --l: #f0dde0; --l2: #e4c8ce; --panel: rgba(255, 253, 253, .84); }
 
 /* ---------- Base ---------- */
 
@@ -78,7 +88,6 @@ body {
   color: var(--texto);
   font: 400 14px/1.45 "Public Sans", system-ui, sans-serif;
   overflow-x: hidden;
-  transition: background-color .3s, color .3s;
 }
 .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
@@ -314,9 +323,21 @@ dialog .primario:disabled { opacity: .45; cursor: not-allowed; }
   width: 28px;
   height: 28px;
   flex: none;
-  border: 1px solid var(--borde);
+  position: relative;
+  border: 1px solid var(--borde-fuerte);
   border-radius: 50%;
-  background: conic-gradient(var(--m2) 0 25%, var(--m1) 0 100%);
+  background: var(--m-bg);
+}
+.muestra i::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--m-acento);
+  box-shadow: 0 0 0 2px var(--superficie);
 }
 
 /* ---------- Buscador estilo Google ---------- */

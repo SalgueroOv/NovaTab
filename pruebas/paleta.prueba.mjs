@@ -29,7 +29,7 @@ export default {
     igual(todos.slice(0, 3), ['Abrir: Proxmox Alfa', 'Abrir: Portainer Alfa', 'Abrir: Jellyfin Alfa'], 'los enlaces primero');
     const ordenComandos = todos.filter(t => !t.startsWith('Abrir: '));
     igual(ordenComandos.slice(0, 1), ['Modo reunión: activar'], 'modo reunión es el primer comando');
-    igual(ordenComandos.filter(t => t.startsWith('Tema: ')).length, 10, 'diez temas');
+    igual(ordenComandos.filter(t => t.startsWith('Tema: ')).length, 11, 'once temas');
     igual(ordenComandos.slice(-6), ['Nuevo grupo', 'Nuevo enlace…', 'Nuevo widget', 'Ocultar panel izquierdo', 'Ocultar panel derecho', 'Editar: activar'], 'los últimos comandos');
     await pg.tecla('k', 'ctrl');
     afirmar(!(await pg.ev(`document.getElementById('paleta').open`)), 'Ctrl+K otra vez la cierra');
