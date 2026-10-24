@@ -6,11 +6,12 @@ Sustituye la pestaña nueva de Chrome por una página con:
 - Tus servicios de casa o del trabajo (servidores, NAS, router...) en grupos que colocas donde quieras.
 - Tus webs favoritas como accesos directos.
 - Widgets: tiempo, notas, Google Calendar, Spotify, tus webs más visitadas, reloj mundial, cuenta atrás, tareas, titulares RSS y estado de tus servicios (un LED por servicio). El RSS y el estado de servicios piden permiso para los sitios que consultan; es opcional y solo se pide al añadirlos.
-- Cada grupo de la red local se puede ver como lista, iconos o compacta (Editar grupo), y el ancho del panel izquierdo se cambia arrastrando la franja entre los paneles.
-- Perfiles (Trabajo, Casa, Demo…): cada uno con sus grupos, widgets y aspecto; se cambia desde el selector junto al título de la red local o con Ctrl+K. El ojo (modo reunión) pasa al perfil Demo, que no enseña los grupos privados.
-- Atajos de teclado: Ctrl+K (paleta de comandos), Alt+1 a Alt+9 (tus primeros enlaces locales), Alt+P / Alt+Mayús+P (perfil siguiente / anterior) y «!y gatos», «!gh», «!w», «!m» en el buscador (editables en Personalizar > Buscador).
+- Tres estilos de página (Mapa, Baldosas y Compacto) y, en cada grupo, vista automática, lista, iconos o compacta. El ancho del panel izquierdo se cambia arrastrando la franja entre los paneles.
+- Opcional en cada grupo: «Comprobar si responden» pone un punto de estado (verde, ámbar o rojo) y los milisegundos en cada enlace.
+- Perfiles (Trabajo, Casa, Demo…): cada uno con sus grupos, widgets y aspecto; se cambia desde la isla (la barra de arriba del panel derecho), con Alt+P o con Ctrl+K. El ojo (modo reunión) pasa al perfil Demo, que no enseña los grupos privados.
+- Atajos de teclado: empieza a escribir y va al buscador; Ctrl+K (paleta de comandos, que también busca en tus otros perfiles), Alt+1 a Alt+9 (tus primeros enlaces locales), Alt+P / Alt+Mayús+P (perfil siguiente / anterior) y «!y gatos», «!gh», «!w», «!m» en el buscador (editables en Personalizar > Buscador).
 - En modo edición, los grupos y widgets se mueven con el teclado: foco en su cabecera, flechas para mover, Mayús + flechas para el tamaño y Alt + izquierda/derecha para cambiar de panel. La página cumple las pruebas de accesibilidad automáticas (axe-core, Lighthouse 100).
-- Diez temas, fondos, color de acento, motor de búsqueda a elegir, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
+- Once temas y los tuyos propios, fondos animados (curvas, cotas, rayas, galaxia…) o tu imagen, color de acento, motor de búsqueda a elegir, modo sobrio, modo reunión (oculta los grupos privados) y paneles plegables.
 
 IMPORTANTE al actualizar desde la versión 4: la versión 5 guarda los datos en claves nuevas. Tus datos se migran solos al abrir una pestaña nueva y se guarda una copia de seguridad (con enlaces y notas) en ese equipo. Actualiza todos tus equipos: uno que siga con la versión 4 ya no verá tus datos (empezará con el ejemplo inicial) pero tampoco puede dañar los de la versión 5, que están en otras claves.
 
@@ -42,8 +43,10 @@ PRIMEROS PASOS
   pulsa el lápiz (arriba a la derecha) y haz clic en un enlace para editarlo.
 - Con el lápiz activo puedes añadir grupos, enlaces y widgets, arrastrarlos por su título
   y cambiar su tamaño desde el borde.
-- La paleta cambia el tema y tiene las opciones (fondo de los grupos, modo sobrio).
-- Haz de vez en cuando una copia con "Exportar" (con el lápiz activo).
+- El botón de la paleta de colores (arriba a la derecha) abre Personalizar: tema, fondo,
+  estilo, buscador y tus datos.
+- En Personalizar > Datos elige una "Carpeta de copias" (por ejemplo Documentos\NovaTab):
+  "Exportar" y la copia diaria guardan ahí un solo archivo que se va sobrescribiendo.
 
 
 ACTUALIZAR A UNA VERSIÓN NUEVA
