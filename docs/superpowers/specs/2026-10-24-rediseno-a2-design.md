@@ -217,7 +217,7 @@ antiguos o de otra versión.
 
 Cada una con su plan en `docs/superpowers/plans/` antes de ejecutarse:
 
-1. **Temas derivados**: tríos, `color-mix`, `@property`, superficies tintadas en todo lo existente, acento por tema y temas propios (sin la interfaz nueva de crear todavía, o con un formulario mínimo).
+1. **Temas derivados** (hecha, versión 5.2.0): tríos, `color-mix`, `@property`, superficies tintadas en todo lo existente, acento por tema y temas propios (sin la interfaz nueva de crear todavía, o con un formulario mínimo).
 2. **Fondos en canvas**: motor `Terreno`, los once fondos, semilla por perfil, morfosis, luz, imagen en canvas, migración de ids y miniaturas.
 3. **La isla**: sustituye esquina, selector de perfil y barra de edición; menú de perfiles con miniaturas; sigue al panel y al separador.
 4. **Estudio de Personalizar**: las cuatro pestañas, ámbitos, cartas con miniatura, Crear tema, Datos con lo movido.
