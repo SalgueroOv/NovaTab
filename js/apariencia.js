@@ -6,6 +6,7 @@ import { datos } from './datos.js';
 import { pintar, pintarLocal } from './pintado.js';
 import { editando } from './edicion.js';
 import { FONDOS } from './fondos.js';
+import { Terreno } from './terreno.js';
 import { BUSCADOR, normalizarBuscador } from './motores.js';
 import { MAX_TEMAS_PROPIOS, TEMAS, buscarTema, sobreAcento, temasPropios, todosLosTemas } from './temas.js';
 import { CLAVE_FONDO_IMAGEN, borrarImagenFondo, guardarImagenFondo, leerImagenFondo, reducirImagen } from './imagen-fondo.js';
@@ -16,8 +17,12 @@ export const CLAVE_OPCIONES = 'opciones';
 export const APARIENCIA = {
   acento: null, fondo: 'curvas', intensidad: 100, intensidadImagen: 40, densidad: 'comoda',
   esquinas: 'medio', hora24: true, segundos: false, fecha: true,
+  // El terreno del fondo: semilla (null = el id del perfil), densidad y relieve de 0 a 1, movimiento y luz bajo el ratón.
+  semilla: null, densidadFondo: 0.55, relieve: 0.45, movimiento: 'lento', brillo: true,
 };
-export const IDS_FONDO = ['curvas', 'grafo', 'teselas', 'ondas', 'puntos', 'rayas', 'cuadricula', 'hexagonos', 'anillos', 'montanas', 'liso', 'imagen'];
+export const IDS_FONDO = [...Object.keys(FONDOS), 'liso', 'imagen'];
+// Los dibujos de la versión 5.2 que ya no existen pasan al nuevo más parecido.
+export const FONDOS_ANTIGUOS = { teselas: 'rombos', ondas: 'crestas', puntos: 'cotas', cuadricula: 'trama', hexagonos: 'trama', anillos: 'curvas', montanas: 'crestas' };
 
 export const OPCIONES = { fondoGrupos: true, sobrio: false, ocultos: { izq: false, der: false }, apariencia: APARIENCIA, buscador: BUSCADOR, anchoIzq: null };
 
@@ -94,12 +99,13 @@ export let opciones = { ...OPCIONES };
 const entre = (n, min, max, defecto) => Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : defecto;
 const uno = (v, validos, defecto) => validos.includes(v) ? v : defecto;
 const booleano = (v, defecto) => typeof v === 'boolean' ? v : defecto;
+const fraccion = (v, defecto) => typeof v === 'number' && Number.isFinite(v) ? Math.round(Math.min(1, Math.max(0, v)) * 100) / 100 : defecto;
 
 export function normalizarApariencia(a) {
   const x = a && typeof a === 'object' ? a : {};
   return {
     acento: typeof x.acento === 'string' && /^#[0-9a-f]{6}$/i.test(x.acento) ? x.acento.toLowerCase() : APARIENCIA.acento,
-    fondo: uno(x.fondo, IDS_FONDO, APARIENCIA.fondo),
+    fondo: uno(FONDOS_ANTIGUOS[x.fondo] ?? x.fondo, IDS_FONDO, APARIENCIA.fondo),
     intensidad: entre(x.intensidad, 0, 100, APARIENCIA.intensidad),
     intensidadImagen: entre(x.intensidadImagen, 0, 100, APARIENCIA.intensidadImagen),
     densidad: uno(x.densidad, ['comoda', 'compacta'], APARIENCIA.densidad),
@@ -107,6 +113,11 @@ export function normalizarApariencia(a) {
     hora24: booleano(x.hora24, APARIENCIA.hora24),
     segundos: booleano(x.segundos, APARIENCIA.segundos),
     fecha: booleano(x.fecha, APARIENCIA.fecha),
+    semilla: typeof x.semilla === 'string' && x.semilla.length >= 1 && x.semilla.length <= 40 ? x.semilla : APARIENCIA.semilla,
+    densidadFondo: fraccion(x.densidadFondo, APARIENCIA.densidadFondo),
+    relieve: fraccion(x.relieve, APARIENCIA.relieve),
+    movimiento: uno(x.movimiento, ['quieto', 'lento', 'vivo'], APARIENCIA.movimiento),
+    brillo: booleano(x.brillo, APARIENCIA.brillo),
   };
 }
 
@@ -311,31 +322,36 @@ document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape') panelTema.hidden = true;
 });
 
-// El dibujo de fondo elegido (o nada, con «liso») a la intensidad elegida.
-// Con «imagen» y una imagen guardada en este equipo se pinta la imagen con su velo; sin ella, las curvas
-// (el ajuste guardado no cambia: en otro equipo de la misma cuenta puede que la imagen exista).
-// El dibujo solo se rehace si cambia el dibujo, la imagen o el tamaño; la intensidad solo toca la opacidad.
+// El fondo: el terreno del perfil dibujado en el canvas (o nada, con «liso») a la intensidad elegida.
+// Con «imagen» y una imagen guardada en este equipo se pone la imagen con su velo y el canvas se oculta; sin
+// ella, las curvas (el ajuste guardado no cambia: en otro equipo de la misma cuenta puede que la imagen exista).
 let imagenFondo = null;
 let claveFondo = '';
 const usaImagen = () => apariencia.fondo === 'imagen' && !!imagenFondo;
+export const terreno = new Terreno($('#terreno'));
+const velo = crear('div', 'velo');
+$('#fondo').append(velo);
 export function pintarFondo() {
-  const w = innerWidth, h = innerHeight;
-  const fondo = $('#fondo');
-  if (usaImagen()) {
-    if (claveFondo !== imagenFondo) {
-      claveFondo = imagenFondo;
-      fondo.style.backgroundImage = `url("${imagenFondo}")`;
-      fondo.innerHTML = '<div class="velo"></div>';
-    }
+  const fondo = $('#fondo'), lienzo = $('#terreno');
+  const imagen = usaImagen();
+  const clave = imagen ? imagenFondo : '';
+  if (claveFondo !== clave) {
+    claveFondo = clave;
+    fondo.style.backgroundImage = imagen ? `url("${imagenFondo}")` : '';
+  }
+  velo.hidden = !imagen;
+  if (imagen) {
+    lienzo.hidden = true;
     fondo.style.opacity = '1';
-    fondo.firstChild.style.opacity = String(1 - apariencia.intensidadImagen / 100);
+    velo.style.opacity = String(1 - apariencia.intensidadImagen / 100);
   } else {
     const id = FONDOS[apariencia.fondo] ? apariencia.fondo : apariencia.fondo === 'imagen' ? 'curvas' : null;
-    const clave = `${id}|${w}|${h}`;
-    if (claveFondo !== clave) {
-      claveFondo = clave;
-      fondo.style.backgroundImage = '';
-      fondo.innerHTML = id ? `<svg viewBox="0 0 ${w} ${h}">${FONDOS[id].dibujar(w, h)}</svg>` : '';
+    lienzo.hidden = !id;
+    if (id) {
+      terreno.config({
+        semilla: apariencia.semilla ?? perfilActivo(), estilo: id, densidad: apariencia.densidadFondo,
+        relieve: apariencia.relieve, movimiento: apariencia.movimiento, brillo: apariencia.brillo,
+      });
     }
     fondo.style.opacity = String(apariencia.intensidad / 100);
   }

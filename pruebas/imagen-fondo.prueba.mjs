@@ -88,7 +88,7 @@ export default {
     // (f) «imagen» en las opciones pero sin imagen guardada en este equipo: se pinta curvas y el ajuste no cambia.
     pg = await abrir({ chrome: {}, guardados: { 'chrome.sync/opciones': { apariencia: { fondo: 'imagen' } } } });
     await pg.esperar(500);
-    afirmar(await pg.ev(`!!document.querySelector('#fondo svg path')`), 'sin imagen se pinta un dibujo');
+    afirmar(await pg.ev(`!document.getElementById('terreno').hidden`), 'sin imagen se pinta un dibujo en el canvas');
     igual(await pg.ev(`getComputedStyle(document.getElementById('fondo')).backgroundImage`), 'none', 'sin imagen de fondo');
 
     // (h) Revisión final: elegir un dibujo mientras se reduce la imagen cancela la imagen.
@@ -98,9 +98,9 @@ export default {
     await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
     await pg.ev(elegirRuido);
     await pg.esperar(300);
-    await pg.ev(`document.querySelector('[data-fondo="hexagonos"]').click()`);
+    await pg.ev(`document.querySelector('[data-fondo="trama"]').click()`);
     await pg.esperar(9000);
-    igual((await pg.ev(opciones)).apariencia.fondo, 'hexagonos', 'el dibujo elegido gana a una imagen que aún se reducía');
+    igual((await pg.ev(opciones)).apariencia.fondo, 'trama', 'el dibujo elegido gana a una imagen que aún se reducía');
 
     // (i) Quitar la imagen no cambia un dibujo que no es la imagen.
     pg = await abrir({ chrome: {} });
@@ -110,10 +110,10 @@ export default {
     await pg.esperar(500);
     await pg.clic('#btn-tema');
     await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
-    await pg.ev(`document.querySelector('[data-fondo="hexagonos"]').click()`);
+    await pg.ev(`document.querySelector('[data-fondo="trama"]').click()`);
     await pg.clic('#quitar-imagen');
     await pg.esperar(300);
-    igual((await pg.ev(opciones)).apariencia.fondo, 'hexagonos', 'quitar la imagen no pisa el dibujo elegido');
+    igual((await pg.ev(opciones)).apariencia.fondo, 'trama', 'quitar la imagen no pisa el dibujo elegido');
 
     // (j) Una imagen altísima se reduce también en altura y no falla.
     pg = await abrir({ chrome: {} });
@@ -147,7 +147,7 @@ export default {
     await pg.clic('#btn-tema');
     await pg.ev(`document.querySelector('#panel-tema [data-pestana="fondo"]').click()`);
     await pg.ev(`window.__selectores = 0; document.getElementById('archivo-fondo').click = () => { window.__selectores++; }`);
-    await pg.ev(`document.querySelector('[data-fondo="hexagonos"]').click()`);
+    await pg.ev(`document.querySelector('[data-fondo="trama"]').click()`);
     await pg.ev(`document.querySelector('[data-fondo="imagen"]').click()`);
     await pg.esperar(200);
     igual(await pg.ev(`window.__selectores`), 0, 'con imagen guardada y otro fondo activo, «Imagen propia» solo la selecciona');

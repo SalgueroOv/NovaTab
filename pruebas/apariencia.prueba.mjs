@@ -8,6 +8,7 @@ const poner = (id, valor) => `(() => { const e = document.getElementById('${id}'
 const DEFECTO = {
   acento: null, fondo: 'curvas', intensidad: 100, intensidadImagen: 40, densidad: 'comoda',
   esquinas: 'medio', hora24: true, segundos: false, fecha: true,
+  semilla: null, densidadFondo: 0.55, relieve: 0.45, movimiento: 'lento', brillo: true,
 };
 
 export default {
@@ -24,6 +25,16 @@ export default {
       DEFECTO, 'normalizar con basura');
     igual(await pg.ev(`${modulo}.then(m => m.normalizarApariencia({ acento: '#E0245E', fondo: 'rayas', intensidad: 30, segundos: true, esquinas: 'recto' }))`),
       { ...DEFECTO, acento: '#e0245e', fondo: 'rayas', intensidad: 30, segundos: true, esquinas: 'recto' }, 'normalizar conserva lo válido');
+    // Los fondos de la versión 5.2 pasan al nuevo más parecido.
+    const ANTIGUOS = { teselas: 'rombos', ondas: 'crestas', puntos: 'cotas', cuadricula: 'trama', hexagonos: 'trama', anillos: 'curvas', montanas: 'crestas', grafo: 'grafo', rayas: 'rayas' };
+    for (const [antiguo, nuevo] of Object.entries(ANTIGUOS)) {
+      igual(await pg.ev(`${modulo}.then(m => m.normalizarApariencia({ fondo: '${antiguo}' }).fondo)`), nuevo, `el fondo ${antiguo} pasa a ${nuevo}`);
+    }
+    // Los ajustes del terreno: lo raro vuelve a su valor por defecto, lo válido se conserva (redondeado).
+    igual(await pg.ev(`${modulo}.then(m => m.normalizarApariencia({ densidadFondo: 'mucha', relieve: 7, movimiento: 'rapido', semilla: 'x'.repeat(500), brillo: 'sí' }))`),
+      { ...DEFECTO, relieve: 1 }, 'ajustes del terreno raros');
+    igual(await pg.ev(`${modulo}.then(m => m.normalizarApariencia({ densidadFondo: 0.333, relieve: 0, movimiento: 'vivo', semilla: 'casa-ab12c', brillo: false }))`),
+      { ...DEFECTO, densidadFondo: 0.33, relieve: 0, movimiento: 'vivo', semilla: 'casa-ab12c', brillo: false }, 'ajustes del terreno válidos');
 
     // (b) Opciones de antes de esta fase: la página arranca igual.
     pg = await abrir({ guardados: { opciones: { sobrio: true } } });

@@ -6,7 +6,7 @@ import { avisar } from './util.js';
 import { VERSION, datos, normalizar, ponerDatos } from './datos.js';
 import { resolver } from './rejilla.js';
 import { pintar, pintarLocal } from './pintado.js';
-import { CLAVE_OPCIONES, opciones, pintarFondo, pintarMuestras, ponerOpciones, ponerTema, recibirEco, temaActual } from './apariencia.js';
+import { CLAVE_OPCIONES, opciones, pintarFondo, pintarMuestras, ponerOpciones, ponerTema, recibirEco, temaActual, terreno } from './apariencia.js';
 import { CLAVE_TEMAS_PROPIOS, leerTemasPropios, normalizarTemasPropios, ponerTemasPropios } from './temas.js';
 import './editor-tema.js';
 import { cambioDeFuera, editando, guardar, sincronizado } from './edicion.js';
@@ -122,6 +122,7 @@ let recarga;
 // Para las pruebas automáticas: el estado actual y la forma de repintar, solo lectura.
 globalThis.novatab = {
   get datos() { return datos; },
+  get terreno() { return terreno; },
   pintar,
   alIr: null, // las pruebas la sustituyen para no salir de la página (ver atajos.js)
   DATOS_DEFECTO, // const de datos-defecto.js (script clásico): visible por su nombre, no en globalThis
