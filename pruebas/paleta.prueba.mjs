@@ -1,6 +1,9 @@
 import { activarDemo, afirmar, igual } from './lib/util.mjs';
 import { DATOS_PRUEBA } from './lib/datos-prueba.mjs';
 
+const guardables = enlaces => enlaces.map(e => ({ ...e, icono: null }));
+const estructura = d => ({ ...structuredClone(d), version: 4, grupos: d.grupos.map(({ enlaces, ...g }) => g) });
+const cabeceras = pg => pg.ev(`[...document.querySelectorAll('#paleta-lista .p-cab')].map(c => c.firstChild.textContent)`);
 const intercepta = `window.__ir = []; novatab.alIr = url => window.__ir.push(url)`;
 const titulos = pg => pg.ev(`[...document.querySelectorAll('#paleta-lista [role="option"]')].map(o => o.querySelector('.p-titulo').textContent)`);
 const abrirPaleta = async pg => {
@@ -25,12 +28,22 @@ export default {
     await abrirPaleta(pg);
     afirmar(await pg.ev(`document.getElementById('paleta').open`), 'Ctrl+K abre la paleta');
     igual(await pg.ev(`document.getElementById('paleta-texto').value`), '', 'texto vacío al abrir');
+    // Con la búsqueda vacía, una selección corta y agrupada: perfiles, vista, Personalizar y cinco enlaces.
+    igual(await cabeceras(pg), ['Perfiles', 'Vista', 'Servicios', 'Aspecto'], 'grupos de la selección corta');
     const todos = await titulos(pg);
-    igual(todos.slice(0, 3), ['Abrir: Proxmox Alfa', 'Abrir: Portainer Alfa', 'Abrir: Jellyfin Alfa'], 'los enlaces primero');
-    const ordenComandos = todos.filter(t => !t.startsWith('Abrir: '));
-    igual(ordenComandos.slice(0, 1), ['Modo reunión: activar'], 'modo reunión es el primer comando');
-    igual(ordenComandos.filter(t => t.startsWith('Tema: ')).length, 11, 'once temas');
-    igual(ordenComandos.slice(-6), ['Nuevo grupo', 'Nuevo enlace…', 'Nuevo widget', 'Ocultar panel izquierdo', 'Ocultar panel derecho', 'Editar: activar'], 'los últimos comandos');
+    igual(todos.filter(t => t.startsWith('Abrir: ')).length, 5, 'cinco enlaces');
+    igual(todos.filter(t => !t.startsWith('Abrir: ') && !t.startsWith('Perfil: ')), ['Modo reunión: activar', 'Ocultar panel izquierdo', 'Ocultar panel derecho', 'Editar: activar', 'Personalizar'], 'vista y Personalizar');
+    igual(await pg.ev(`document.querySelector('#paleta-lista .p-atajo').textContent`), 'Alt P', 'el grupo Perfiles enseña su atajo');
+    await pg.escribir('tema');
+    igual((await titulos(pg)).filter(t => t.startsWith('Tema: ')).length, 11, 'once temas');
+    igual(await pg.ev(`document.querySelectorAll('#paleta-lista .p-muestra').length`), 11, 'cada tema con su muestra');
+    // Búsqueda difusa: las letras en orden valen, y se resaltan.
+    await pg.ev(`(() => { const e = document.getElementById('paleta-texto'); e.value = 'prxmx'; e.dispatchEvent(new Event('input')); })()`);
+    igual((await titulos(pg))[0], 'Abrir: Proxmox Alfa', 'difusa: «prxmx» encuentra Proxmox');
+    igual(await pg.ev(`[...document.querySelector('#paleta-lista [aria-selected="true"] .p-titulo').querySelectorAll('mark')].map(m => m.textContent).join('')`), 'Prxmx', 'las letras encontradas resaltadas');
+    // Sobre la isla, al menos 560 px.
+    const [ancho, arriba] = await pg.ev(`(() => { const p = document.getElementById('paleta').getBoundingClientRect(), i = document.getElementById('isla').getBoundingClientRect(); return [Math.round(p.width) >= Math.min(560, Math.round(i.width)), Math.abs(p.top - i.top) < 2]; })()`);
+    afirmar(ancho && arriba, 'la paleta se abre sobre la isla');
     await pg.tecla('k', 'ctrl');
     afirmar(!(await pg.ev(`document.getElementById('paleta').open`)), 'Ctrl+K otra vez la cierra');
     await abrirPaleta(pg);
@@ -104,6 +117,7 @@ export default {
     await pg.esperar(300);
     await pg.ev(intercepta);
     await abrirPaleta(pg);
+    await pg.escribir('abrir');
     await pg.tecla('ArrowDown');
     await pg.tecla('ArrowDown');
     await pg.tecla('Enter');
@@ -128,6 +142,7 @@ export default {
     pg = await abrir({ datos: raro });
     await pg.esperar(300);
     await abrirPaleta(pg);
+    await pg.escribir('img');
     igual((await titulos(pg))[0], 'Abrir: <img src=x onerror="window.__xss=1"> & <b>x</b>', 'texto literal');
     igual(await pg.ev(`window.__xss ?? null`), null, 'no se ejecuta nada');
     igual(await pg.ev(`document.querySelectorAll('#paleta-lista img, #paleta-lista b').length`), 0, 'ningún elemento HTML dentro de la lista');
@@ -148,5 +163,26 @@ export default {
     await pg.ev(`__chromeFalso.remoto('sync', 'opciones', { reunion: true })`);
     await pg.esperar(300);
     afirmar(!(await pg.ev(`document.getElementById('paleta').open`)), 'la paleta se cierra si cambian las opciones');
+
+    // (k) Desde un perfil sin enlaces, la paleta encuentra los de los demás perfiles; abrirlo cambia de perfil.
+    const dos = {
+      'chrome.sync/perfiles': { version: 5, lista: [{ id: 'principal', nombre: 'Principal' }, { id: 'otro', nombre: 'Otro' }] },
+      'chrome.sync/perfil:principal:datos': estructura(DATOS_PRUEBA),
+      'chrome.sync/perfil:otro:datos': { ...estructura(DATOS_PRUEBA), grupos: [] },
+      ...Object.fromEntries(DATOS_PRUEBA.grupos.map(g => [`chrome.sync/enlaces:${g.id}`, guardables(g.enlaces)])),
+      'chrome.local/perfil-activo': 'otro',
+    };
+    pg = await abrir({ chrome: {}, datos: null, guardados: dos });
+    await pg.esperar(500);
+    await pg.ev(intercepta);
+    await abrirPaleta(pg);
+    await pg.escribir('proxmox');
+    await pg.esperar(300);
+    igual(await cabeceras(pg), ['En otros perfiles'], 'el grupo de los otros perfiles');
+    afirmar((await pg.ev(`document.querySelector('#paleta-lista .p-detalle').textContent`)).startsWith('Principal'), 'dice de qué perfil es');
+    await pg.tecla('Enter');
+    await pg.esperar(800);
+    igual(await pg.ev(`[novatab.perfil ?? null, window.__ir]`).then(([, ir]) => ir), ['http://192.168.1.11/'], 'abre el enlace');
+    afirmar((await pg.ev(`document.getElementById('btn-perfil').textContent`)).includes('Principal'), 'tras cambiar al perfil Principal');
   },
 };

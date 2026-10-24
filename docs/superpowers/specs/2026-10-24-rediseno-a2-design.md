@@ -221,7 +221,7 @@ Cada una con su plan en `docs/superpowers/plans/` antes de ejecutarse:
 2. **Fondos en canvas** (hecha, versión 5.3.0): motor `Terreno`, los once fondos, semilla por perfil, morfosis, luz, imagen en canvas, migración de ids y miniaturas.
 3. **La isla** (hecha, versión 5.4.0): sustituye esquina, selector de perfil y barra de edición; menú de perfiles con miniaturas; sigue al panel y al separador.
 4. **Estudio de Personalizar** (hecha, versión 5.5.0; el fondo no se encoge, sigue a pantalla completa): las cuatro pestañas, ámbitos, cartas con miniatura, Crear tema, Datos con lo movido.
-5. **Paleta renovada** con búsqueda en otros perfiles.
+5. **Paleta renovada** (hecha, versión 5.6.0; sigue siendo un `<dialog>` colocado sobre la isla, sin estilos de página todavía) con búsqueda en otros perfiles.
 6. **Estilos y aspecto de los grupos**: `estilo`, vista `auto`, filas de dos líneas, fichas, reloj de dígitos y migración de `vista`.
 7. **Estado en los grupos** (5.7).
 8. **Pulido**: axe y Lighthouse en todos los temas y estados nuevos, móvil, movimiento reducido, rendimiento medido, `README`, versión 6.0.0.

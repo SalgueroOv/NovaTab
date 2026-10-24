@@ -76,7 +76,7 @@ function pintar() {
   if (capaActual() === 'perfiles') {
     pintarCartas();
     // Las cartas se acaban de rehacer (otro perfil, por Alt+P o desde otra pestaña): el foco no se pierde.
-    if (focoEnMenu) menu.querySelector('[aria-checked="true"]')?.focus();
+    if (focoEnMenu) menu.querySelector('[aria-checked="true"]')?.focus({ preventScroll: true }); // la isla aún crece: que no se desplace
   }
 }
 
@@ -86,7 +86,7 @@ function abrir() {
   ponerCapa('perfiles');
   pintarCartas();
   boton.setAttribute('aria-expanded', 'true');
-  (menu.querySelector('[aria-checked="true"]') ?? elementos()[0])?.focus();
+  (menu.querySelector('[aria-checked="true"]') ?? elementos()[0])?.focus({ preventScroll: true });
 }
 
 function cerrar(devolverFoco = false) {
@@ -131,7 +131,7 @@ async function aspectoDe(id) {
   return { tema: guardado?.tema, apariencia: normalizarApariencia(guardado?.apariencia) };
 }
 
-async function pintarMini(lienzo, id) {
+export async function pintarMini(lienzo, id) {
   const { tema: idTema, apariencia: a } = await aspectoDe(id);
   const t = buscarTema(idTema);
   lienzo.closest('.carta-perfil')?.setAttribute('data-info', `${t.nombre} · ${FONDOS[a.fondo]?.nombre ?? (a.fondo === 'imagen' ? 'Imagen' : 'Liso')}`);
